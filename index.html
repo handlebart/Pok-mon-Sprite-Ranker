@@ -22,9 +22,9 @@ body {
   inset: 0;
   background: radial-gradient(circle at top, #1a1a1a, #000);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   z-index: 2000;
 }
 
@@ -77,9 +77,9 @@ body {
   inset: 0;
   background: #000;
   display: none;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   z-index: 1999;
 }
 
@@ -96,26 +96,6 @@ body {
   height: 100%;
   width: 0%;
   background: #ffcb05;
-  transition: width 0.2s;
-}
-
-/* APP */
-#counterBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: 6px;
-  padding: 8px;
-  background: #000;
-  font-size: 11px;
-}
-
-.counterItem {
-  flex: 1;
-  background: #1a1a1a;
-  padding: 6px;
 }
 
 #list {
@@ -141,10 +121,7 @@ body {
   display: none;
 }
 
-.sprite { display: inline-block; margin: 10px; }
-.sprite img { width: 96px; }
-
-button { margin: 20px; }
+.sprite img { width: 96px; margin: 10px; }
 </style>
 </head>
 
@@ -170,7 +147,6 @@ button { margin: 20px; }
 </div>
 
 <h2>Pokémon Sprite Ranker</h2>
-<div id="counterBar"></div>
 <div id="list"></div>
 
 <div id="spritePicker">
@@ -183,6 +159,8 @@ const list = document.getElementById("list");
 const loadingScreen = document.getElementById("loadingScreen");
 const fill = document.getElementById("loadingFill");
 const text = document.getElementById("loadingText");
+const options = document.getElementById("options");
+const spritePicker = document.getElementById("spritePicker");
 
 let currentImg = null;
 
@@ -197,24 +175,34 @@ function start() {
   load();
 }
 
-/* LOAD WITH PROGRESS */
+/* FIXED LOAD */
 async function load() {
   const total = 151;
 
   for (let id = 1; id <= total; id++) {
 
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/`);
+      if (!res.ok) throw new Error("Pokemon fetch failed");
 
-    const speciesRes = await fetch(data.species.url);
-    const species = await speciesRes.json();
+      const data = await res.json();
 
-    const german =
-      species.names.find(n => n.language.name === "de")?.name ||
-      data.name;
+      const speciesRes = await fetch(data.species.url);
+      if (!speciesRes.ok) throw new Error("Species fetch failed");
 
-    create(data, german);
+      const species = await speciesRes.json();
 
+      const german =
+        species.names.find(n => n.language.name === "de")?.name ||
+        data.name;
+
+      create(data, german);
+
+    } catch (err) {
+      console.log("Fehler bei Pokémon ID:", id, err);
+    }
+
+    // Fortschritt läuft IMMER
     const percent = Math.round(id / total * 100);
     fill.style.width = percent + "%";
     text.innerText = percent + "%";
@@ -243,13 +231,11 @@ function create(data, name) {
 
 /* SPRITES */
 function getSprites(d) {
-  const s = d.sprites;
   const name = d.name;
-
   return [
-    { src: s.front_default },
-    { src: `https://play.pokemonshowdown.com/sprites/ani/.gif` }
-  ].filter(x => x.src);
+    d.sprites.front_default,
+    `https://play.pokemonshowdown.com/sprites/ani/.gif`
+  ].filter(x => x);
 }
 
 /* PICKER */
@@ -257,12 +243,12 @@ function open(data, img) {
   currentImg = img;
   options.innerHTML = "";
 
-  getSprites(data).forEach(s => {
+  getSprites(data).forEach(src => {
     const im = document.createElement("img");
-    im.src = s.src;
+    im.src = src;
 
     im.onclick = () => {
-      currentImg.src = s.src;
+      currentImg.src = src;
       closePicker();
     };
 
