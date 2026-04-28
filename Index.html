@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Pokémon Sprite Ranker</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #111;
+  color: white;
+  margin: 0;
+  text-align: center;
+}
+
+#counterBar {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px;
+  background: #000;
+  border-bottom: 1px solid #222;
+  font-size: 11px;
+}
+
+.counterItem {
+  flex: 1;
+  border-radius: 6px;
+  padding: 6px 4px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+.counterLabel {
+  font-size: 10px;
+  color: #ddd;
+}
+
+.counterValue {
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.g1 { border-color: #ff5959; }
+.g2 { border-color: #ffd166; }
+.g3 { border-color: #06d6a0; }
+.g4 { border-color: #118ab2; }
+.g5 { border-color: #9b5de5; }
+.g6 { border-color: #f15bb5; }
+
+.pokemon {
+  border: 1px solid #333;
+  margin: 10px auto;
+  padding: 10px;
+  width: 90%;
+  max-width: 320px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+.pokemon img {
+  width: 96px;
+}
+
+.pokemon p {
+  margin: 6px 0 0 0;
+  font-size: 16px;
+}
+
+#spritePicker {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  display: none;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.sprite {
+  display: inline-block;
+  margin: 10px;
+  text-align: center;
+}
+
+.sprite img {
+  width: 96px;
+  display: block;
+}
+
+.label {
+  font-size: 11px;
+  margin-top: 4px;
+  color: #ccc;
+}
+
+button {
+  padding: 10px 16px;
+  margin: 15px;
+  font-size: 16px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Pokémon Sprite Ranker</h2>
+
+<div id="counterBar">
+  <div class="counterItem g1"><div class="counterLabel">Gen 1</div><div class="counterValue" id="c1">0%</div></div>
+  <div class="counterItem g2"><div class="counterLabel">Gen 2</div><div class="counterValue" id="c2">0%</div></div>
+  <div class="counterItem g3"><div class="counterLabel">Gen 3</div><div class="counterValue" id="c3">0%</div></div>
+  <div class="counterItem g4"><div class="counterLabel">Gen 4</div><div class="counterValue" id="c4">0%</div></div>
+  <div class="counterItem g5"><div class="counterLabel">Gen 5</div><div class="counterValue" id="c5">0%</div></div>
+  <div class="counterItem g6"><div class="counterLabel">Modern</div><div class="counterValue" id="c6">0%</div></div>
+</div>
+
+<div id="list"></div>
+
+<div id="spritePicker">
+  <h3>Sprite auswählen</h3>
+  <div id="options"></div>
+  <button onclick="closePicker()">Schließen</button>
+</div>
+
+<script>
+const list = document.getElementById("list");
+const picker = document.getElementById("spritePicker");
+const options = document.getElementById("options");
+
+let currentImg = null;
+let selections = {};
+
+const counter = {
+  gen1: 0,
+  gen2: 0,
+  gen3: 0,
+  gen4: 0,
+  gen5: 0,
+  modern: 0
+};
+
+async function load() {
+  for (let id = 1; id <= 151; id++) {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const data = await res.json();
+
+    const speciesRes = await fetch(data.species.url);
+    const species = await speciesRes.json();
+
+    const german =
+      species.names.find(n => n.language.name === "de")?.name ||
+      data.name;
+
+    create(data, german);
+  }
+}
+
+function create(data, name) {
+  const div = document.createElement("div");
+  div.className = "pokemon";
+
+  const img = document.createElement("img");
+  img.src = data.sprites.front_default;
+
+  const p = document.createElement("p");
+  p.innerText = name;
+
+  div.appendChild(img);
+  div.appendChild(p);
+
+  div.onclick = () => open(data, img);
+
+  list.appendChild(div);
+}
+
+function getSprites(d) {
+  const s = d.sprites;
+  const name = d.name;
+
+  return [
+    { src: s.versions?.["generation-i"]?.["red-blue"]?.front_default, label: "Gen 1", gen: "gen1" },
+    { src: s.versions?.["generation-ii"]?.crystal?.front_default, label: "Gen 2", gen: "gen2" },
+    { src: s.versions?.["generation-iii"]?.emerald?.front_default, label: "Gen 3", gen: "gen3" },
+    { src: s.versions?.["generation-iv"]?.platinum?.front_default, label: "Gen 4", gen: "gen4" },
+    {
+      src: s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
+           s.versions?.["generation-v"]?.["black-white"]?.front_default,
+      label: "Gen 5",
+      gen: "gen5"
+    },
+    {
+      src: `https://play.pokemonshowdown.com/sprites/ani/${name}.gif`,
+      label: "Modern",
+      gen: "modern"
+    }
+  ].filter(x => x.src);
+}
+
+function updateCounter() {
+  const total =
+    counter.gen1 + counter.gen2 + counter.gen3 +
+    counter.gen4 + counter.gen5 + counter.modern;
+
+  if (!total) return;
+
+  document.getElementById("c1").innerText = Math.round(counter.gen1 / total * 100) + "%";
+  document.getElementById("c2").innerText = Math.round(counter.gen2 / total * 100) + "%";
+  document.getElementById("c3").innerText = Math.round(counter.gen3 / total * 100) + "%";
+  document.getElementById("c4").innerText = Math.round(counter.gen4 / total * 100) + "%";
+  document.getElementById("c5").innerText = Math.round(counter.gen5 / total * 100) + "%";
+  document.getElementById("c6").innerText = Math.round(counter.modern / total * 100) + "%";
+}
+
+function open(data, img) {
+  currentImg = img;
+  options.innerHTML = "";
+
+  getSprites(data).forEach(s => {
+    const wrap = document.createElement("div");
+    wrap.className = "sprite";
+
+    const im = document.createElement("img");
+    im.src = s.src;
+
+    const label = document.createElement("div");
+    label.className = "label";
+    label.innerText = s.label;
+
+    im.onclick = () => {
+      const pokemonId = data.id;
+      const newGen = s.gen;
+      const oldGen = selections[pokemonId];
+
+      if (oldGen) counter[oldGen] = Math.max(0, counter[oldGen] - 1);
+
+      selections[pokemonId] = newGen;
+      counter[newGen]++;
+
+      currentImg.src = s.src;
+      updateCounter();
+      closePicker();
+    };
+
+    wrap.appendChild(im);
+    wrap.appendChild(label);
+    options.appendChild(wrap);
+  });
+
+  picker.style.display = "block";
+}
+
+function closePicker() {
+  picker.style.display = "none";
+}
+
+load();
+</script>
+
+</body>
+</html>
