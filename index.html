@@ -125,9 +125,14 @@ body {
   display: none;
 }
 
-.sprite img {
+#options {
+  padding: 20px;
+}
+
+#options img {
   width: 96px;
   margin: 10px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -165,16 +170,15 @@ body {
 </div>
 
 <script>
-/* ================= ELEMENTS ================= */
 const list = document.getElementById("list");
 const picker = document.getElementById("spritePicker");
-const options = document.getElementById("options");
+
+let options = null;
+let currentImg = null;
 
 const loadingScreen = document.getElementById("loadingScreen");
 const fill = document.getElementById("loadingFill");
 const text = document.getElementById("loadingText");
-
-let currentImg = null;
 
 /* ================= START SAFE ================= */
 window.addEventListener("DOMContentLoaded", () => {
@@ -185,8 +189,9 @@ function start() {
   document.getElementById("homeScreen").style.display = "none";
   loadingScreen.style.display = "flex";
 
-  list.innerHTML = "";
+  options = document.getElementById("options"); // 🔥 FIX: safe init
 
+  list.innerHTML = "";
   load();
 }
 
@@ -239,9 +244,11 @@ function create(data, name) {
   list.appendChild(div);
 }
 
-/* ================= SPRITES ================= */
+/* ================= SPRITE PICKER ================= */
 function open(data, img) {
   currentImg = img;
+
+  if (!options) options = document.getElementById("options"); // 🔥 safety fix
   options.innerHTML = "";
 
   const name = data.name;
