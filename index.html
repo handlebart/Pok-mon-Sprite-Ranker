@@ -11,11 +11,14 @@ body {
   color: white;
   margin: 0;
   text-align: center;
+  padding-top: 70px;
 }
 
 #counterBar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 999;
   display: flex;
   justify-content: space-between;
@@ -52,14 +55,22 @@ body {
 .g5 { border-color: #9b5de5; }
 .g6 { border-color: #f15bb5; }
 
+#list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 40px;
+}
+
 .pokemon {
   border: 1px solid #333;
-  margin: 10px auto;
   padding: 10px;
   width: 90%;
   max-width: 320px;
   background: #1a1a1a;
   border-radius: 8px;
+  margin: 0;
 }
 
 .pokemon img {
@@ -148,12 +159,29 @@ const counter = {
 };
 
 async function load() {
-  for (let id = 1; id <= 151; id++) {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    const data = await res.json();
+  const pokemonPromises = [];
 
-    const speciesRes = await fetch(data.species.url);
-    const species = await speciesRes.json();
+  for (let id = 1; id <= 151; id++) {
+    pokemonPromises.push(
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+        .then(r => r.json())
+        .then(data => ({ id, data }))
+    );
+  }
+
+  const pokemonList = await Promise.all(pokemonPromises);
+
+  const speciesPromises = pokemonList.map(p =>
+    fetch(p.data.species.url)
+      .then(r => r.json())
+      .then(species => ({ ...p, species }))
+  );
+
+  const fullData = await Promise.all(speciesPromises);
+
+  for (const item of fullData) {
+    const data = item.data;
+    const species = item.species;
 
     const german =
       species.names.find(n => n.language.name === "de")?.name ||
@@ -224,6 +252,7 @@ function open(data, img) {
   options.innerHTML = "";
 
   getSprites(data).forEach(s => {
+
     const wrap = document.createElement("div");
     wrap.className = "sprite";
 
@@ -235,13 +264,15 @@ function open(data, img) {
     label.innerText = s.label;
 
     im.onclick = () => {
-      const pokemonId = data.id;
+      const id = data.id;
       const newGen = s.gen;
-      const oldGen = selections[pokemonId];
+      const oldGen = selections[id];
 
-      if (oldGen) counter[oldGen] = Math.max(0, counter[oldGen] - 1);
+      if (oldGen) {
+        counter[oldGen] = Math.max(0, counter[oldGen] - 1);
+      }
 
-      selections[pokemonId] = newGen;
+      selections[id] = newGen;
       counter[newGen]++;
 
       currentImg.src = s.src;
