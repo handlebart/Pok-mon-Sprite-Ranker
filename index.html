@@ -159,8 +159,8 @@ body {
   <p id="loadingText">0%</p>
 </div>
 
-<!-- APP -->
-<h2>Pokémon Sprite Ranker</h2>
+<!-- APP TITLE (FIXED) -->
+<h2 id="appTitle" style="display:none;">Pokémon Sprite Ranker</h2>
 
 <div id="list"></div>
 
@@ -172,6 +172,7 @@ body {
 <script>
 const list = document.getElementById("list");
 const picker = document.getElementById("spritePicker");
+const appTitle = document.getElementById("appTitle");
 
 let options = null;
 let currentImg = null;
@@ -180,7 +181,7 @@ const loadingScreen = document.getElementById("loadingScreen");
 const fill = document.getElementById("loadingFill");
 const text = document.getElementById("loadingText");
 
-/* ================= START SAFE ================= */
+/* ================= START ================= */
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("pokeballBtn").addEventListener("click", start);
 });
@@ -189,7 +190,7 @@ function start() {
   document.getElementById("homeScreen").style.display = "none";
   loadingScreen.style.display = "flex";
 
-  options = document.getElementById("options"); // 🔥 FIX: safe init
+  appTitle.style.display = "block"; // 🔥 FIX
 
   list.innerHTML = "";
   load();
@@ -199,31 +200,43 @@ function start() {
 async function load() {
   const total = 151;
 
+  const requests = [];
+
   for (let id = 1; id <= total; id++) {
+    requests.push(
+      fetch(`https://pokeapi.co/api/v2/pokemon/`)
+        .then(r => r.json())
+        .then(async data => {
+          const species = await fetch(data.species.url).then(r => r.json());
 
-    try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/`);
-      const data = await res.json();
+          const german =
+            species.names.find(n => n.language.name === "de")?.name ||
+            data.name;
 
-      const speciesRes = await fetch(data.species.url);
-      const species = await speciesRes.json();
-
-      const german =
-        species.names.find(n => n.language.name === "de")?.name ||
-        data.name;
-
-      create(data, german);
-
-    } catch (e) {
-      console.warn("Fehler bei Pokémon:", id);
-    }
-
-    const percent = Math.round((id / total) * 100);
-    fill.style.width = percent + "%";
-    text.innerText = percent + "%";
+          return { data, german };
+        })
+        .catch(() => null)
+    );
   }
 
+  const results = await Promise.all(requests);
+
+  let loaded = 0;
+
+  results.forEach(item => {
+    if (!item) return;
+
+    create(item.data, item.german);
+
+    loaded++;
+    const percent = Math.round((loaded / total) * 100);
+
+    fill.style.width = percent + "%";
+    text.innerText = percent + "%";
+  });
+
   loadingScreen.style.display = "none";
+  appTitle.style.display = "none";
 }
 
 /* ================= CREATE ================= */
@@ -244,11 +257,11 @@ function create(data, name) {
   list.appendChild(div);
 }
 
-/* ================= SPRITE PICKER ================= */
+/* ================= PICKER ================= */
 function open(data, img) {
   currentImg = img;
 
-  if (!options) options = document.getElementById("options"); // 🔥 safety fix
+  if (!options) options = document.getElementById("options");
   options.innerHTML = "";
 
   const name = data.name;
