@@ -16,7 +16,7 @@ body {
   padding-top: 70px;
 }
 
-/* ================= HOME ================= */
+/* HOME */
 #homeScreen {
   position: fixed;
   inset: 0;
@@ -36,6 +36,7 @@ body {
   margin-bottom: 40px;
 }
 
+/* POKEBALL */
 #pokeballBtn {
   width: 120px;
   height: 120px;
@@ -70,7 +71,7 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* ================= LOADING ================= */
+/* LOADING */
 #loadingScreen {
   position: fixed;
   inset: 0;
@@ -95,28 +96,9 @@ body {
   height: 100%;
   width: 0%;
   background: #ffcb05;
-  transition: width 0.2s;
 }
 
-/* ================= APP ================= */
-#counterBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: 6px;
-  padding: 8px;
-  background: #000;
-  font-size: 11px;
-}
-
-.counterItem {
-  flex: 1;
-  background: #1a1a1a;
-  padding: 6px;
-}
-
+/* LIST */
 #list {
   display: flex;
   flex-direction: column;
@@ -131,8 +113,11 @@ body {
   max-width: 300px;
 }
 
-.pokemon img { width: 96px; }
+.pokemon img {
+  width: 96px;
+}
 
+/* PICKER */
 #spritePicker {
   position: fixed;
   inset: 0;
@@ -140,7 +125,10 @@ body {
   display: none;
 }
 
-.sprite img { width: 96px; margin: 10px; }
+.sprite img {
+  width: 96px;
+  margin: 10px;
+}
 </style>
 </head>
 
@@ -149,6 +137,7 @@ body {
 <!-- HOME -->
 <div id="homeScreen">
   <h1 class="title">Pokémon Sprite Ranking</h1>
+
   <div id="pokeballBtn">
     <div class="top"></div>
     <div class="middle"></div>
@@ -168,7 +157,6 @@ body {
 <!-- APP -->
 <h2>Pokémon Sprite Ranker</h2>
 
-<div id="counterBar"></div>
 <div id="list"></div>
 
 <div id="spritePicker">
@@ -177,27 +165,32 @@ body {
 </div>
 
 <script>
+/* ================= ELEMENTS ================= */
 const list = document.getElementById("list");
+const picker = document.getElementById("spritePicker");
+const options = document.getElementById("options");
+
 const loadingScreen = document.getElementById("loadingScreen");
 const fill = document.getElementById("loadingFill");
 const text = document.getElementById("loadingText");
-const options = document.getElementById("options");
-const spritePicker = document.getElementById("spritePicker");
 
 let currentImg = null;
 
-/* ================= START ================= */
-window.onload = () => {
-  document.getElementById("pokeballBtn").onclick = start;
-};
+/* ================= START SAFE ================= */
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("pokeballBtn").addEventListener("click", start);
+});
 
 function start() {
   document.getElementById("homeScreen").style.display = "none";
   loadingScreen.style.display = "flex";
+
+  list.innerHTML = "";
+
   load();
 }
 
-/* ================= LOAD (STABIL) ================= */
+/* ================= LOAD ================= */
 async function load() {
   const total = 151;
 
@@ -217,10 +210,10 @@ async function load() {
       create(data, german);
 
     } catch (e) {
-      console.log("Fehler bei Pokémon:", id);
+      console.warn("Fehler bei Pokémon:", id);
     }
 
-    const percent = Math.round(id / total * 100);
+    const percent = Math.round((id / total) * 100);
     fill.style.width = percent + "%";
     text.innerText = percent + "%";
   }
@@ -247,21 +240,18 @@ function create(data, name) {
 }
 
 /* ================= SPRITES ================= */
-function getSprites(d) {
-  const name = d.name;
-
-  return [
-    d.sprites.front_default,
-    `https://play.pokemonshowdown.com/sprites/ani/.gif`
-  ].filter(Boolean);
-}
-
-/* ================= PICKER ================= */
 function open(data, img) {
   currentImg = img;
   options.innerHTML = "";
 
-  getSprites(data).forEach(src => {
+  const name = data.name;
+
+  const sprites = [
+    data.sprites.front_default,
+    `https://play.pokemonshowdown.com/sprites/ani/.gif`
+  ].filter(Boolean);
+
+  sprites.forEach(src => {
     const im = document.createElement("img");
     im.src = src;
 
@@ -273,11 +263,11 @@ function open(data, img) {
     options.appendChild(im);
   });
 
-  spritePicker.style.display = "block";
+  picker.style.display = "block";
 }
 
 function closePicker() {
-  spritePicker.style.display = "none";
+  picker.style.display = "none";
 }
 </script>
 
