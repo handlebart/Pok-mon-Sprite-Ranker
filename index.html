@@ -72,7 +72,7 @@ h2 {
 /* APP */
 #app { display:none; }
 
-/* 🔥 FIXED COUNTER BAR */
+/* COUNTER */
 #counterBar {
   position: fixed;
   top: 0;
@@ -83,7 +83,6 @@ h2 {
   padding: 8px;
   font-size: 11px;
   z-index: 999;
-  backdrop-filter: blur(6px);
 }
 
 .counterItem {
@@ -93,15 +92,12 @@ h2 {
   border: 1px solid #333;
   background: rgba(0,0,0,0.65);
 
-  /* 🔧 FIX: VERTIKAL STATT HORIZONTAL */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
 }
 
-/* Farben */
 .g1 { border-color:#ff5959; }
 .g2 { border-color:#ffd166; }
 .g3 { border-color:#06d6a0; }
@@ -112,9 +108,9 @@ h2 {
 /* LIST */
 #list {
   margin-top: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .pokemon {
@@ -135,15 +131,14 @@ h2 {
   background: rgba(5,10,25,0.97);
   display: none;
   padding: 20px;
-  overflow-y: auto;
+  overflow-y:auto;
 }
 
 #options {
-  display: grid;
+  display:grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 18px;
   margin-top: 20px;
-  justify-items: center;
 }
 
 .sprite img {
@@ -154,45 +149,38 @@ h2 {
 .label {
   margin-top: 6px;
   font-size: 12px;
-  color: #cbd5e1;
+  color:#cbd5e1;
 }
 
 button {
   padding: 10px 14px;
   margin: 10px;
-  border: none;
-  border-radius: 8px;
-  background: #1f2937;
-  color: white;
+  border:none;
+  border-radius:8px;
+  background:#1f2937;
+  color:white;
 }
 </style>
 </head>
 
 <body>
 
-<!-- START -->
 <div id="start">
   <h2>Was willst du ranken?</h2>
 
-  <div>
-    <button class="pokeballBtn" onclick="startGen(1)"></button>
-    <div class="btnLabel">GEN 1</div>
-  </div>
+  <button class="pokeballBtn" onclick="startGen(1)"></button>
+  <div class="btnLabel">GEN 1</div>
 
-  <div>
-    <button class="pokeballBtn" onclick="startGen(2)"></button>
-    <div class="btnLabel">GEN 2</div>
-  </div>
+  <button class="pokeballBtn" onclick="startGen(2)"></button>
+  <div class="btnLabel">GEN 2</div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div id="counterBar"></div>
   <button onclick="back()">← Zurück</button>
   <div id="list"></div>
 </div>
 
-<!-- PICKER -->
 <div id="spritePicker">
   <h3>Sprite auswählen</h3>
   <div id="options"></div>
@@ -200,8 +188,11 @@ button {
 </div>
 
 <script>
-let range=[1,151],mode=1;
-let selections={},counter={};
+let range=[1,151];
+let mode=1;
+
+let selections={};
+let counter={};
 
 const list=document.getElementById("list");
 const counterBar=document.getElementById("counterBar");
@@ -209,6 +200,11 @@ const options=document.getElementById("options");
 const picker=document.getElementById("spritePicker");
 
 let currentImg=null;
+
+/* 🔥 IMPORTANT: WAIT FOR DOM (GitHub Fix) */
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Ready");
+});
 
 function buildCounterBar(){
   counterBar.innerHTML="";
@@ -250,7 +246,7 @@ function startGen(gen){
   selections={};
   counter={};
 
-  range=gen===1?[1,151]:[152,251];
+  range = gen===1 ? [1,151] : [152,251];
 
   buildCounterBar();
   load();
@@ -262,17 +258,20 @@ function back(){
 }
 
 async function load(){
-  for(let id=range[0];id<=range[1];id++){
+  for(let id=range[0]; id<=range[1]; id++){
     try{
       const d=await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
       const s=await fetch(d.species.url).then(r=>r.json());
 
-      const name=
+      const name =
         s.names.find(n=>n.language.name==="de")?.name ||
         d.name;
 
       create(d,name);
-    }catch{}
+
+    } catch(e){
+      console.log("fail", id);
+    }
   }
 }
 
@@ -325,7 +324,7 @@ function updateCounter(){
 
   Object.keys(counter).forEach(k=>{
     const el=document.getElementById(k);
-    if(el)el.innerText=Math.round(counter[k]/total*100)+"%";
+    if(el) el.innerText=Math.round(counter[k]/total*100)+"%";
   });
 }
 
@@ -367,8 +366,6 @@ function closePicker(){
   picker.style.display="none";
   document.body.style.overflow="";
 }
-
-buildCounterBar();
 </script>
 
 </body>
