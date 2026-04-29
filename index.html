@@ -19,7 +19,6 @@ body {
     #0b0f1a;
 }
 
-/* START */
 #start {
   height: 100vh;
   display: flex;
@@ -36,7 +35,6 @@ h2 {
   margin-bottom: 40px;
 }
 
-/* POKEBALL */
 .pokeballBtn {
   width: 120px;
   height: 120px;
@@ -77,7 +75,6 @@ h2 {
   font-size:11px;
 }
 
-/* APP */
 #app { display:none; }
 
 #backBtn {
@@ -85,6 +82,20 @@ h2 {
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 1000;
+}
+
+#resetBtn {
+  position: fixed;
+  left: 10px;
+  top: calc(50% + 60px);
+  z-index: 1000;
+}
+
+#shinyBtn {
+  position: fixed;
+  left: 10px;
+  top: calc(50% + 120px);
   z-index: 1000;
 }
 
@@ -107,7 +118,6 @@ h2 {
   border-radius: 8px;
   border: 1px solid #333;
   background: rgba(0,0,0,0.65);
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -199,6 +209,8 @@ button {
 <div id="app">
   <div id="counterBar"></div>
   <button id="backBtn" onclick="back()">← Zurück</button>
+  <button id="resetBtn" onclick="resetAll()">Reset</button>
+  <button id="shinyBtn" onclick="toggleShiny()">Alle Shiny</button>
   <div id="list"></div>
 </div>
 
@@ -210,7 +222,11 @@ button {
 
 <script>
 let range=[1,151],mode=1;
-let selections={},counter={};
+let selections={};
+let counter={};
+let shinyAll=false;
+
+const STORAGE_KEY="poke_rankings";
 
 const list=document.getElementById("list");
 const counterBar=document.getElementById("counterBar");
@@ -218,6 +234,57 @@ const options=document.getElementById("options");
 const picker=document.getElementById("spritePicker");
 
 let currentImg=null;
+
+/* STORAGE */
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
+}
+
+function restore(){
+  const data = localStorage.getItem(STORAGE_KEY);
+  if(data) selections = JSON.parse(data);
+}
+
+/* SHINY TOGGLE */
+function toggleShiny(){
+  shinyAll = !shinyAll;
+  renderAllSprites();
+}
+
+/* UPDATE LIST SPRITES */
+function renderAllSprites(){
+  document.querySelectorAll(".pokemon").forEach(div=>{
+    const data = JSON.parse(div.dataset.poke);
+    const img = div.querySelector("img");
+
+    const sprites = getSprites(data);
+
+    if(selections[data.id]){
+      const match = sprites.find(s => s.gen === selections[data.id]);
+      if(match) img.src = match.src;
+    } else {
+      img.src = shinyAll ? getDefaultSprite(data, true) : data.sprites.front_default;
+    }
+  });
+}
+
+/* DEFAULT SPRITE */
+function getDefaultSprite(d, forceShiny=false){
+  const name=d.name.replace(/-/g,"");
+  if(!forceShiny && !shinyAll) return d.sprites.front_default;
+  return d.sprites.front_shiny || d.sprites.front_default;
+}
+
+/* COUNTER */
+function rebuildCounter(){
+  Object.keys(counter).forEach(k => counter[k]=0);
+
+  Object.entries(selections).forEach(([id,gen])=>{
+    if(counter[gen] !== undefined){
+      counter[gen]++;
+    }
+  });
+}
 
 function buildCounterBar(){
   counterBar.innerHTML="";
@@ -250,6 +317,23 @@ function buildCounterBar(){
   });
 }
 
+function updateCounter(){
+  const total=Object.values(counter).reduce((a,b)=>a+b,0);
+  if(!total){
+    Object.keys(counter).forEach(k=>{
+      const el=document.getElementById(k);
+      if(el) el.innerText="0%";
+    });
+    return;
+  }
+
+  Object.keys(counter).forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.innerText=Math.round(counter[k]/total*100)+"%";
+  });
+}
+
+/* APP */
 function startGen(gen){
   mode=gen;
   document.getElementById("start").style.display="none";
@@ -270,41 +354,62 @@ function back(){
   document.getElementById("start").style.display="block";
 }
 
-/* 🔥 NUR DIESE FUNKTION GEÄNDERT */
+function resetAll(){
+  localStorage.removeItem(STORAGE_KEY);
+  selections={};
+
+  document.querySelectorAll(".pokemon img").forEach(img=>{
+    img.src = img.dataset.default;
+  });
+
+  buildCounterBar();
+  updateCounter();
+}
+
+/* LOAD */
 async function load(){
-  const ids = [];
-  for(let i = range[0]; i <= range[1]; i++) ids.push(i);
+  restore();
 
-  const promises = ids.map(async id => {
+  const ids=[];
+  for(let i=range[0]; i<=range[1]; i++) ids.push(i);
+
+  const promises=ids.map(async id=>{
     try{
-      const d = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
-      const s = await fetch(d.species.url).then(r=>r.json());
+      const d=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+      const s=await fetch(d.species.url).then(r=>r.json());
 
-      const name =
+      const name=
         s.names.find(n=>n.language.name==="de")?.name ||
         d.name;
 
-      return { id: d.id, data: d, name };
-    }catch{
-      return null;
-    }
+      return {id:d.id,data:d,name};
+    }catch{return null;}
   });
 
-  const results = (await Promise.all(promises))
+  const results=(await Promise.all(promises))
     .filter(Boolean)
-    .sort((a,b)=>a.id - b.id);
+    .sort((a,b)=>a.id-b.id);
 
-  results.forEach(p=>{
-    create(p.data, p.name);
-  });
+  results.forEach(p=>create(p.data,p.name));
+
+  rebuildCounter();
+  updateCounter();
 }
 
+/* CREATE */
 function create(d,name){
   const div=document.createElement("div");
   div.className="pokemon";
 
   const img=document.createElement("img");
-  img.src=d.sprites.front_default;
+  img.src = shinyAll ? getDefaultSprite(d,true) : d.sprites.front_default;
+  img.dataset.default = d.sprites.front_default;
+
+  div.dataset.poke = JSON.stringify({
+    id:d.id,
+    name:d.name,
+    sprites:d.sprites
+  });
 
   const p=document.createElement("p");
   p.innerText=name;
@@ -315,25 +420,46 @@ function create(d,name){
   list.appendChild(div);
 }
 
+/* SPRITES */
 function getSprites(d){
   const s=d.sprites;
   const name=d.name.replace(/-/g,"");
 
   const arr=[
-    {src:s.versions?.["generation-i"]?.["red-blue"]?.front_default,gen:"gen1",label:"Gen 1"},
-    {src:s.versions?.["generation-ii"]?.crystal?.front_default,gen:"gen2",label:"Gen 2"},
-    {src:s.versions?.["generation-iii"]?.emerald?.front_default,gen:"gen3",label:"Gen 3"},
-    {src:s.versions?.["generation-iv"]?.platinum?.front_default,gen:"gen4",label:"Gen 4"},
     {
-      src:s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
-          s.versions?.["generation-v"]?.["black-white"]?.front_default,
-      gen:"gen5",
-      label:"Gen 5"
+      src: shinyAll ? (s.versions?.["generation-i"]?.["red-blue"]?.front_shiny || s.versions?.["generation-i"]?.["red-blue"]?.front_default)
+                    : s.versions?.["generation-i"]?.["red-blue"]?.front_default,
+      gen:"gen1",label:"Gen 1"
     },
     {
-      src:`https://play.pokemonshowdown.com/sprites/ani/${name}.gif`,
-      gen:"modern",
-      label:"Modern"
+      src: shinyAll ? (s.versions?.["generation-ii"]?.crystal?.front_shiny || s.versions?.["generation-ii"]?.crystal?.front_default)
+                    : s.versions?.["generation-ii"]?.crystal?.front_default,
+      gen:"gen2",label:"Gen 2"
+    },
+    {
+      src: shinyAll ? (s.versions?.["generation-iii"]?.emerald?.front_shiny || s.versions?.["generation-iii"]?.emerald?.front_default)
+                    : s.versions?.["generation-iii"]?.emerald?.front_default,
+      gen:"gen3",label:"Gen 3"
+    },
+    {
+      src: shinyAll ? (s.versions?.["generation-iv"]?.platinum?.front_shiny || s.versions?.["generation-iv"]?.platinum?.front_default)
+                    : s.versions?.["generation-iv"]?.platinum?.front_default,
+      gen:"gen4",label:"Gen 4"
+    },
+    {
+      src: shinyAll
+        ? (s.versions?.["generation-v"]?.["black-white"]?.animated_shiny ||
+           s.versions?.["generation-v"]?.["black-white"]?.front_shiny ||
+           s.versions?.["generation-v"]?.["black-white"]?.front_default)
+        : (s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
+           s.versions?.["generation-v"]?.["black-white"]?.front_default),
+      gen:"gen5",label:"Gen 5"
+    },
+    {
+      src: shinyAll
+        ? `https://play.pokemonshowdown.com/sprites/ani-shiny/${name}.gif`
+        : `https://play.pokemonshowdown.com/sprites/ani/${name}.gif`,
+      gen:"modern",label:"Modern"
     }
   ];
 
@@ -342,16 +468,7 @@ function getSprites(d){
     : arr.filter(x=>x.src && x.gen!=="gen1");
 }
 
-function updateCounter(){
-  const total=Object.values(counter).reduce((a,b)=>a+b,0);
-  if(!total)return;
-
-  Object.keys(counter).forEach(k=>{
-    const el=document.getElementById(k);
-    if(el)el.innerText=Math.round(counter[k]/total*100)+"%";
-  });
-}
-
+/* PICKER */
 function open(d,img){
   currentImg=img;
   options.innerHTML="";
@@ -375,6 +492,8 @@ function open(d,img){
       counter[s.gen]++;
 
       currentImg.src=s.src;
+
+      save();
       updateCounter();
       closePicker();
     };
@@ -391,7 +510,6 @@ function closePicker(){
   document.body.style.overflow="";
 }
 
-buildCounterBar();
 </script>
 
 </body>
