@@ -15,7 +15,6 @@ body {
   background:#0b0f1a;
 }
 
-/* START */
 #start { margin-top:90px; }
 
 h2 {
@@ -23,6 +22,7 @@ h2 {
   font-size:18px;
 }
 
+/* Pokéball */
 .pokeballBtn {
   width:120px;
   height:120px;
@@ -66,7 +66,6 @@ h2 {
 /* APP */
 #app { display:none; }
 
-/* STICKY */
 #counterBar {
   position:fixed;
   top:0;
@@ -89,7 +88,6 @@ h2 {
   align-items:center;
 }
 
-/* LIST */
 #list {
   margin-top:80px;
   display:flex;
@@ -98,7 +96,7 @@ h2 {
 }
 
 .pokemon {
-  width:90%;
+  width:92%;
   max-width:340px;
   margin:10px;
   padding:12px;
@@ -150,7 +148,7 @@ h2 {
 
 <div id="app">
   <div id="counterBar"></div>
-  <button onclick="back()" style="margin-top:60px;">← Zurück</button>
+  <button onclick="back()">← Zurück</button>
   <div id="list"></div>
 </div>
 
@@ -174,37 +172,57 @@ document.addEventListener("DOMContentLoaded",()=>{
   options=document.getElementById("options");
 });
 
-/* 🔥 ULTRA SAFE LOADER */
+/* 🔥 SAFE FETCH WITH RETRY */
+async function fetchSafe(url,retries=2){
+  for(let i=0;i<=retries;i++){
+    try{
+      const r=await fetch(url);
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      return await r.json();
+    }catch(e){
+      if(i===retries) throw e;
+      await new Promise(res=>setTimeout(res,200));
+    }
+  }
+}
+
+/* 🔥 FIXED LOADER */
 async function load(){
   for(let id=range[0]; id<=range[1]; id++){
 
-    try {
-      const d = await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
+    try{
+      const d = await fetchSafe(`https://pokeapi.co/api/v2/pokemon/`);
 
-      const s = await fetch(d.species.url).then(r=>r.json());
+      let name = d.name;
 
-      const name =
-        s.names?.find(n=>n.language.name==="de")?.name ||
-        d.name;
+      // species NICHT mehr kritisch
+      try{
+        const s = await fetchSafe(d.species.url);
+        name =
+          s.names?.find(n=>n.language.name==="de")?.name ||
+          d.name;
+      }catch{}
 
       create(d,name);
 
-    } catch(e) {
-      console.log("fail:",id);
-
-      // fallback entry damit nichts „leer“ wirkt
+    }catch(e){
+      console.log("FAIL",id);
       createFallback(id);
     }
 
-    // 🔥 rate limit protection (WICHTIG für GitHub Pages)
-    await new Promise(r=>setTimeout(r,35));
+    await new Promise(r=>setTimeout(r,60));
   }
 }
 
 function createFallback(id){
   const div=document.createElement("div");
   div.className="pokemon";
-  div.innerHTML=`<p># (Laden fehlgeschlagen)</p>`;
+
+  div.innerHTML=`
+    <p>#</p>
+    <p style="opacity:0.6">Sprite konnte nicht geladen werden</p>
+  `;
+
   list.appendChild(div);
 }
 
@@ -275,8 +293,17 @@ function open(d,img){
     {src:s.versions?.["generation-ii"]?.crystal?.front_default,gen:"gen2",label:"Gen 2"},
     {src:s.versions?.["generation-iii"]?.emerald?.front_default,gen:"gen3",label:"Gen 3"},
     {src:s.versions?.["generation-iv"]?.platinum?.front_default,gen:"gen4",label:"Gen 4"},
-    {src:s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default || s.versions?.["generation-v"]?.["black-white"]?.front_default,gen:"gen5",label:"Gen 5"},
-    {src:`https://play.pokemonshowdown.com/sprites/ani/.gif`,gen:"modern",label:"Modern"}
+    {
+      src:s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
+          s.versions?.["generation-v"]?.["black-white"]?.front_default,
+      gen:"gen5",
+      label:"Gen 5"
+    },
+    {
+      src:`https://play.pokemonshowdown.com/sprites/ani/.gif`,
+      gen:"modern",
+      label:"Modern"
+    }
   ];
 
   arr.filter(x=>x.src).forEach(s=>{
