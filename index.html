@@ -20,7 +20,15 @@ body {
 }
 
 /* START */
-#start { margin-top: 90px; }
+#start {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: black;
+  margin: 0;
+}
 
 h2 {
   font-family: "Press Start 2P", monospace;
@@ -72,7 +80,14 @@ h2 {
 /* APP */
 #app { display:none; }
 
-/* 🔥 FIXED COUNTER BAR */
+#backBtn {
+  position: fixed;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
 #counterBar {
   position: fixed;
   top: 0;
@@ -93,7 +108,6 @@ h2 {
   border: 1px solid #333;
   background: rgba(0,0,0,0.65);
 
-  /* 🔧 FIX: VERTIKAL STATT HORIZONTAL */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,7 +115,6 @@ h2 {
   gap: 3px;
 }
 
-/* Farben */
 .g1 { border-color:#ff5959; }
 .g2 { border-color:#ffd166; }
 .g3 { border-color:#06d6a0; }
@@ -109,7 +122,6 @@ h2 {
 .g5 { border-color:#9b5de5; }
 .g6 { border-color:#f15bb5; }
 
-/* LIST */
 #list {
   margin-top: 80px;
   display: flex;
@@ -128,14 +140,14 @@ h2 {
 
 .pokemon img { width: 96px; }
 
-/* PICKER */
 #spritePicker {
   position: fixed;
   inset: 0;
   background: rgba(5,10,25,0.97);
   display: none;
-  padding: 20px;
+  padding: 90px 20px 40px;
   overflow-y: auto;
+  text-align: center;
 }
 
 #options {
@@ -170,7 +182,6 @@ button {
 
 <body>
 
-<!-- START -->
 <div id="start">
   <h2>Was willst du ranken?</h2>
 
@@ -185,14 +196,12 @@ button {
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div id="counterBar"></div>
-  <button onclick="back()">← Zurück</button>
+  <button id="backBtn" onclick="back()">← Zurück</button>
   <div id="list"></div>
 </div>
 
-<!-- PICKER -->
 <div id="spritePicker">
   <h3>Sprite auswählen</h3>
   <div id="options"></div>
@@ -261,19 +270,33 @@ function back(){
   document.getElementById("start").style.display="block";
 }
 
+/* 🔥 NUR DIESE FUNKTION GEÄNDERT */
 async function load(){
-  for(let id=range[0];id<=range[1];id++){
-    try{
-      const d=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
-      const s=await fetch(d.species.url).then(r=>r.json());
+  const ids = [];
+  for(let i = range[0]; i <= range[1]; i++) ids.push(i);
 
-      const name=
+  const promises = ids.map(async id => {
+    try{
+      const d = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+      const s = await fetch(d.species.url).then(r=>r.json());
+
+      const name =
         s.names.find(n=>n.language.name==="de")?.name ||
         d.name;
 
-      create(d,name);
-    }catch{}
-  }
+      return { id: d.id, data: d, name };
+    }catch{
+      return null;
+    }
+  });
+
+  const results = (await Promise.all(promises))
+    .filter(Boolean)
+    .sort((a,b)=>a.id - b.id);
+
+  results.forEach(p=>{
+    create(p.data, p.name);
+  });
 }
 
 function create(d,name){
