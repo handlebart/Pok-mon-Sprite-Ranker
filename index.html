@@ -22,7 +22,7 @@ h2 {
   font-size:18px;
 }
 
-/* Pokéball */
+/* Pokéball Buttons */
 .pokeballBtn {
   width:120px;
   height:120px;
@@ -66,6 +66,7 @@ h2 {
 /* APP */
 #app { display:none; }
 
+/* STICKY BAR */
 #counterBar {
   position:fixed;
   top:0;
@@ -88,6 +89,7 @@ h2 {
   align-items:center;
 }
 
+/* LIST */
 #list {
   margin-top:80px;
   display:flex;
@@ -104,7 +106,9 @@ h2 {
   border-radius:12px;
 }
 
-.pokemon img { width:96px; }
+.pokemon img {
+  width:96px;
+}
 
 /* PICKER */
 #spritePicker {
@@ -148,7 +152,7 @@ h2 {
 
 <div id="app">
   <div id="counterBar"></div>
-  <button onclick="back()">← Zurück</button>
+  <button onclick="back()" style="margin-top:60px;">← Zurück</button>
   <div id="list"></div>
 </div>
 
@@ -172,7 +176,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   options=document.getElementById("options");
 });
 
-/* 🔥 SAFE FETCH WITH RETRY */
+/* 🔥 SAFE FETCH */
 async function fetchSafe(url,retries=2){
   for(let i=0;i<=retries;i++){
     try{
@@ -186,7 +190,7 @@ async function fetchSafe(url,retries=2){
   }
 }
 
-/* 🔥 FIXED LOADER */
+/* 🔥 LOADER (STABLE FOR GITHUB PAGES) */
 async function load(){
   for(let id=range[0]; id<=range[1]; id++){
 
@@ -195,7 +199,6 @@ async function load(){
 
       let name = d.name;
 
-      // species NICHT mehr kritisch
       try{
         const s = await fetchSafe(d.species.url);
         name =
@@ -206,12 +209,46 @@ async function load(){
       create(d,name);
 
     }catch(e){
-      console.log("FAIL",id);
+      console.log("FAIL:",id);
       createFallback(id);
     }
 
     await new Promise(r=>setTimeout(r,60));
   }
+}
+
+/* 🔥 SAFE SPRITE HANDLING */
+function getSafeSprite(d){
+  return (
+    d.sprites?.front_default ||
+    d.sprites?.other?.["official-artwork"]?.front_default ||
+    d.sprites?.other?.home?.front_default ||
+    null
+  );
+}
+
+function create(d,name){
+  const div=document.createElement("div");
+  div.className="pokemon";
+
+  const img=document.createElement("img");
+
+  const sprite = getSafeSprite(d);
+
+  if(sprite){
+    img.src = sprite;
+  } else {
+    img.src = "https://via.placeholder.com/96?text=?";
+    img.style.opacity="0.5";
+  }
+
+  const p=document.createElement("p");
+  p.innerText=name;
+
+  div.append(img,p);
+  div.onclick=()=>open(d,img);
+
+  list.appendChild(div);
 }
 
 function createFallback(id){
@@ -220,12 +257,13 @@ function createFallback(id){
 
   div.innerHTML=`
     <p>#</p>
-    <p style="opacity:0.6">Sprite konnte nicht geladen werden</p>
+    <p style="opacity:0.6">nicht geladen</p>
   `;
 
   list.appendChild(div);
 }
 
+/* START */
 function startGen(gen){
   mode=gen;
 
@@ -247,6 +285,7 @@ function back(){
   document.getElementById("start").style.display="block";
 }
 
+/* STICKY BAR */
 function buildCounterBar(){
   counterBar.innerHTML="";
 
@@ -254,7 +293,7 @@ function buildCounterBar(){
     ? ["gen1","gen2","gen3","gen4","gen5","modern"]
     : ["gen2","gen3","gen4","gen5","modern"];
 
-  gens.forEach((g,i)=>{
+  gens.forEach(g=>{
     counter[g]=0;
 
     const div=document.createElement("div");
@@ -265,22 +304,7 @@ function buildCounterBar(){
   });
 }
 
-function create(d,name){
-  const div=document.createElement("div");
-  div.className="pokemon";
-
-  const img=document.createElement("img");
-  img.src=d.sprites.front_default;
-
-  const p=document.createElement("p");
-  p.innerText=name;
-
-  div.append(img,p);
-  div.onclick=()=>open(d,img);
-
-  list.appendChild(div);
-}
-
+/* SPRITE PICKER */
 function open(d,img){
   options.innerHTML="";
   document.getElementById("spritePicker").style.display="block";
@@ -333,6 +357,7 @@ function open(d,img){
   });
 }
 
+/* UPDATE */
 function update(){
   const total=Object.values(counter).reduce((a,b)=>a+b,0);
   if(!total)return;
