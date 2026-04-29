@@ -25,7 +25,6 @@ body {
 h2 {
   font-family: "Press Start 2P", monospace;
   font-size: 18px;
-  margin-bottom: 40px;
 }
 
 /* POKEBALL */
@@ -72,93 +71,86 @@ h2 {
 /* APP */
 #app { display:none; }
 
-/* COUNTER */
+/* 🔥 FIXED STICKY BAR (FARBIG BLEIBT) */
 #counterBar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  display: flex;
-  gap: 6px;
-  padding: 8px;
-  font-size: 11px;
-  z-index: 999;
+  display:flex;
+  gap:6px;
+  padding:8px;
+  font-size:11px;
+  z-index:999;
 }
 
 .counterItem {
-  flex: 1;
-  padding: 6px;
-  border-radius: 8px;
-  border: 1px solid #333;
+  flex:1;
+  padding:6px;
+  border-radius:8px;
   background: rgba(0,0,0,0.65);
-
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:3px;
 }
 
-.g1 { border-color:#ff5959; }
-.g2 { border-color:#ffd166; }
-.g3 { border-color:#06d6a0; }
-.g4 { border-color:#118ab2; }
-.g5 { border-color:#9b5de5; }
-.g6 { border-color:#f15bb5; }
+/* Farben wieder aktiv */
+.g1 { border:1px solid #ff5959; }
+.g2 { border:1px solid #ffd166; }
+.g3 { border:1px solid #06d6a0; }
+.g4 { border:1px solid #118ab2; }
+.g5 { border:1px solid #9b5de5; }
+.g6 { border:1px solid #f15bb5; }
+
+/* 🔥 FIX: Layout spacing für Button */
+.topControls {
+  position: fixed;
+  top: 70px;
+  left: 10px;
+  z-index: 1000;
+}
 
 /* LIST */
 #list {
-  margin-top: 80px;
+  margin-top:100px;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
 .pokemon {
-  width: 92%;
-  max-width: 340px;
-  margin: 10px;
-  padding: 12px;
-  background: rgba(0,0,0,0.65);
-  border-radius: 12px;
+  width:92%;
+  max-width:340px;
+  margin:10px;
+  padding:12px;
+  background:rgba(0,0,0,0.65);
+  border-radius:12px;
 }
-
-.pokemon img { width: 96px; }
 
 /* PICKER */
 #spritePicker {
-  position: fixed;
-  inset: 0;
-  background: rgba(5,10,25,0.97);
-  display: none;
-  padding: 20px;
+  position:fixed;
+  inset:0;
+  background:rgba(5,10,25,0.97);
+  display:none;
+  padding:20px;
   overflow-y:auto;
 }
 
 #options {
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 18px;
-  margin-top: 20px;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:18px;
 }
 
 .sprite img {
-  width: 110px;
-  cursor: pointer;
+  width:110px;
+  cursor:pointer;
 }
 
 .label {
-  margin-top: 6px;
-  font-size: 12px;
+  font-size:12px;
   color:#cbd5e1;
-}
-
-button {
-  padding: 10px 14px;
-  margin: 10px;
-  border:none;
-  border-radius:8px;
-  background:#1f2937;
-  color:white;
 }
 </style>
 </head>
@@ -176,15 +168,19 @@ button {
 </div>
 
 <div id="app">
+
+  <!-- 🔥 FIX: Zurück-Button aus Sticky-Bar raus -->
+  <div class="topControls">
+    <button onclick="back()">← Zurück</button>
+  </div>
+
   <div id="counterBar"></div>
-  <button onclick="back()">← Zurück</button>
   <div id="list"></div>
 </div>
 
 <div id="spritePicker">
   <h3>Sprite auswählen</h3>
   <div id="options"></div>
-  <button onclick="closePicker()">Schließen</button>
 </div>
 
 <script>
@@ -197,14 +193,44 @@ let counter={};
 const list=document.getElementById("list");
 const counterBar=document.getElementById("counterBar");
 const options=document.getElementById("options");
-const picker=document.getElementById("spritePicker");
 
 let currentImg=null;
 
-/* 🔥 IMPORTANT: WAIT FOR DOM (GitHub Fix) */
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Ready");
-});
+async function load(){
+  for(let id=range[0]; id<=range[1]; id++){
+    try{
+      const d=await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
+      const s=await fetch(d.species.url).then(r=>r.json());
+
+      const name =
+        s.names.find(n=>n.language.name==="de")?.name ||
+        d.name;
+
+      create(d,name);
+
+    }catch(e){}
+  }
+}
+
+function startGen(gen){
+  mode=gen;
+  document.getElementById("start").style.display="none";
+  document.getElementById("app").style.display="block";
+
+  list.innerHTML="";
+  selections={};
+  counter={};
+
+  range = gen===1 ? [1,151] : [152,251];
+
+  buildCounterBar();
+  load();
+}
+
+function back(){
+  document.getElementById("app").style.display="none";
+  document.getElementById("start").style.display="block";
+}
 
 function buildCounterBar(){
   counterBar.innerHTML="";
@@ -235,44 +261,6 @@ function buildCounterBar(){
 
     counterBar.appendChild(div);
   });
-}
-
-function startGen(gen){
-  mode=gen;
-  document.getElementById("start").style.display="none";
-  document.getElementById("app").style.display="block";
-
-  list.innerHTML="";
-  selections={};
-  counter={};
-
-  range = gen===1 ? [1,151] : [152,251];
-
-  buildCounterBar();
-  load();
-}
-
-function back(){
-  document.getElementById("app").style.display="none";
-  document.getElementById("start").style.display="block";
-}
-
-async function load(){
-  for(let id=range[0]; id<=range[1]; id++){
-    try{
-      const d=await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
-      const s=await fetch(d.species.url).then(r=>r.json());
-
-      const name =
-        s.names.find(n=>n.language.name==="de")?.name ||
-        d.name;
-
-      create(d,name);
-
-    } catch(e){
-      console.log("fail", id);
-    }
-  }
 }
 
 function create(d,name){
@@ -318,16 +306,6 @@ function getSprites(d){
     : arr.filter(x=>x.src && x.gen!=="gen1");
 }
 
-function updateCounter(){
-  const total=Object.values(counter).reduce((a,b)=>a+b,0);
-  if(!total)return;
-
-  Object.keys(counter).forEach(k=>{
-    const el=document.getElementById(k);
-    if(el) el.innerText=Math.round(counter[k]/total*100)+"%";
-  });
-}
-
 function open(d,img){
   currentImg=img;
   options.innerHTML="";
@@ -351,7 +329,7 @@ function open(d,img){
       counter[s.gen]++;
 
       currentImg.src=s.src;
-      updateCounter();
+      update();
       closePicker();
     };
 
@@ -359,11 +337,21 @@ function open(d,img){
     options.appendChild(wrap);
   });
 
-  picker.style.display="block";
+  document.getElementById("spritePicker").style.display="block";
+}
+
+function update(){
+  const total=Object.values(counter).reduce((a,b)=>a+b,0);
+  if(!total)return;
+
+  Object.keys(counter).forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.innerText=Math.round(counter[k]/total*100)+"%";
+  });
 }
 
 function closePicker(){
-  picker.style.display="none";
+  document.getElementById("spritePicker").style.display="none";
   document.body.style.overflow="";
 }
 </script>
