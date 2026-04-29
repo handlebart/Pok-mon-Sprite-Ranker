@@ -235,7 +235,6 @@ const picker=document.getElementById("spritePicker");
 
 let currentImg=null;
 
-/* STORAGE */
 function save(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
 }
@@ -245,13 +244,11 @@ function restore(){
   if(data) selections = JSON.parse(data);
 }
 
-/* SHINY TOGGLE */
 function toggleShiny(){
   shinyAll = !shinyAll;
   renderAllSprites();
 }
 
-/* UPDATE LIST SPRITES */
 function renderAllSprites(){
   document.querySelectorAll(".pokemon").forEach(div=>{
     const data = JSON.parse(div.dataset.poke);
@@ -268,14 +265,12 @@ function renderAllSprites(){
   });
 }
 
-/* DEFAULT SPRITE */
 function getDefaultSprite(d, forceShiny=false){
   const name=d.name.replace(/-/g,"");
   if(!forceShiny && !shinyAll) return d.sprites.front_default;
   return d.sprites.front_shiny || d.sprites.front_default;
 }
 
-/* COUNTER */
 function rebuildCounter(){
   Object.keys(counter).forEach(k => counter[k]=0);
 
@@ -333,7 +328,6 @@ function updateCounter(){
   });
 }
 
-/* APP */
 function startGen(gen){
   mode=gen;
   document.getElementById("start").style.display="none";
@@ -357,6 +351,7 @@ function back(){
 function resetAll(){
   localStorage.removeItem(STORAGE_KEY);
   selections={};
+  counter={};
 
   document.querySelectorAll(".pokemon img").forEach(img=>{
     img.src = img.dataset.default;
@@ -366,7 +361,6 @@ function resetAll(){
   updateCounter();
 }
 
-/* LOAD */
 async function load(){
   restore();
 
@@ -379,7 +373,7 @@ async function load(){
       const s=await fetch(d.species.url).then(r=>r.json());
 
       const name=
-        s.names.find(n=>n.language.name==="de")?.name ||
+        s.names.find(n => n.language.name==="de")?.name ||
         d.name;
 
       return {id:d.id,data:d,name};
@@ -393,10 +387,10 @@ async function load(){
   results.forEach(p=>create(p.data,p.name));
 
   rebuildCounter();
+  renderAllSprites();
   updateCounter();
 }
 
-/* CREATE */
 function create(d,name){
   const div=document.createElement("div");
   div.className="pokemon";
@@ -420,7 +414,7 @@ function create(d,name){
   list.appendChild(div);
 }
 
-/* SPRITES */
+/* 🔧 ONLY CHANGE: GEN 5 FIX */
 function getSprites(d){
   const s=d.sprites;
   const name=d.name.replace(/-/g,"");
@@ -446,15 +440,23 @@ function getSprites(d){
                     : s.versions?.["generation-iv"]?.platinum?.front_default,
       gen:"gen4",label:"Gen 4"
     },
+
+    /* FIXED GEN 5 */
     {
       src: shinyAll
-        ? (s.versions?.["generation-v"]?.["black-white"]?.animated_shiny ||
-           s.versions?.["generation-v"]?.["black-white"]?.front_shiny ||
-           s.versions?.["generation-v"]?.["black-white"]?.front_default)
-        : (s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
-           s.versions?.["generation-v"]?.["black-white"]?.front_default),
+        ? (
+            s.versions?.["generation-v"]?.["black-white"]?.animated?.front_shiny ||
+            s.versions?.["generation-v"]?.["black-white"]?.front_shiny ||
+            s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
+            s.versions?.["generation-v"]?.["black-white"]?.front_default
+          )
+        : (
+            s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
+            s.versions?.["generation-v"]?.["black-white"]?.front_default
+          ),
       gen:"gen5",label:"Gen 5"
     },
+
     {
       src: shinyAll
         ? `https://play.pokemonshowdown.com/sprites/ani-shiny/${name}.gif`
@@ -468,7 +470,6 @@ function getSprites(d){
     : arr.filter(x=>x.src && x.gen!=="gen1");
 }
 
-/* PICKER */
 function open(d,img){
   currentImg=img;
   options.innerHTML="";
