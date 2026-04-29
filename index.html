@@ -8,35 +8,30 @@
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial;
-  color: white;
-  text-align: center;
-  background:
-    radial-gradient(circle at 20% 20%, #ff3b3b55, transparent 40%),
-    radial-gradient(circle at 80% 30%, #3b82ff55, transparent 40%),
-    radial-gradient(circle at 50% 80%, #22c55e55, transparent 40%),
-    #0b0f1a;
+  margin:0;
+  font-family:Arial;
+  color:white;
+  text-align:center;
+  background:#0b0f1a;
 }
 
 /* START */
-#start { margin-top: 90px; }
+#start { margin-top:90px; }
 
 h2 {
-  font-family: "Press Start 2P", monospace;
-  font-size: 18px;
+  font-family:"Press Start 2P";
+  font-size:18px;
 }
 
-/* POKEBALL */
 .pokeballBtn {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: none;
-  margin: 20px;
-  cursor: pointer;
-  background: linear-gradient(to bottom, #ff2a2a 50%, white 50%);
-  position: relative;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  border:none;
+  margin:20px;
+  cursor:pointer;
+  background:linear-gradient(to bottom,#ff2a2a 50%,white 50%);
+  position:relative;
 }
 
 .pokeballBtn::before {
@@ -71,12 +66,12 @@ h2 {
 /* APP */
 #app { display:none; }
 
-/* 🔥 FIXED STICKY BAR (FARBIG BLEIBT) */
+/* STICKY */
 #counterBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
   display:flex;
   gap:6px;
   padding:8px;
@@ -86,52 +81,38 @@ h2 {
 
 .counterItem {
   flex:1;
-  padding:6px;
+  background:rgba(0,0,0,0.6);
   border-radius:8px;
-  background: rgba(0,0,0,0.65);
+  padding:6px;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
-/* Farben wieder aktiv */
-.g1 { border:1px solid #ff5959; }
-.g2 { border:1px solid #ffd166; }
-.g3 { border:1px solid #06d6a0; }
-.g4 { border:1px solid #118ab2; }
-.g5 { border:1px solid #9b5de5; }
-.g6 { border:1px solid #f15bb5; }
-
-/* 🔥 FIX: Layout spacing für Button */
-.topControls {
-  position: fixed;
-  top: 70px;
-  left: 10px;
-  z-index: 1000;
-}
-
 /* LIST */
 #list {
-  margin-top:100px;
+  margin-top:80px;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
 .pokemon {
-  width:92%;
+  width:90%;
   max-width:340px;
   margin:10px;
   padding:12px;
-  background:rgba(0,0,0,0.65);
+  background:rgba(0,0,0,0.6);
   border-radius:12px;
 }
+
+.pokemon img { width:96px; }
 
 /* PICKER */
 #spritePicker {
   position:fixed;
   inset:0;
-  background:rgba(5,10,25,0.97);
+  background:rgba(0,0,0,0.95);
   display:none;
   padding:20px;
   overflow-y:auto;
@@ -150,7 +131,7 @@ h2 {
 
 .label {
   font-size:12px;
-  color:#cbd5e1;
+  color:#ccc;
 }
 </style>
 </head>
@@ -168,13 +149,8 @@ h2 {
 </div>
 
 <div id="app">
-
-  <!-- 🔥 FIX: Zurück-Button aus Sticky-Bar raus -->
-  <div class="topControls">
-    <button onclick="back()">← Zurück</button>
-  </div>
-
   <div id="counterBar"></div>
+  <button onclick="back()" style="margin-top:60px;">← Zurück</button>
   <div id="list"></div>
 </div>
 
@@ -187,33 +163,54 @@ h2 {
 let range=[1,151];
 let mode=1;
 
+let list,counterBar,options;
+
 let selections={};
 let counter={};
 
-const list=document.getElementById("list");
-const counterBar=document.getElementById("counterBar");
-const options=document.getElementById("options");
+document.addEventListener("DOMContentLoaded",()=>{
+  list=document.getElementById("list");
+  counterBar=document.getElementById("counterBar");
+  options=document.getElementById("options");
+});
 
-let currentImg=null;
-
+/* 🔥 ULTRA SAFE LOADER */
 async function load(){
   for(let id=range[0]; id<=range[1]; id++){
-    try{
-      const d=await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
-      const s=await fetch(d.species.url).then(r=>r.json());
+
+    try {
+      const d = await fetch(`https://pokeapi.co/api/v2/pokemon/`).then(r=>r.json());
+
+      const s = await fetch(d.species.url).then(r=>r.json());
 
       const name =
-        s.names.find(n=>n.language.name==="de")?.name ||
+        s.names?.find(n=>n.language.name==="de")?.name ||
         d.name;
 
       create(d,name);
 
-    }catch(e){}
+    } catch(e) {
+      console.log("fail:",id);
+
+      // fallback entry damit nichts „leer“ wirkt
+      createFallback(id);
+    }
+
+    // 🔥 rate limit protection (WICHTIG für GitHub Pages)
+    await new Promise(r=>setTimeout(r,35));
   }
+}
+
+function createFallback(id){
+  const div=document.createElement("div");
+  div.className="pokemon";
+  div.innerHTML=`<p># (Laden fehlgeschlagen)</p>`;
+  list.appendChild(div);
 }
 
 function startGen(gen){
   mode=gen;
+
   document.getElementById("start").style.display="none";
   document.getElementById("app").style.display="block";
 
@@ -239,26 +236,13 @@ function buildCounterBar(){
     ? ["gen1","gen2","gen3","gen4","gen5","modern"]
     : ["gen2","gen3","gen4","gen5","modern"];
 
-  const labels={
-    gen1:"Gen 1",
-    gen2:"Gen 2",
-    gen3:"Gen 3",
-    gen4:"Gen 4",
-    gen5:"Gen 5",
-    modern:"Modern"
-  };
-
   gens.forEach((g,i)=>{
     counter[g]=0;
 
     const div=document.createElement("div");
-    div.className="counterItem g"+(i+1);
+    div.className="counterItem";
 
-    div.innerHTML=`
-      <div></div>
-      <div id="">0%</div>
-    `;
-
+    div.innerHTML=`<div></div><div id="">0%</div>`;
     counterBar.appendChild(div);
   });
 }
@@ -279,7 +263,10 @@ function create(d,name){
   list.appendChild(div);
 }
 
-function getSprites(d){
+function open(d,img){
+  options.innerHTML="";
+  document.getElementById("spritePicker").style.display="block";
+
   const s=d.sprites;
   const name=d.name.replace(/-/g,"");
 
@@ -288,30 +275,11 @@ function getSprites(d){
     {src:s.versions?.["generation-ii"]?.crystal?.front_default,gen:"gen2",label:"Gen 2"},
     {src:s.versions?.["generation-iii"]?.emerald?.front_default,gen:"gen3",label:"Gen 3"},
     {src:s.versions?.["generation-iv"]?.platinum?.front_default,gen:"gen4",label:"Gen 4"},
-    {
-      src:s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default ||
-          s.versions?.["generation-v"]?.["black-white"]?.front_default,
-      gen:"gen5",
-      label:"Gen 5"
-    },
-    {
-      src:`https://play.pokemonshowdown.com/sprites/ani/.gif`,
-      gen:"modern",
-      label:"Modern"
-    }
+    {src:s.versions?.["generation-v"]?.["black-white"]?.animated?.front_default || s.versions?.["generation-v"]?.["black-white"]?.front_default,gen:"gen5",label:"Gen 5"},
+    {src:`https://play.pokemonshowdown.com/sprites/ani/.gif`,gen:"modern",label:"Modern"}
   ];
 
-  return mode===1
-    ? arr.filter(x=>x.src)
-    : arr.filter(x=>x.src && x.gen!=="gen1");
-}
-
-function open(d,img){
-  currentImg=img;
-  options.innerHTML="";
-  document.body.style.overflow="hidden";
-
-  getSprites(d).forEach(s=>{
+  arr.filter(x=>x.src).forEach(s=>{
     const wrap=document.createElement("div");
     wrap.className="sprite";
 
@@ -328,7 +296,7 @@ function open(d,img){
       selections[d.id]=s.gen;
       counter[s.gen]++;
 
-      currentImg.src=s.src;
+      img.src=s.src;
       update();
       closePicker();
     };
@@ -336,8 +304,6 @@ function open(d,img){
     wrap.append(im,label);
     options.appendChild(wrap);
   });
-
-  document.getElementById("spritePicker").style.display="block";
 }
 
 function update(){
@@ -352,7 +318,6 @@ function update(){
 
 function closePicker(){
   document.getElementById("spritePicker").style.display="none";
-  document.body.style.overflow="";
 }
 </script>
 
