@@ -653,6 +653,100 @@ button:disabled {
   to { opacity: 0; transform: translate(-50%, -50%) scale(0.75); }
 }
 
+
+.luck-choice-button {
+  display: none;
+  position: absolute;
+  top: 170px;
+  transform: translateY(-50%);
+  z-index: 37;
+  border: none;
+  border-radius: 999px;
+  padding: 13px 18px;
+  font-size: 16px;
+  font-weight: 900;
+  color: white;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.24);
+}
+
+.luck-choice-button.show {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: resultCenterIn 0.35s cubic-bezier(0.2, 1.15, 0.25, 1) forwards;
+}
+
+.luck-choice-use {
+  right: calc(50% + 215px);
+  background: #16a34a;
+}
+
+.luck-choice-discard {
+  left: calc(50% + 215px);
+  background: #dc2626;
+}
+
+.luck-choice-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.luck-wheel-legend {
+  width: min(760px, 92vw);
+  margin: 0 auto 22px;
+  background: rgba(255,255,255,0.94);
+  border: 3px solid #ddd;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  padding: 14px;
+  text-align: left;
+}
+
+.luck-wheel-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.luck-wheel-legend-item {
+  background: #fafafa;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  padding: 9px 10px;
+  font-size: 13px;
+  line-height: 1.32;
+}
+
+.luck-wheel-legend-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.repair-leaders-button {
+  margin-top: 18px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 12px;
+}
+
+@media (max-width: 850px) {
+  .luck-choice-button {
+    top: 270px;
+    font-size: 14px;
+    padding: 11px 14px;
+  }
+
+  .luck-choice-use {
+    right: calc(50% + 8px);
+  }
+
+  .luck-choice-discard {
+    left: calc(50% + 8px);
+  }
+}
+
 .luck-result-pop {
   animation: luckResultPop 0.55s ease-out;
 }
@@ -2203,6 +2297,20 @@ button:disabled {
 
 </details>
 
+<details class="luck-wheel-legend collapsible-panel">
+  <summary>🎡 Glücksrad-Legende</summary>
+  <div class="luck-wheel-legend-grid">
+    <div class="luck-wheel-legend-item"><strong>50% ⭐ Shiny Roulette</strong>Ein aktives Pokémon wird per Roulette shiny.</div>
+    <div class="luck-wheel-legend-item"><strong>20% 🔍 Scope-Linse</strong>Die Volltrefferquote steigt in diesem Kampf auf 25%.</div>
+    <div class="luck-wheel-legend-item"><strong>10% ⭐ Shiny wählen</strong>Du wählst ein aktives Pokémon aus, das shiny wird.</div>
+    <div class="luck-wheel-legend-item"><strong>5% 🌈 Doppel-Shiny</strong>Beide aktiven Pokémon werden mit epischer Animation shiny.</div>
+    <div class="luck-wheel-legend-item"><strong>3% 🔁 Zusatz-Trade</strong>Du darfst ein aktives Pokémon erneut für ein besseres traden.</div>
+    <div class="luck-wheel-legend-item"><strong>1% 🎲 Mega-Würfel</strong>Optional: Ein aktives Pokémon neu würfeln, nur Mega-Entwicklungen.</div>
+    <div class="luck-wheel-legend-item"><strong>1% 🟣 Legendärer Würfel</strong>Optional: Ein aktives Pokémon neu würfeln, nur Legendäre.</div>
+    <div class="luck-wheel-legend-item"><strong>10% 😅 Niete</strong>Leider gibt es keinen Bonus.</div>
+  </div>
+</details>
+
 <details class="collection-panel collapsible-panel">
   <summary>📊 Statistik</summary>
   <div class="collection-stats" id="collectionStats">Noch keine Daten</div>
@@ -2336,6 +2444,9 @@ button:disabled {
 
     <div class="luck-result-center" id="luckResultCenter"></div>
 
+    <button class="luck-choice-button luck-choice-use" id="luckUseButton" onclick="resolveLuckDecision(true)">Verwenden</button>
+    <button class="luck-choice-button luck-choice-discard" id="luckDiscardButton" onclick="resolveLuckDecision(false)">Verwerfen</button>
+
 
     <div class="battle-stage" id="battleStage">
       <div class="battle-row">
@@ -2408,6 +2519,7 @@ button:disabled {
   <div class="gym-buttons">
 
     <button onclick="startComputer()">▶ COMPUTER STARTEN</button>
+    <button class="repair-leaders-button" onclick="repairGymLeaderArtwork()">🛠 Arenaleiter reparieren</button>
 
     <div class="gym-region-title">Kanto</div>
     <button onclick="startGymLeader('brock')">1. 🪨 Rocko</button>
@@ -2716,14 +2828,42 @@ const gymLeaderArtwork = Object.fromEntries(
 const preloadedLeaderArtwork = {};
 
 
-function preloadGymLeaderArtwork() {
+function artworkSrcWithCacheBust(src) {
+  if (!src) return "";
+  const separator = src.includes("?") ? "&" : "?";
+  return `${src}${separator}repair=${Date.now()}`;
+}
+
+function preloadGymLeaderArtwork(forceReload = false) {
   Object.entries(gymLeaderArtwork).forEach(([type, src]) => {
-    if (!src || preloadedLeaderArtwork[type]) return;
+    if (!src) return;
+    if (!forceReload && preloadedLeaderArtwork[type]) return;
 
     const image = new Image();
-    image.src = src;
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    image.loading = "eager";
+    image.src = forceReload ? artworkSrcWithCacheBust(src) : src;
     preloadedLeaderArtwork[type] = image;
   });
+}
+
+function repairGymLeaderArtwork() {
+  Object.keys(preloadedLeaderArtwork).forEach(key => delete preloadedLeaderArtwork[key]);
+  preloadGymLeaderArtwork(true);
+
+  const img = document.getElementById("leaderArtImg");
+  if (img) {
+    img.onerror = null;
+    img.removeAttribute("src");
+  }
+
+  if (lastOpponentType && gymLeaderArtwork[lastOpponentType]) {
+    showGymLeaderArtwork(lastOpponentType, true);
+    updateHint("Arenaleiter-Artwork wurde neu geladen.");
+  } else {
+    updateHint("Arenaleiter-Artworks wurden neu vorgeladen.");
+  }
 }
 
 let loadedImages = [];
@@ -2736,6 +2876,7 @@ let lastOpponentType = null;
 let shinySelectionMode = false;
 let bonusRerollMode = null;
 let activeBonusRerollResolve = null;
+let activeLuckDecisionResolve = null;
 let shinyRouletteRunning = false;
 let computerShinyRouletteRunning = false;
 let fightInProgress = false;
@@ -4008,8 +4149,16 @@ function hideLuckWheelAnimated(boxId) {
   });
 }
 
+function hideLuckDecisionButtons() {
+  ["luckUseButton", "luckDiscardButton"].forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.classList.remove("show");
+  });
+}
+
 function clearLuckResultCenter() {
   const box = document.getElementById("luckResultCenter");
+  hideLuckDecisionButtons();
   if (!box) return;
 
   box.classList.remove("show", "hide-out");
@@ -4019,6 +4168,7 @@ function clearLuckResultCenter() {
 function announceLuckResult(text) {
   const box = document.getElementById("luckResultCenter");
 
+  hideLuckDecisionButtons();
   updateHint("");
   setWheelLayout(false);
 
@@ -4033,9 +4183,33 @@ function announceLuckResult(text) {
   box.classList.add("show");
 }
 
+function resolveLuckDecision(useBonus) {
+  if (!activeLuckDecisionResolve) return;
+
+  const resolve = activeLuckDecisionResolve;
+  activeLuckDecisionResolve = null;
+  hideLuckDecisionButtons();
+  resolve(!!useBonus);
+}
+
+function askLuckDecision(text) {
+  return new Promise(resolve => {
+    announceLuckResult(text);
+    activeLuckDecisionResolve = resolve;
+
+    const useButton = document.getElementById("luckUseButton");
+    const discardButton = document.getElementById("luckDiscardButton");
+
+    if (useButton) useButton.classList.add("show");
+    if (discardButton) discardButton.classList.add("show");
+  });
+}
+
 function hideLuckResultCenter() {
   return new Promise(resolve => {
     const box = document.getElementById("luckResultCenter");
+
+    hideLuckDecisionButtons();
 
     if (!box || !box.classList.contains("show")) {
       resolve();
@@ -4169,6 +4343,7 @@ async function finishBonusRerollSelection(slot) {
   if (!mode || !slot) {
     if (activeBonusRerollResolve) activeBonusRerollResolve(null);
     activeBonusRerollResolve = null;
+  activeLuckDecisionResolve = null;
     return;
   }
 
@@ -4299,19 +4474,23 @@ async function spinPlayerLuckWheel() {
     await startPlayerBonusRerollChoice(validSlots, "extraTrade");
     await hideLuckResultCenter();
   } else if (result === "megaDice") {
-    announceLuckResult("🎲 Gewinn: Mega-Würfel! OK = verwenden, Abbrechen = verwerfen.");
-    await wait(650);
-    if (confirm("Mega-Würfel verwenden?")) {
+    const useMegaDice = await askLuckDecision("🎲 Gewinn: Mega-Würfel! Verwenden oder verwerfen?");
+    if (useMegaDice) {
       announceLuckResult("🎲 Wähle ein aktives Pokémon, das als Mega-Entwicklung neu gewürfelt wird.");
       await startPlayerBonusRerollChoice(validSlots, "megaDice");
+    } else {
+      announceLuckResult("🎲 Mega-Würfel verworfen.");
+      await wait(800);
     }
     await hideLuckResultCenter();
   } else if (result === "legendDice") {
-    announceLuckResult("🎲 Gewinn: Legendärer Würfel! OK = verwenden, Abbrechen = verwerfen.");
-    await wait(650);
-    if (confirm("Legendären Würfel verwenden?")) {
+    const useLegendDice = await askLuckDecision("🎲 Gewinn: Legendärer Würfel! Verwenden oder verwerfen?");
+    if (useLegendDice) {
       announceLuckResult("🎲 Wähle ein aktives Pokémon, das als Legendäres Pokémon neu gewürfelt wird.");
       await startPlayerBonusRerollChoice(validSlots, "legendDice");
+    } else {
+      announceLuckResult("🎲 Legendärer Würfel verworfen.");
+      await wait(800);
     }
     await hideLuckResultCenter();
   } else {
@@ -4624,7 +4803,7 @@ async function applyComputerMove(slot, move, pool = null) {
   }
 }
 
-function showGymLeaderArtwork(type) {
+function showGymLeaderArtwork(type, forceReload = false) {
   const box = document.getElementById("leaderArt");
   const img = document.getElementById("leaderArtImg");
   const name = document.getElementById("leaderArtName");
@@ -4635,15 +4814,22 @@ function showGymLeaderArtwork(type) {
 
   const leaderName = gymLeaderNames[type] || "Arenaleiter";
   const primarySrc = gymLeaderArtwork[type] || "";
+  const cachedImage = preloadedLeaderArtwork[type];
+  const safeSrc = forceReload
+    ? artworkSrcWithCacheBust(primarySrc)
+    : (cachedImage && cachedImage.complete && cachedImage.naturalWidth > 0 ? cachedImage.src : primarySrc);
 
   img.onerror = () => {
     img.onerror = null;
     img.removeAttribute("src");
     img.alt = `${leaderName} Artwork konnte nicht geladen werden`;
     name.innerText = `${leaderName} ⚠`;
+    updateHint("Artwork konnte nicht geladen werden. Nutze unten 🛠 Arenaleiter reparieren.");
   };
 
-  img.src = primarySrc;
+  img.decoding = "async";
+  img.loading = "eager";
+  img.src = safeSrc;
   img.alt = `${leaderName} Artwork`;
   name.innerText = leaderName;
 
