@@ -504,9 +504,14 @@ button:disabled {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.95) 0 20%, rgba(255,255,255,0) 21%),
     conic-gradient(
-      #ffd83d 0deg 252deg,
-      #73d9ff 252deg 324deg,
-      #c89cff 324deg 360deg
+      #ffd83d 0deg 180deg,
+      #73d9ff 180deg 252deg,
+      #c89cff 252deg 288deg,
+      #ff7ad9 288deg 306deg,
+      #8ef28e 306deg 316.8deg,
+      #ffb347 316.8deg 320.4deg,
+      #b58cff 320.4deg 324deg,
+      #bdbdbd 324deg 360deg
     );
   position: relative;
   overflow: hidden;
@@ -539,19 +544,49 @@ button:disabled {
 }
 
 /*
-  Die Texte liegen auf den Segment-Mittelpunkten des Rads:
-  Roulette 0°-252°, Scope-Linse 252°-324°, Shiny wählen 324°-360°.
+  Die Texte liegen auf den Segment-Mittelpunkten des Rads.
+  Neue Verteilung: 50/20/10/5/3/1/1/10.
 */
 .wheel-roulette {
-  transform: translate(-50%, -50%) rotate(126deg) translateY(-72px) rotate(-126deg);
+  transform: translate(-50%, -50%) rotate(90deg) translateY(-72px) rotate(-90deg);
 }
 
 .wheel-scope {
-  transform: translate(-50%, -50%) rotate(288deg) translateY(-73px) rotate(-288deg);
+  transform: translate(-50%, -50%) rotate(216deg) translateY(-73px) rotate(-216deg);
 }
 
 .wheel-choice {
   width: 70px;
+  font-size: 10px;
+  transform: translate(-50%, -50%) rotate(270deg) translateY(-76px) rotate(-270deg);
+}
+
+.wheel-double-shiny {
+  width: 68px;
+  font-size: 9px;
+  transform: translate(-50%, -50%) rotate(297deg) translateY(-78px) rotate(-297deg);
+}
+
+.wheel-extra-trade {
+  width: 64px;
+  font-size: 8px;
+  transform: translate(-50%, -50%) rotate(311.4deg) translateY(-80px) rotate(-311.4deg);
+}
+
+.wheel-mega-dice {
+  width: 58px;
+  font-size: 7px;
+  transform: translate(-50%, -50%) rotate(318.6deg) translateY(-82px) rotate(-318.6deg);
+}
+
+.wheel-legend-dice {
+  width: 58px;
+  font-size: 7px;
+  transform: translate(-50%, -50%) rotate(322.2deg) translateY(-82px) rotate(-322.2deg);
+}
+
+.wheel-miss {
+  width: 64px;
   font-size: 10px;
   transform: translate(-50%, -50%) rotate(342deg) translateY(-76px) rotate(-342deg);
 }
@@ -2269,9 +2304,14 @@ button:disabled {
       <div class="luck-wheel" id="playerLuckWheel">
         <div class="wheel-pointer">▼</div>
         <div class="wheel-face">
-          <div class="wheel-option wheel-roulette">70%<br>Shiny Roulette</div>
+          <div class="wheel-option wheel-roulette">50%<br>Shiny Roulette</div>
           <div class="wheel-option wheel-scope">20%<br>Scope-Linse</div>
           <div class="wheel-option wheel-choice">10%<br>Shiny wählen</div>
+          <div class="wheel-option wheel-double-shiny">5%<br>Doppel-Shiny</div>
+          <div class="wheel-option wheel-extra-trade">3%<br>Zusatz-Trade</div>
+          <div class="wheel-option wheel-mega-dice">1%<br>Mega-Würfel</div>
+          <div class="wheel-option wheel-legend-dice">1%<br>Legendärer Würfel</div>
+          <div class="wheel-option wheel-miss">10%<br>Niete</div>
         </div>
       </div>
       <button onclick="spinPlayerLuckWheel()">🎡 Glücksrad drehen</button>
@@ -2282,9 +2322,14 @@ button:disabled {
       <div class="luck-wheel" id="computerLuckWheel">
         <div class="wheel-pointer">▼</div>
         <div class="wheel-face">
-          <div class="wheel-option wheel-roulette">70%<br>Shiny Roulette</div>
+          <div class="wheel-option wheel-roulette">50%<br>Shiny Roulette</div>
           <div class="wheel-option wheel-scope">20%<br>Scope-Linse</div>
           <div class="wheel-option wheel-choice">10%<br>Shiny wählen</div>
+          <div class="wheel-option wheel-double-shiny">5%<br>Doppel-Shiny</div>
+          <div class="wheel-option wheel-extra-trade">3%<br>Zusatz-Trade</div>
+          <div class="wheel-option wheel-mega-dice">1%<br>Mega-Würfel</div>
+          <div class="wheel-option wheel-legend-dice">1%<br>Legendärer Würfel</div>
+          <div class="wheel-option wheel-miss">10%<br>Niete</div>
         </div>
       </div>
     </div>
@@ -2495,168 +2540,168 @@ const gymLeaders = {
   brock: {
     name: "Rocko",
     type: "rock",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Brock.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Brock.png"
   },
   misty: {
     name: "Misty",
     type: "water",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Misty.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Misty.png"
   },
   ltSurge: {
     name: "Major Bob",
     type: "electric",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Lt_Surge.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Lt%20Surge.png"
   },
   erika: {
     name: "Erika",
     type: "grass",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Erika.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Erika.png"
   },
   koga: {
     name: "Koga",
     type: "poison",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Koga.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Koga.png"
   },
   sabrina: {
     name: "Sabrina",
     type: "psychic",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Sabrina.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Sabrina.png"
   },
   blaine: {
     name: "Pyro",
     type: "fire",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Blaine.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Blaine.png"
   },
   giovanni: {
     name: "Giovanni",
     type: "ground",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Giovanni.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow%20Giovanni.png"
   },
 
   // Johto
   falkner: {
     name: "Falk",
     type: "flying",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Falkner.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Falkner.png"
   },
   bugsy: {
     name: "Kai",
     type: "bug",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Bugsy.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Bugsy.png"
   },
   whitney: {
     name: "Bianka",
     type: "normal",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Whitney.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Whitney.png"
   },
   morty: {
     name: "Jens",
     type: "ghost",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Morty.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Morty.png"
   },
   chuck: {
     name: "Hartwig",
     type: "fighting",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Chuck.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Chuck.png"
   },
   jasmine: {
     name: "Jasmin",
     type: "steel",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Jasmine.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Jasmine.png"
   },
   pryce: {
     name: "Norbert",
     type: "ice",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Pryce.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Pryce.png"
   },
   clair: {
     name: "Sandra",
     type: "dragon",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Clair.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold%20SoulSilver%20Clair.png"
   },
 
   // Hoenn
   roxanne: {
     name: "Felizia",
     type: "rock",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Roxanne.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Roxanne.png"
   },
   brawly: {
     name: "Kamillo",
     type: "fighting",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Brawly.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Brawly.png"
   },
   wattson: {
     name: "Walter",
     type: "electric",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Wattson.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Wattson.png"
   },
   flannery: {
     name: "Flavia",
     type: "fire",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Flannery.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Flannery.png"
   },
   norman: {
     name: "Norman",
     type: "normal",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Norman.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Norman.png"
   },
   winona: {
     name: "Wibke",
     type: "flying",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Winona.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Winona.png"
   },
   tateLiza: {
     name: "Ben & Svenja",
     type: "psychic",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Liza_%26_Tate.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Liza%20%26%20Tate.png"
   },
   wallace: {
     name: "Wassili",
     type: "water",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Wallace.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega%20Ruby%20Alpha%20Sapphire%20Wallace.png"
   },
 
   // Sinnoh
   roark: {
     name: "Veit",
     type: "rock",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Roark.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Roark.png"
   },
   gardenia: {
     name: "Silvana",
     type: "grass",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Gardenia.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Gardenia.png"
   },
   maylene: {
     name: "Hilda",
     type: "fighting",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Maylene.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Maylene.png"
   },
   fantina: {
     name: "Lamina",
     type: "ghost",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Fantina.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Fantina.png"
   },
   crasherWake: {
     name: "Marinus",
     type: "water",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Crasher_Wake.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Crasher%20Wake.png"
   },
   byron: {
     name: "Adam",
     type: "steel",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Byron.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Byron.png"
   },
   candice: {
     name: "Frida",
     type: "ice",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Candice.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Candice.png"
   },
   volkner: {
     name: "Volkner",
     type: "electric",
-    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Volkner.png"
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant%20Diamond%20Shining%20Pearl%20Volkner.png"
   }
 };
 
@@ -2689,6 +2734,8 @@ let activeSlot = null;
 let computerOpponentName = "Computer";
 let lastOpponentType = null;
 let shinySelectionMode = false;
+let bonusRerollMode = null;
+let activeBonusRerollResolve = null;
 let shinyRouletteRunning = false;
 let computerShinyRouletteRunning = false;
 let fightInProgress = false;
@@ -3455,6 +3502,19 @@ function selectSlot(slot) {
     return;
   }
 
+  if (bonusRerollMode) {
+
+    if (
+      slot.closest("#playerSlots") &&
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    ) {
+      finishBonusRerollSelection(slot);
+    }
+
+    return;
+  }
+
   if (shinySelectionMode) {
 
     if (
@@ -3824,17 +3884,17 @@ function showPlayerLuckWheel() {
 }
 
 function chooseLuckWheelResult() {
-  const roll = Math.random();
+  const roll = Math.random() * 100;
 
-  if (roll < 0.70) {
-    return "roulette";
-  }
+  if (roll < 50) return "roulette";
+  if (roll < 70) return "scope";
+  if (roll < 80) return "choice";
+  if (roll < 85) return "doubleShiny";
+  if (roll < 88) return "extraTrade";
+  if (roll < 89) return "megaDice";
+  if (roll < 90) return "legendDice";
 
-  if (roll < 0.90) {
-    return "scope";
-  }
-
-  return "choice";
+  return "miss";
 }
 
 function animateLuckWheel(wheelId, result) {
@@ -3864,15 +3924,25 @@ function animateLuckWheel(wheelId, result) {
       Deshalb drehen wir auf: 360*n - Segmentmitte.
     */
     const segmentCenters = {
-      roulette: 126, // 0° bis 252°
-      scope: 288,   // 252° bis 324°
-      choice: 342   // 324° bis 360°
+      roulette: 90,       // 0° bis 180°
+      scope: 216,         // 180° bis 252°
+      choice: 270,        // 252° bis 288°
+      doubleShiny: 297,   // 288° bis 306°
+      extraTrade: 311.4,  // 306° bis 316.8°
+      megaDice: 318.6,    // 316.8° bis 320.4°
+      legendDice: 322.2,  // 320.4° bis 324°
+      miss: 342           // 324° bis 360°
     };
 
     const safeJitter = {
-      roulette: 42,
+      roulette: 34,
       scope: 18,
-      choice: 8
+      choice: 8,
+      doubleShiny: 4,
+      extraTrade: 2,
+      megaDice: 0.8,
+      legendDice: 0.8,
+      miss: 8
     };
 
     const center =
@@ -4029,6 +4099,134 @@ function startPlayerShinyChoice(validSlots) {
   });
 }
 
+
+async function applyDoubleShiny(validSlots, teamName = "") {
+  const targets = validSlots.slice(0, 2);
+
+  if (!targets.length) return;
+
+  announceLuckResult(`🌈 ${teamName}Doppel-Shiny! Beide aktiven Pokémon werden shiny!`);
+
+  targets.forEach(slot =>
+    slot.classList.add("shiny-roulette-active")
+  );
+
+  await wait(700);
+
+  targets.forEach((slot, index) => {
+    setTimeout(() => applyShiny(slot), index * 260);
+  });
+
+  await wait(1100);
+
+  targets.forEach(slot =>
+    slot.classList.remove("shiny-roulette-active")
+  );
+}
+
+async function getBonusPool(kind) {
+  const pool = [];
+
+  for (const id of loadedImages) {
+    const pokemon = await getPokemonData(id);
+
+    if (kind === "mega" && pokemon.formKind === "mega") {
+      pool.push(id);
+    }
+
+    if (kind === "legend" && pokemon.legendary) {
+      pool.push(id);
+    }
+  }
+
+  return pool;
+}
+
+function startPlayerBonusRerollChoice(validSlots, mode) {
+  return new Promise(resolve => {
+    if (!validSlots.length) {
+      resolve(null);
+      return;
+    }
+
+    bonusRerollMode = mode;
+    activeBonusRerollResolve = resolve;
+
+    clearActiveSlots();
+    clearShinyPickables();
+
+    validSlots.forEach(slot =>
+      slot.classList.add("shiny-pickable")
+    );
+  });
+}
+
+async function finishBonusRerollSelection(slot) {
+  const mode = bonusRerollMode;
+  bonusRerollMode = null;
+  clearShinyPickables();
+
+  if (!mode || !slot) {
+    if (activeBonusRerollResolve) activeBonusRerollResolve(null);
+    activeBonusRerollResolve = null;
+    return;
+  }
+
+  if (mode === "extraTrade") {
+    const oldStat = parseInt(slot.dataset.stat) || 0;
+    announceLuckResult(`🔁 Zusatz-Trade für ${getSlotName(slot)}!`);
+    await spin(slot, { minStat: oldStat });
+  }
+
+  if (mode === "megaDice" || mode === "legendDice") {
+    const pool = await getBonusPool(mode === "megaDice" ? "mega" : "legend");
+    const label = mode === "megaDice" ? "Mega-Würfel" : "Legendärer Würfel";
+
+    if (!pool.length) {
+      announceLuckResult(`🎲 ${label}: Keine passenden Pokémon geladen.`);
+      await wait(1000);
+    } else {
+      announceLuckResult(`🎲 ${label} für ${getSlotName(slot)}!`);
+      await spin(slot, { pool });
+    }
+  }
+
+  if (activeBonusRerollResolve) {
+    const resolve = activeBonusRerollResolve;
+    activeBonusRerollResolve = null;
+    resolve(slot);
+  }
+}
+
+async function runComputerBonusReroll(validSlots, mode) {
+  const chosenSlot = [...validSlots].sort((a, b) =>
+    (parseInt(a.dataset.stat) || 0) - (parseInt(b.dataset.stat) || 0)
+  )[0];
+
+  if (!chosenSlot) return;
+
+  if (mode === "extraTrade") {
+    const oldStat = parseInt(chosenSlot.dataset.stat) || 0;
+    announceLuckResult(`🔁 ${computerOpponentName} nutzt Zusatz-Trade!`);
+    await spin(chosenSlot, { minStat: oldStat });
+    await wait(350);
+    return;
+  }
+
+  const pool = await getBonusPool(mode === "megaDice" ? "mega" : "legend");
+  const label = mode === "megaDice" ? "Mega-Würfel" : "Legendärer Würfel";
+
+  if (!pool.length) {
+    announceLuckResult(`🎲 ${computerOpponentName}: ${label} hat keine Auswahl.`);
+    await wait(900);
+    return;
+  }
+
+  announceLuckResult(`🎲 ${computerOpponentName} nutzt ${label}!`);
+  await spin(chosenSlot, { pool });
+  await wait(350);
+}
+
 let activeShinyChoiceResolve = null;
 
 async function spinPlayerLuckWheel() {
@@ -4089,9 +4287,36 @@ async function spinPlayerLuckWheel() {
     announceLuckResult("🔍 Gewinn: Scope-Linse! Deine Volltrefferquote steigt in diesem Kampf auf 25%.");
     await wait(1200);
     await hideLuckResultCenter();
-  } else {
+  } else if (result === "choice") {
     announceLuckResult("⭐ Gewinn: Shiny auswählen! Wähle eines deiner aktiven Pokémon.");
     await startPlayerShinyChoice(validSlots);
+    await hideLuckResultCenter();
+  } else if (result === "doubleShiny") {
+    await applyDoubleShiny(validSlots, "");
+    await hideLuckResultCenter();
+  } else if (result === "extraTrade") {
+    announceLuckResult("🔁 Gewinn: Zusatz-Trade! Wähle ein aktives Pokémon für einen besseren Trade.");
+    await startPlayerBonusRerollChoice(validSlots, "extraTrade");
+    await hideLuckResultCenter();
+  } else if (result === "megaDice") {
+    announceLuckResult("🎲 Gewinn: Mega-Würfel! OK = verwenden, Abbrechen = verwerfen.");
+    await wait(650);
+    if (confirm("Mega-Würfel verwenden?")) {
+      announceLuckResult("🎲 Wähle ein aktives Pokémon, das als Mega-Entwicklung neu gewürfelt wird.");
+      await startPlayerBonusRerollChoice(validSlots, "megaDice");
+    }
+    await hideLuckResultCenter();
+  } else if (result === "legendDice") {
+    announceLuckResult("🎲 Gewinn: Legendärer Würfel! OK = verwenden, Abbrechen = verwerfen.");
+    await wait(650);
+    if (confirm("Legendären Würfel verwenden?")) {
+      announceLuckResult("🎲 Wähle ein aktives Pokémon, das als Legendäres Pokémon neu gewürfelt wird.");
+      await startPlayerBonusRerollChoice(validSlots, "legendDice");
+    }
+    await hideLuckResultCenter();
+  } else {
+    announceLuckResult("😅 Niete! Leider gibt es diesmal keinen Bonus.");
+    await wait(1200);
     await hideLuckResultCenter();
   }
 
@@ -4165,7 +4390,7 @@ async function spinComputerLuckWheel(slots) {
     announceLuckResult(`🔍 ${computerOpponentName} gewinnt: Scope-Linse! Volltrefferquote steigt auf 25%.`);
     await wait(1200);
     await hideLuckResultCenter();
-  } else {
+  } else if (result === "choice") {
     const chosenSlot =
       [...validSlots].sort((a, b) =>
         (parseInt(b.dataset.stat) || 0) - (parseInt(a.dataset.stat) || 0)
@@ -4189,6 +4414,22 @@ async function spinComputerLuckWheel(slots) {
       resultBox.innerText = `⭐ ${computerOpponentName}: ${getSlotName(chosenSlot)} wurde shiny!`;
     }
     await wait(700);
+    await hideLuckResultCenter();
+  } else if (result === "doubleShiny") {
+    await applyDoubleShiny(validSlots, `${computerOpponentName}: `);
+    await hideLuckResultCenter();
+  } else if (result === "extraTrade") {
+    await runComputerBonusReroll(validSlots, "extraTrade");
+    await hideLuckResultCenter();
+  } else if (result === "megaDice") {
+    await runComputerBonusReroll(validSlots, "megaDice");
+    await hideLuckResultCenter();
+  } else if (result === "legendDice") {
+    await runComputerBonusReroll(validSlots, "legendDice");
+    await hideLuckResultCenter();
+  } else {
+    announceLuckResult(`😅 ${computerOpponentName} zieht eine Niete! Kein Bonus.`);
+    await wait(1200);
     await hideLuckResultCenter();
   }
 
@@ -4392,9 +4633,19 @@ function showGymLeaderArtwork(type) {
     return;
   }
 
-  img.src = preloadedLeaderArtwork[type]?.src || gymLeaderArtwork[type] || "";
-  img.alt = `${gymLeaderNames[type] || "Arenaleiter"} Artwork`;
-  name.innerText = gymLeaderNames[type] || "Arenaleiter";
+  const leaderName = gymLeaderNames[type] || "Arenaleiter";
+  const primarySrc = gymLeaderArtwork[type] || "";
+
+  img.onerror = () => {
+    img.onerror = null;
+    img.removeAttribute("src");
+    img.alt = `${leaderName} Artwork konnte nicht geladen werden`;
+    name.innerText = `${leaderName} ⚠`;
+  };
+
+  img.src = primarySrc;
+  img.alt = `${leaderName} Artwork`;
+  name.innerText = leaderName;
 
   box.classList.remove("show");
   void box.offsetWidth;
@@ -5276,6 +5527,8 @@ async function fight() {
   opponentTeamRunning = false;
   autoFightStarted = false;
   activeShinyChoiceResolve = null;
+  bonusRerollMode = null;
+  activeBonusRerollResolve = null;
 }
 
 function newMatch() {
@@ -5418,6 +5671,8 @@ function resetSlots() {
   activeSlot = null;
   computerOpponentName = "Computer";
   shinySelectionMode = false;
+  bonusRerollMode = null;
+  activeBonusRerollResolve = null;
   hideGymLeaderArtwork();
 
   clearActiveSlots();
