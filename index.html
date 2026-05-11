@@ -2519,7 +2519,7 @@ button:disabled {
   <div class="gym-buttons">
 
     <button onclick="startComputer()">▶ COMPUTER STARTEN</button>
-    <button class="repair-leaders-button" onclick="repairGymLeaderArtwork()">🛠 Arenaleiter reparieren</button>
+    <button class="repair-leaders-button" onclick="repairGymLeaderArtwork()" title="Lädt Arenaleiter-Artworks mit Cache-Buster neu und bevorzugt lokale Repo-Dateien aus ./leader-artworks/">🛠 Arenaleiter reparieren</button>
 
     <div class="gym-region-title">Kanto</div>
     <button onclick="startGymLeader('brock')">1. 🪨 Rocko</button>
@@ -2825,8 +2825,18 @@ const gymLeaderArtwork = Object.fromEntries(
   Object.entries(gymLeaders).map(([id, leader]) => [id, leader.artwork])
 );
 
+// GitHub-Pages-sicher: Lege die Dateien im Repo in diesen Ordner.
+// Beispiel: ./leader-artworks/brock.png, ./leader-artworks/misty.png usw.
+const LEADER_ARTWORK_BASE_PATH = "./leader-artworks/";
+const LEADER_ARTWORK_FILE_EXTENSION = ".png";
+
 const preloadedLeaderArtwork = {};
 
+function getLocalGymLeaderArtworkSrc(type) {
+  if (!type) return "";
+  const leader = gymLeaders[type] || {};
+  return leader.localArtwork || `${LEADER_ARTWORK_BASE_PATH}${type}${LEADER_ARTWORK_FILE_EXTENSION}`;
+}
 
 function artworkSrcWithCacheBust(src) {
   if (!src) return "";
@@ -2834,17 +2844,37 @@ function artworkSrcWithCacheBust(src) {
   return `${src}${separator}repair=${Date.now()}`;
 }
 
+function uniqueArtworkSources(sources) {
+  return [...new Set(sources.filter(Boolean))];
+}
+
+function getGymLeaderArtworkCandidates(type, forceReload = false) {
+  const localSrc = getLocalGymLeaderArtworkSrc(type);
+  const externalSrc = gymLeaderArtwork[type] || "";
+
+  // Reihenfolge: erst lokales Repo-Bild, dann alter externer Fallback.
+  return uniqueArtworkSources([localSrc, externalSrc]).map(src =>
+    forceReload ? artworkSrcWithCacheBust(src) : src
+  );
+}
+
 function preloadGymLeaderArtwork(forceReload = false) {
-  Object.entries(gymLeaderArtwork).forEach(([type, src]) => {
-    if (!src) return;
+  Object.keys(gymLeaders).forEach(type => {
     if (!forceReload && preloadedLeaderArtwork[type]) return;
 
+    const candidates = getGymLeaderArtworkCandidates(type, forceReload);
+    if (!candidates.length) return;
+
     const image = new Image();
-    image.crossOrigin = "anonymous";
     image.decoding = "async";
     image.loading = "eager";
-    image.src = forceReload ? artworkSrcWithCacheBust(src) : src;
-    preloadedLeaderArtwork[type] = image;
+    image.src = candidates[0];
+
+    preloadedLeaderArtwork[type] = {
+      image,
+      candidates,
+      loadedSrc: candidates[0]
+    };
   });
 }
 
@@ -2858,11 +2888,11 @@ function repairGymLeaderArtwork() {
     img.removeAttribute("src");
   }
 
-  if (lastOpponentType && gymLeaderArtwork[lastOpponentType]) {
+  if (lastOpponentType && gymLeaders[lastOpponentType]) {
     showGymLeaderArtwork(lastOpponentType, true);
-    updateHint("Arenaleiter-Artwork wurde neu geladen.");
+    updateHint("Arenaleiter-Artwork wurde repariert und mit Cache-Buster neu geladen.");
   } else {
-    updateHint("Arenaleiter-Artworks wurden neu vorgeladen.");
+    updateHint("Arenaleiter-Artworks wurden für GitHub Pages neu vorgeladen.");
   }
 }
 
@@ -4813,29 +4843,46 @@ function showGymLeaderArtwork(type, forceReload = false) {
   }
 
   const leaderName = gymLeaderNames[type] || "Arenaleiter";
-  const primarySrc = gymLeaderArtwork[type] || "";
-  const cachedImage = preloadedLeaderArtwork[type];
-  const safeSrc = forceReload
-    ? artworkSrcWithCacheBust(primarySrc)
-    : (cachedImage && cachedImage.complete && cachedImage.naturalWidth > 0 ? cachedImage.src : primarySrc);
+  const cached = preloadedLeaderArtwork[type];
+  const candidates = forceReload
+    ? getGymLeaderArtworkCandidates(type, true)
+    : (cached && cached.candidates ? cached.candidates : getGymLeaderArtworkCandidates(type, false));
 
-  img.onerror = () => {
-    img.onerror = null;
-    img.removeAttribute("src");
-    img.alt = `${leaderName} Artwork konnte nicht geladen werden`;
-    name.innerText = `${leaderName} ⚠`;
-    updateHint("Artwork konnte nicht geladen werden. Nutze unten 🛠 Arenaleiter reparieren.");
+  let candidateIndex = 0;
+
+  function tryNextArtwork() {
+    const nextSrc = candidates[candidateIndex];
+
+    if (!nextSrc) {
+      img.onerror = null;
+      img.removeAttribute("src");
+      img.alt = `${leaderName} Artwork konnte nicht geladen werden`;
+      name.innerText = `${leaderName} ⚠`;
+      updateHint("Artwork konnte nicht geladen werden. Prüfe, ob ./leader-artworks/ im GitHub-Repo liegt, oder nutze 🛠 Arenaleiter reparieren.");
+      return;
+    }
+
+    candidateIndex += 1;
+    img.src = nextSrc;
+  }
+
+  img.onerror = tryNextArtwork;
+  img.onload = () => {
+    if (preloadedLeaderArtwork[type]) {
+      preloadedLeaderArtwork[type].loadedSrc = img.currentSrc || img.src;
+    }
   };
 
   img.decoding = "async";
   img.loading = "eager";
-  img.src = safeSrc;
   img.alt = `${leaderName} Artwork`;
   name.innerText = leaderName;
 
   box.classList.remove("show");
   void box.offsetWidth;
   box.classList.add("show");
+
+  tryNextArtwork();
 }
 
 function hideGymLeaderArtwork() {
