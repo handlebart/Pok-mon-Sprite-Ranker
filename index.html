@@ -2,14 +2,1534 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Pokémon Sprite Ranker</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>HAUPTMENÜ</title>
 
 <style>
+
+.main-title {
+  font-size: clamp(38px, 6vw, 72px);
+  margin: 18px 0 20px;
+  letter-spacing: 2px;
+}
+
+.title-keep { color: green; text-shadow: 0 3px 0 rgba(0,0,0,0.12); }
+.title-trade { color: dodgerblue; text-shadow: 0 3px 0 rgba(0,0,0,0.12); }
+.title-release { color: red; text-shadow: 0 3px 0 rgba(0,0,0,0.12); }
+
+.legend-intro {
+  font-size: 13px;
+  line-height: 1.35;
+  margin: 0 0 12px;
+  color: #333;
+}
+
 body {
-  margin: 0;
   font-family: Arial;
+  text-align: center;
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 30px 20px 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.button-legend {
+  position: fixed;
+  left: 16px;
+  top: 130px;
+  width: 210px;
+  background: rgba(255,255,255,0.94);
+  border: 3px solid #ddd;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 14px 14px 12px;
+  text-align: left;
+  z-index: 100;
+}
+
+.button-legend h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.legend-item {
+  font-size: 13px;
+  line-height: 1.28;
+  margin: 8px 0;
+  color: #333;
+}
+
+.legend-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 1px;
+}
+
+.legend-action {
+  color: white;
+  border-radius: 8px;
+  padding: 4px 8px;
+  width: fit-content;
+  letter-spacing: 0.3px;
+}
+
+.legend-keep {
+  background: green;
+}
+
+.legend-trade {
+  background: dodgerblue;
+}
+
+.legend-release {
+  background: red;
+}
+
+.collection-panel {
+  position: fixed;
+  right: 16px;
+  top: 130px;
+  width: 230px;
+  background: rgba(255,255,255,0.94);
+  border: 3px solid #ddd;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 14px;
+  text-align: center;
+  z-index: 100;
+}
+
+.collection-panel h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.collection-stats {
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.collection-panel button {
+  font-size: 12px;
+  padding: 7px 9px;
+  margin: 3px;
+}
+
+.collection-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.collection-modal.show {
+  display: flex;
+}
+
+.collection-content {
+  width: min(1120px, 96vw);
+  max-height: 82vh;
+  overflow: auto;
+  background: white;
+  border-radius: 20px;
+  border: 4px solid #ddd;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+  padding: 20px;
+  text-align: left;
+}
+
+.collection-content h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.collection-card {
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  padding: 10px;
+  background: #fafafa;
+  font-size: 13px;
+}
+
+.collection-card strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.collection-empty {
+  text-align: center;
+  font-weight: bold;
+  color: #555;
+}
+.dex-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dex-progress {
+  text-align: center;
+  font-weight: bold;
+  margin: 8px 0 16px;
+}
+
+.dex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 8px;
+}
+
+.dex-cell {
+  aspect-ratio: 1 / 1;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  background: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #666;
+  overflow: hidden;
+  position: relative;
+}
+
+.dex-cell img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+}
+
+.dex-cell.found {
+  background: white;
+  border-color: #aaa;
+}
+
+.dex-number {
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+  margin-top: 3px;
+}
+
+.dex-name {
+  width: 100%;
+  padding: 0 3px 4px;
+  box-sizing: border-box;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.form-category {
+  margin: 18px 0 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #eee;
+  font-weight: bold;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+}
+
+.form-card {
+  min-height: 122px;
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.form-card img {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.form-card.locked {
+  color: #777;
+  background: #f1f1f1;
+}
+
+.form-question {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  border: 2px dashed #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  margin-bottom: 5px;
+}
+
+
+.effectiveness-line.critical {
+  color: #b8860b;
+  text-shadow: 0 0 8px rgba(255,215,0,0.55);
+  animation: criticalPop 0.5s ease-out;
+}
+
+@keyframes criticalPop {
+  0% { transform: scale(0.65); opacity: 0; }
+  55% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 1350px) {
+  .button-legend,
+  .collection-panel {
+    position: static;
+    width: min(760px, 92vw);
+    margin: 0 auto 22px;
+  }
+
+  .button-legend {
+    display: block;
+  }
+
+  .collection-panel {
+    display: block;
+    text-align: center;
+  }
+
+  .button-legend h3,
+  .collection-panel h3 {
+    grid-column: 1 / -1;
+  }
+
+  .legend-item {
+    margin: 3px 0;
+  }
+
+}
+
+
+.collapsible-panel > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 10px;
+  user-select: none;
+}
+
+.collapsible-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-panel > summary::after {
+  content: "  ▲";
+  font-size: 13px;
+}
+
+.collapsible-panel:not([open]) > summary::after {
+  content: "  ▼";
+}
+
+.collapsible-panel:not([open]) {
+  padding-bottom: 10px;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-button.keep-button {
+  background: green;
+  color: white;
+  border: none;
+}
+
+.action-button.trade-button {
+  background: dodgerblue;
+  color: white;
+  border: none;
+}
+
+.action-button.release-button {
+  background: red;
+  color: white;
+  border: none;
+}
+
+
+
+.luck-wheel-box {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 170px;
+  transform: translate(-50%, -50%) scale(0.85);
+  z-index: 32;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  box-shadow: none;
+  animation: wheelAppear 0.48s cubic-bezier(0.2, 1.15, 0.25, 1) forwards;
+}
+
+.luck-wheel-box.show {
+  display: block;
+}
+
+.luck-wheel-box.hide-out {
+  display: block;
+  animation: wheelDisappear 0.42s ease-in forwards;
+}
+
+@keyframes wheelAppear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.35) rotate(-18deg); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+@keyframes wheelDisappear {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.25) rotate(24deg); }
+}
+
+.luck-wheel-title {
+  position: absolute;
+  left: 50%;
+  top: -44px;
+  transform: translateX(-50%);
+  min-width: 230px;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 2px 0 white, 0 0 12px rgba(255,215,0,0.9);
+}
+
+.luck-wheel {
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+  filter: none;
+}
+
+.luck-wheel .wheel-face {
+  box-shadow: 0 12px 22px rgba(0,0,0,0.28);
+}
+
+.luck-wheel::before {
+  content: "";
+  position: absolute;
+  inset: -13px;
+  border-radius: 50%;
+  background: conic-gradient(#fff 0deg 12deg, gold 12deg 30deg, #fff 30deg 42deg, #ff4fc3 42deg 60deg, #fff 60deg 72deg, #66d9ff 72deg 90deg, #fff 90deg 102deg, gold 102deg 120deg, #fff 120deg 132deg, #ff4fc3 132deg 150deg, #fff 150deg 162deg, #66d9ff 162deg 180deg, #fff 180deg 192deg, gold 192deg 210deg, #fff 210deg 222deg, #ff4fc3 222deg 240deg, #fff 240deg 252deg, #66d9ff 252deg 270deg, #fff 270deg 282deg, gold 282deg 300deg, #fff 300deg 312deg, #ff4fc3 312deg 330deg, #fff 330deg 342deg, #66d9ff 342deg 360deg);
+  animation: rimSparkle 1.4s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rimSparkle {
+  to { transform: rotate(360deg); }
+}
+
+.luck-wheel::after {
+  content: "🎯";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 5px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  z-index: 3;
+  box-shadow: 0 0 18px rgba(255,255,255,0.95);
+}
+
+.wheel-pointer {
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  font-size: 36px;
+  color: #222;
+  text-shadow: 0 3px 0 white, 0 0 12px gold;
+  z-index: 5;
+}
+
+.wheel-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 8px solid #222;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.95) 0 20%, rgba(255,255,255,0) 21%),
+    conic-gradient(
+      #ffd83d 0deg 252deg,
+      #73d9ff 252deg 324deg,
+      #c89cff 324deg 360deg
+    );
+  position: relative;
+  overflow: hidden;
+  transition: transform 3.5s cubic-bezier(0.08, 0.76, 0.12, 1);
+  z-index: 1;
+}
+
+.wheel-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(rgba(255,255,255,0.22) 0deg 3deg, transparent 3deg 18deg);
+  border-radius: 50%;
+}
+
+.wheel-option {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 82px;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.12;
+  color: #222;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.9);
+  z-index: 2;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+/*
+  Die Texte liegen auf den Segment-Mittelpunkten des Rads:
+  Roulette 0°-252°, Scope-Linse 252°-324°, Shiny wählen 324°-360°.
+*/
+.wheel-roulette {
+  transform: translate(-50%, -50%) rotate(126deg) translateY(-72px) rotate(-126deg);
+}
+
+.wheel-scope {
+  transform: translate(-50%, -50%) rotate(288deg) translateY(-73px) rotate(-288deg);
+}
+
+.wheel-choice {
+  width: 70px;
+  font-size: 10px;
+  transform: translate(-50%, -50%) rotate(342deg) translateY(-76px) rotate(-342deg);
+}
+
+.luck-wheel.spinning .wheel-face {
+  filter: brightness(1.16) saturate(1.25);
+}
+
+.luck-wheel.spinning::before {
+  animation-duration: 0.38s;
+}
+
+.luck-wheel-box button {
+  margin-top: 18px;
+  background: #222;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.24);
+}
+
+
+.luck-result-center {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 170px;
+  transform: translate(-50%, -50%) scale(0.85);
+  width: min(360px, 44vw);
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 28px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.94);
+  border: 4px solid gold;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22), 0 0 32px rgba(255,215,0,0.42);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.2;
+  color: #222;
+  z-index: 36;
+  text-align: center;
+  pointer-events: none;
+}
+
+.luck-result-center.show {
+  display: flex;
+  animation: resultCenterIn 0.45s cubic-bezier(0.2, 1.15, 0.25, 1) forwards;
+}
+
+.luck-result-center.hide-out {
+  display: flex;
+  animation: resultCenterOut 0.28s ease-in forwards;
+}
+
+@keyframes resultCenterIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.55) rotate(-3deg); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+@keyframes resultCenterOut {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.75); }
+}
+
+.luck-result-pop {
+  animation: luckResultPop 0.55s ease-out;
+}
+
+@keyframes luckResultPop {
+  0% { transform: scale(0.65); opacity: 0; }
+  65% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.leader-art {
+  position: absolute;
+  right: -150px;
+  top: 0;
+  width: 140px;
+  min-height: 245px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 20;
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.leader-art.show {
+  display: flex;
+  animation: leaderSlideIn 0.65s cubic-bezier(0.2, 1.1, 0.25, 1) forwards;
+}
+
+.leader-art img {
+  max-width: 145px;
+  max-height: 225px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.28));
+}
+
+.leader-art-name {
+  margin-top: -2px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  border: 2px solid #ddd;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+}
+
+@keyframes leaderSlideIn {
+  from { opacity: 0; transform: translateX(130px) scale(0.88); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@media (max-width: 1250px) {
+  .leader-art {
+    position: absolute !important;
+    right: -132px;
+    top: 8px;
+    width: 120px;
+    min-height: 210px;
+    margin: 0;
+  }
+
+  .leader-art img {
+    max-width: 120px;
+    max-height: 190px;
+  }
+}
+
+.top-controls,
+.bottom-controls {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.top-controls {
+  margin-bottom: 40px;
+}
+
+.bottom-controls {
+  margin-top: 50px;
+}
+
+.progress-container {
+  width: 300px;
+  height: 20px;
+  background: #ddd;
+  margin: 20px auto;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+  transition: width 0.2s;
+}
+
+.status {
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.action-hint {
+  position: absolute;
+  left: 50%;
+  top: 32px;
+  transform: translateX(-50%);
+  width: min(720px, 90vw);
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.92);
+  border: 3px solid rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  z-index: 38;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(255,255,255,0.9);
+  pointer-events: none;
+}
+
+.fight-area.wheel-layout .action-hint {
+  left: 79%;
+  top: 170px;
+  width: min(300px, 32vw);
+  min-height: 150px;
+  transform: translate(-50%, -50%);
+  font-size: 21px;
+}
+
+@media (max-width: 850px) {
+  .luck-wheel-box {
+    left: 50%;
+    top: 150px;
+  }
+
+  .luck-result-center {
+    left: 50%;
+    top: 170px;
+  }
+
+  .fight-area.wheel-layout .action-hint {
+    left: 50%;
+    top: 350px;
+    width: min(560px, 90vw);
+    min-height: 70px;
+  }
+}
+
+.game-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  min-height: 900px;
+  justify-content: center;
+}
+
+.slots {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 10px;
+  position: relative;
+  min-height: 260px;
+}
+
+.slot-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  flex: 0 0 150px;
+}
+
+.slot {
+  width: 150px;
+  height: 150px;
+  border: 6px solid #ccc;
+  background: white;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin-left: -6px;
+  border-radius: 0;
+}
+
+.slot:first-child {
+  margin-left: 0;
+}
+
+.slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+.active-slot {
+  border-color: gold !important;
+  box-shadow: 0 0 18px gold;
+}
+
+.shiny-pickable {
+  cursor: pointer;
+  animation: shinyPickPulse 0.9s infinite alternate;
+}
+
+.shiny-roulette-active {
+  border-color: gold !important;
+  box-shadow:
+    0 0 18px gold,
+    0 0 38px rgba(255,215,0,0.9) !important;
+  transform: scale(1.08);
+  z-index: 15;
+}
+
+@keyframes shinyPickPulse {
+  0% { box-shadow: 0 0 8px gold; }
+  100% { box-shadow: 0 0 28px gold; }
+}
+
+.reel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.question {
+  font-size: 78px;
+  font-weight: bold;
+  color: #555;
+  animation:
+    pulseQuestion 1s infinite ease-in-out,
+    glowQuestion 1.4s infinite alternate,
+    floatQuestion 2s infinite ease-in-out;
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,0.9))
+    drop-shadow(0 0 16px rgba(255,255,255,0.8));
+}
+
+@keyframes pulseQuestion {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes glowQuestion {
+  0% {
+    opacity: 0.7;
+    text-shadow: 0 0 8px #fff, 0 0 16px #bbb, 0 0 24px #aaa, 0 0 34px #999;
+  }
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 12px #fff, 0 0 22px #ddd, 0 0 36px #bbb, 0 0 50px #999;
+  }
+}
+
+@keyframes floatQuestion {
+  0% { translate: 0 0; }
+  50% { translate: 0 -4px; }
+  100% { translate: 0 0; }
+}
+
+.select-ring {
+  position: absolute;
+  inset: 0;
+  border: 5px solid gold;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,0.6);
+  animation: pulseRing 0.6s ease-out;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes pulseRing {
+  0% { transform: scale(0.95); opacity: 0.4; }
+  50% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.pokemon-name {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  min-height: 24px;
+  width: 260px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.base-stat {
+  font-size: 16px;
+  margin-top: 4px;
+  color: #333;
+  min-height: 20px;
+  width: 260px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.special-banner {
+  margin-top: 6px;
+  min-height: 24px;
+  width: 260px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #b8860b;
+  animation: specialPop 0.8s ease-out;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+@keyframes specialPop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.keep {
+  border: 6px solid green;
+}
+
+.trade {
+  border: 6px solid dodgerblue;
+}
+
+.release {
+  border: 6px solid red;
+}
+
+.x-overlay {
+  position: absolute;
+  inset: 0;
+  font-size: 80px;
+  color: red;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.7);
+  z-index: 10;
+}
+
+.shiny {
+  border: 6px solid transparent !important;
+  position: relative;
+  overflow: visible;
+  z-index: 3;
+}
+
+.shiny::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  background: linear-gradient(45deg, #ff004c, #ffcc00, #00ffcc, #3366ff, #ff00ff, #ff004c);
+  background-size: 400% 400%;
+  animation: rainbowMove 3s linear infinite;
+  z-index: 0;
+}
+
+.shiny::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: white;
+  z-index: 0;
+}
+
+@keyframes rainbowMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
+}
+
+.shiny-burst {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  pointer-events: none;
+  animation: pop 0.6s ease-out;
+  z-index: 20;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.winner-slot {
+  animation: winnerGlow 1s infinite alternate;
+  border: 6px solid lime !important;
+}
+
+.loser-slot {
+  animation: loserGlow 1s infinite alternate;
+  border: 6px solid red !important;
+}
+
+@keyframes winnerGlow {
+  0% { box-shadow: 0 0 10px lime, 0 0 20px lime; }
+  100% { box-shadow: 0 0 20px lime, 0 0 50px #00ff99; }
+}
+
+@keyframes loserGlow {
+  0% { box-shadow: 0 0 10px red, 0 0 20px red; }
+  100% { box-shadow: 0 0 20px red, 0 0 40px darkred; }
+}
+
+.fight-area {
+  width: 100%;
+  max-width: 900px;
+  min-height: 340px;
+  margin: 10px 0 20px;
+  text-align: center;
+  position: relative;
+  flex: 0 0 340px;
+}
+
+.fight-button {
+  background: red;
+  color: white;
+  font-size: 24px;
+  padding: 16px 50px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  position: absolute;
+  left: 50%;
+  top: 170px;
+  z-index: 30;
+  transform: translate(-50%, -50%);
+}
+
+.fight-button:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.fight-button.fighting {
+  opacity: 0.7;
+  pointer-events: none;
+  animation: fightButtonPulse 0.4s infinite alternate;
+}
+
+.fight-button.hidden {
+  display: none;
+}
+
+@keyframes fightButtonPulse {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-50%, -50%) scale(1.06); }
+}
+
+.battle-stage {
+  width: min(760px, 92vw);
+  min-height: 210px;
+  margin: 0 auto;
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.96), rgba(230,230,230,0.86)),
+    linear-gradient(90deg, rgba(45,125,255,0.16), rgba(255,255,255,0.25), rgba(255,40,40,0.16));
+  border: 3px solid rgba(0,0,0,0.12);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.12);
+}
+
+.battle-stage.show {
+  visibility: visible;
+  opacity: 1;
+  animation: stageIn 0.35s ease-out;
+}
+
+@keyframes stageIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.battle-row {
+  position: relative;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 42px 0;
+}
+
+.team-power {
+  width: 190px;
+  min-height: 112px;
+  border-radius: 18px;
+  background: white;
+  border: 4px solid #ddd;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.team-power.player {
+  border-color: dodgerblue;
+}
+
+.team-power.computer {
+  border-color: crimson;
+}
+
+.team-power.charging {
+  animation: chargePower 0.35s ease-out;
+}
+
+@keyframes chargePower {
+  0% { transform: scale(1); }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.team-label {
+  font-size: 15px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.team-total {
+  font-size: 38px;
+  font-weight: bold;
+}
+
+.team-power.player .team-total {
+  color: dodgerblue;
+}
+
+.team-power.computer .team-total {
+  color: crimson;
+}
+
+.vs-core {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: #222;
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 8px rgba(255,255,255,0.95), 0 0 28px rgba(0,0,0,0.35);
+  z-index: 3;
+}
+
+.vs-core.clash {
+  animation: clashCore 0.55s ease-out;
+}
+
+@keyframes clashCore {
+  0% { transform: scale(1) rotate(0deg); background: #222; }
+  35% { transform: scale(1.35) rotate(-8deg); background: orange; }
+  70% { transform: scale(0.92) rotate(8deg); background: crimson; }
+  100% { transform: scale(1) rotate(0deg); background: #222; }
+}
+
+.stat-chip {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 3px solid #333;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 20px;
+  font-weight: bold;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  pointer-events: none;
+  transition:
+    left 0.55s ease-in,
+    top 0.55s ease-in,
+    transform 0.55s ease-in,
+    opacity 0.55s ease-in;
+}
+
+.stat-chip.player-chip {
+  border-color: dodgerblue;
+  color: dodgerblue;
+}
+
+.stat-chip.computer-chip {
+  border-color: crimson;
+  color: crimson;
+}
+
+.battle-beam {
+  position: absolute;
+  height: 24px;
+  top: 90px;
+  border-radius: 999px;
+  opacity: 0;
+  z-index: 2;
+}
+
+.battle-beam.player {
+  left: 145px;
+  right: 50%;
+  background: linear-gradient(90deg, rgba(30,144,255,0), rgba(30,144,255,0.95));
+  transform-origin: left center;
+}
+
+.battle-beam.computer {
+  right: 145px;
+  left: 50%;
+  background: linear-gradient(90deg, rgba(220,20,60,0.95), rgba(220,20,60,0));
+  transform-origin: right center;
+}
+
+.battle-beam.fire {
+  animation: beamFire 0.55s ease-out;
+}
+
+@keyframes beamFire {
+  0% { transform: scaleX(0); opacity: 0; }
+  45% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(0.85); opacity: 0; }
+}
+
+.impact-burst {
+  position: absolute;
+  left: 50%;
+  top: 101px;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, white 0%, gold 35%, orange 58%, rgba(255,0,0,0) 72%);
+  opacity: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.impact-burst.fire {
+  animation: impactBurst 0.7s ease-out;
+}
+
+@keyframes impactBurst {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  40% { transform: translate(-50%, -50%) scale(4.8); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(7); opacity: 0; }
+}
+
+.team-power.attack-left {
+  animation: attackLeft 0.7s ease-out;
+}
+
+.team-power.attack-right {
+  animation: attackRight 0.7s ease-out;
+}
+
+.team-power.hit-left {
+  animation: hitLeft 0.7s ease-out;
+}
+
+.team-power.hit-right {
+  animation: hitRight 0.7s ease-out;
+}
+
+@keyframes attackLeft {
+  0% { transform: translateX(0) scale(1); }
+  45% { transform: translateX(135px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes attackRight {
+  0% { transform: translateX(0) scale(1); }
+  45% { transform: translateX(-135px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes hitLeft {
+  0%,100% { transform: translateX(0); filter: none; }
+  20% { transform: translateX(-18px); filter: grayscale(1); }
+  40% { transform: translateX(16px); }
+  60% { transform: translateX(-10px); }
+}
+
+@keyframes hitRight {
+  0%,100% { transform: translateX(0); filter: none; }
+  20% { transform: translateX(18px); filter: grayscale(1); }
+  40% { transform: translateX(-16px); }
+  60% { transform: translateX(10px); }
+}
+
+.battle-caption {
+  min-height: 34px;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0 20px 18px;
+  color: #333;
+}
+
+.effectiveness-log {
+  min-height: 62px;
+  margin: -8px auto 12px;
+  max-width: 720px;
+  font-size: 17px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.effectiveness-line {
+  animation: effectivenessPop 0.45s ease-out;
+}
+
+.effectiveness-line.super {
+  color: #0a8f2a;
+}
+
+.effectiveness-line.weak {
+  color: #c62828;
+}
+
+.effectiveness-line.normal {
+  color: #555;
+}
+
+@keyframes effectivenessPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.score-box {
+  font-size: 24px;
+  margin-top: 25px;
+  font-weight: bold;
+  min-height: 40px;
+}
+
+.result-box {
+  display: none;
+}
+
+.team-power.victory-glow {
+  animation: victoryBoxGlow 0.45s infinite alternate;
+}
+
+@keyframes victoryBoxGlow {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 5px 16px rgba(0,0,0,0.14),
+      0 0 12px rgba(0,255,80,0.45);
+  }
+
+  100% {
+    transform: scale(1.06);
+    box-shadow:
+      0 8px 24px rgba(0,0,0,0.2),
+      0 0 28px rgba(0,255,80,0.95),
+      0 0 48px rgba(0,255,160,0.55);
+  }
+}
+
+.post-fight-controls {
+  margin-top: 40px;
+  display: none;
+}
+
+.post-fight-controls button {
+  font-size: 18px;
+}
+
+.gym-buttons button {
+  min-width: 150px;
+}
+
+.gym-region-title {
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto 4px;
+  padding-top: 8px;
+  border-top: 2px solid rgba(0,0,0,0.08);
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ===== MAIN MENU / APP NAVIGATION ===== */
+.main-menu-screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0,128,0,0.35), transparent 38%),
+    radial-gradient(circle at 80% 30%, rgba(30,144,255,0.35), transparent 38%),
+    radial-gradient(circle at 50% 80%, rgba(255,0,0,0.30), transparent 38%),
+    #10131f;
+  color: white;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.main-menu-card {
+  width: min(720px, 94vw);
+  background: rgba(255,255,255,0.10);
+  border: 3px solid rgba(255,255,255,0.22);
+  border-radius: 28px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+  padding: 36px 28px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.main-menu-card h1 {
+  margin: 0 0 12px;
+  font-size: clamp(34px, 6vw, 64px);
+  letter-spacing: 2px;
+}
+
+.main-menu-card p {
+  color: rgba(255,255,255,0.82);
+  font-size: 16px;
+  margin: 0 0 28px;
+}
+
+.main-menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+}
+
+.main-menu-actions button,
+.menu-back-button {
+  border: none;
+  border-radius: 18px;
+  padding: 18px 24px;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+  transition: transform 0.18s, filter 0.18s;
+}
+
+.main-menu-actions button:hover,
+.menu-back-button:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.08);
+}
+
+.menu-game-button {
+  background: linear-gradient(135deg, green, dodgerblue, red);
+}
+
+.menu-picker-button {
+  background: linear-gradient(135deg, #7c3aed, #2563eb, #16a34a);
+}
+
+.menu-back-button {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  z-index: 20000;
+  background: #111827;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+.app-view {
+  width: 100%;
+}
+
+.hidden-view {
+  display: none !important;
+}
+
+/* ===== FAVORITE SPRITE PICKER ===== */
+#favoriteSpritePickerView {
+  min-height: 100vh;
+  width: 100%;
   color: white;
   text-align: center;
   background:
@@ -17,25 +1537,30 @@ body {
     radial-gradient(circle at 80% 30%, #3b82ff55, transparent 40%),
     radial-gradient(circle at 50% 80%, #22c55e55, transparent 40%),
     #0b0f1a;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-#start {
-  height: 100vh;
+#fspStart {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: black;
   margin: 0;
+  padding: 80px 20px 40px;
+  box-sizing: border-box;
 }
 
-h2 {
-  font-family: "Press Start 2P", monospace;
-  font-size: 18px;
-  margin-bottom: 40px;
+.fsp-title {
+  font-family: Arial, monospace;
+  font-size: 26px;
+  margin-bottom: 36px;
+  letter-spacing: 1px;
 }
 
-.pokeballBtn {
+.fsp-pokeballBtn {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -46,7 +1571,7 @@ h2 {
   position: relative;
 }
 
-.pokeballBtn::before {
+.fsp-pokeballBtn::before {
   content:"";
   position:absolute;
   top:50%;
@@ -57,7 +1582,7 @@ h2 {
   transform:translateY(-50%);
 }
 
-.pokeballBtn::after {
+.fsp-pokeballBtn::after {
   content:"";
   position:absolute;
   top:50%;
@@ -70,14 +1595,15 @@ h2 {
   transform:translate(-50%,-50%);
 }
 
-.btnLabel {
-  font-family:"Press Start 2P";
-  font-size:11px;
+.fsp-btnLabel {
+  font-family: Arial, monospace;
+  font-weight: 900;
+  font-size:14px;
 }
 
-#app { display:none; }
+#fspApp { display:none; min-height: 100vh; padding-bottom: 50px; }
 
-#backBtn {
+#fspBackBtn {
   position: fixed;
   left: 10px;
   top: 50%;
@@ -85,34 +1611,35 @@ h2 {
   z-index: 1000;
 }
 
-#resetBtn {
+#fspResetBtn {
   position: fixed;
   left: 10px;
   top: calc(50% + 60px);
   z-index: 1000;
 }
 
-#shinyBtn {
+#fspShinyBtn {
   position: fixed;
   left: 10px;
   top: calc(50% + 120px);
   z-index: 1000;
 }
 
-#counterBar {
+#fspCounterBar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   display: flex;
   gap: 6px;
-  padding: 8px;
+  padding: 8px 8px 8px 120px;
   font-size: 11px;
   z-index: 999;
   backdrop-filter: blur(6px);
+  box-sizing: border-box;
 }
 
-.counterItem {
+.fsp-counterItem {
   flex: 1;
   padding: 6px;
   border-radius: 8px;
@@ -125,21 +1652,21 @@ h2 {
   gap: 3px;
 }
 
-.g1 { border-color:#ff5959; }
-.g2 { border-color:#ffd166; }
-.g3 { border-color:#06d6a0; }
-.g4 { border-color:#118ab2; }
-.g5 { border-color:#9b5de5; }
-.g6 { border-color:#f15bb5; }
+.fsp-g1 { border-color:#ff5959; }
+.fsp-g2 { border-color:#ffd166; }
+.fsp-g3 { border-color:#06d6a0; }
+.fsp-g4 { border-color:#118ab2; }
+.fsp-g5 { border-color:#9b5de5; }
+.fsp-g6 { border-color:#f15bb5; }
 
-#list {
+#fspList {
   margin-top: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.pokemon {
+.fsp-pokemon {
   width: 92%;
   max-width: 340px;
   margin: 10px;
@@ -148,9 +1675,9 @@ h2 {
   border-radius: 12px;
 }
 
-.pokemon img { width: 96px; }
+.fsp-pokemon img { width: 96px; }
 
-#spritePicker {
+#fspSpritePicker {
   position: fixed;
   inset: 0;
   background: rgba(5,10,25,0.97);
@@ -158,9 +1685,10 @@ h2 {
   padding: 90px 20px 40px;
   overflow-y: auto;
   text-align: center;
+  z-index: 30000;
 }
 
-#options {
+#fspOptions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 18px;
@@ -168,18 +1696,18 @@ h2 {
   justify-items: center;
 }
 
-.sprite img {
+.fsp-sprite img {
   width: 110px;
   cursor: pointer;
 }
 
-.label {
+.fsp-label {
   margin-top: 6px;
   font-size: 12px;
   color: #cbd5e1;
 }
 
-button {
+#favoriteSpritePickerView button {
   padding: 10px 14px;
   margin: 10px;
   border: none;
@@ -187,104 +1715,3871 @@ button {
   background: #1f2937;
   color: white;
 }
+
+@media (max-width: 760px) {
+  #fspCounterBar {
+    padding-left: 8px;
+    top: 54px;
+    flex-wrap: wrap;
+  }
+
+  #fspList {
+    margin-top: 150px;
+  }
+
+  #fspBackBtn,
+  #fspResetBtn,
+  #fspShinyBtn {
+    position: static;
+    transform: none;
+  }
+}
+
+
+.menu-team-button {
+  background: linear-gradient(135deg, #f97316, #eab308, #22c55e);
+}
+
+#pokemonThemeTeamsView {
+  min-height: 100vh;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background: #ffffff;
+  text-align: center;
+  padding: 80px 20px 40px;
+  box-sizing: border-box;
+  color: #111;
+}
+
+#pokemonThemeTeamsView h1 { margin-top: 0; }
+
+.tt-categories button {
+  margin: 5px;
+  padding: 10px 15px;
+  border: none;
+  background: #3c3c5a;
+  color: white;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.tt-team {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.tt-slot {
+  width: 96px;
+  height: 96px;
+  background: #2c2c3f;
+  border: 4px solid #000;
+  box-shadow: inset -4px -4px 0 #555, inset 4px 4px 0 #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.tt-slot.empty {
+  font-size: 36px;
+  color: #aaa;
+}
+
+.tt-slot img {
+  width: 80px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+@keyframes ttPulseQ {
+  0% { transform: scale(1); opacity: 0.7; text-shadow: 0 0 8px #fff, 0 0 16px #fff; }
+  50% { transform: scale(1.3); opacity: 1; text-shadow: 0 0 16px #fff, 0 0 32px #fff; }
+  100% { transform: scale(1); opacity: 0.7; text-shadow: 0 0 8px #fff, 0 0 16px #fff; }
+}
+
+.tt-qmark.active {
+  animation: ttPulseQ 1s infinite;
+}
+
+#ttSelector {
+  display: none;
+  background: #2c2c3f;
+  color: white;
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  max-width: 500px;
+  margin: auto;
+  border: 4px solid black;
+  border-radius: 12px;
+}
+
+.tt-search input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.tt-pokemon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  margin: 3px 0;
+  background: #3c3c5a;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.tt-pokemon img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.tt-pokemon:hover {
+  background: #50507a;
+}
+
+
+.menu-fav-pokemon-button {
+  background: linear-gradient(135deg, #0ea5e9, #8b5cf6, #ec4899);
+}
+
+/* ===== FAVORITE POKÉMON PICKER ===== */
+#favoritePokemonPickerView {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  background: linear-gradient(135deg,#0b1220,#070b18);
+  color:white;
+  font-family: Arial;
+  display:flex;
+  flex-direction:column;
+  box-sizing: border-box;
+  padding-top: 70px;
+}
+
+#favoritePokemonPickerView.hidden-view {
+  display: none !important;
+}
+
+.fpp-topbar {
+  min-height:70px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(10px);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  flex-wrap: wrap;
+  padding: 10px 80px 10px 120px;
+  box-sizing: border-box;
+}
+
+.fpp-gen-btn {
+  width:90px;
+  height:40px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  background:rgba(255,255,255,0.08);
+  transition:0.2s;
+  position:relative;
+  gap:6px;
+  user-select: none;
+}
+
+.fpp-gen-btn.active {
+  background:#1e293b;
+  box-shadow:
+    0 0 10px rgba(255,255,255,0.3),
+    0 0 25px rgba(255,255,255,0.25);
+}
+
+.fpp-gen-shiny {
+  position:absolute;
+  left:6px;
+  top:6px;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  font-size:14px;
+  color:#ffd84d;
+  padding:0;
+  line-height:1;
+  transition:0.2s;
+  opacity:0.5;
+}
+
+.fpp-gen-shiny.active {
+  opacity:1;
+  text-shadow:
+    0 0 6px rgba(255,215,0,0.9),
+    0 0 12px rgba(255,215,0,0.7),
+    0 0 18px rgba(255,215,0,0.5);
+  transform:scale(1.15);
+}
+
+.fpp-reset-all {
+  width:120px;
+  background:rgba(255,80,80,0.15);
+}
+
+.fpp-reset-all:hover {
+  background:rgba(255,80,80,0.35);
+}
+
+.fpp-gen-reset {
+  position:absolute;
+  right:6px;
+  top:6px;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:bold;
+  color:#ff3b3b;
+  padding:0;
+  line-height:1;
+  transition:0.2s;
+}
+
+.fpp-gen-reset:hover {
+  color:#ff3b3b;
+  text-shadow:
+    0 0 6px rgba(255,0,0,0.8),
+    0 0 12px rgba(255,0,0,0.6);
+  transform:scale(1.2);
+}
+
+.fpp-main {
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding: 30px 20px 70px;
+}
+
+.fpp-type-grid {
+  display:grid;
+  grid-template-columns: repeat(9, 90px);
+  gap:20px;
+}
+
+.fpp-type-btn {
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  position:relative;
+  transition:0.2s;
+  overflow:hidden;
+}
+
+.fpp-type-btn:hover {
+  transform:scale(1.05);
+  filter:brightness(1.15);
+  box-shadow:0 0 18px rgba(255,255,255,0.25);
+}
+
+.fpp-type-btn img {
+  width:32px;
+  height:32px;
+  object-fit:contain;
+}
+
+.fpp-type-btn.selected img {
+  width:56px;
+  height:56px;
+}
+
+.fpp-type-btn.selected {
+  box-shadow:
+    0 0 10px rgba(255,255,255,0.2),
+    0 0 18px rgba(255,255,255,0.15);
+}
+
+.fpp-type-btn.active {
+  transform:scale(1.08);
+  animation:fppTypePulse 2s infinite ease-in-out;
+}
+
+@keyframes fppTypePulse {
+  0% {
+    box-shadow:
+      0 0 12px var(--glow-color),
+      0 0 25px var(--glow-color);
+  }
+  50% {
+    box-shadow:
+      0 0 22px var(--glow-color),
+      0 0 45px var(--glow-color);
+  }
+  100% {
+    box-shadow:
+      0 0 12px var(--glow-color),
+      0 0 25px var(--glow-color);
+  }
+}
+
+.fpp-normal{background:#cfcba6;}
+.fpp-fire{background:#eaa07a;}
+.fpp-water{background:#86a9ee;}
+.fpp-electric{background:#f1d96a;}
+.fpp-grass{background:#93cf73;}
+.fpp-ice{background:#bfe6e6;}
+.fpp-fighting{background:#d27a74;}
+.fpp-poison{background:#b98bb9;}
+.fpp-ground{background:#dfc67d;}
+.fpp-flying{background:#b9a6ee;}
+.fpp-psychic{background:#ee88a5;}
+.fpp-bug{background:#b8cc7a;}
+.fpp-rock{background:#cdbb82;}
+.fpp-ghost{background:#9f86c2;}
+.fpp-dragon{background:#9c7af5;}
+.fpp-steel{background:#c2c2d6;}
+.fpp-fairy{background:#e19fbe;}
+.fpp-dark{background:#8a7a70;}
+
+#fppPicker {
+  position:fixed;
+  background: rgba(2,6,23,0.97);
+  border-radius:12px;
+  padding:10px;
+  max-width:90vw;
+  max-height:80vh;
+  overflow:auto;
+  z-index:30000;
+  opacity:0;
+  transform:scale(0.96);
+  transition:0.18s ease-out;
+  display:none;
+}
+
+#fppPicker.show {
+  opacity:1;
+  transform:scale(1);
+}
+
+#fppPickerGrid {
+  display:grid;
+  gap:6px;
+  justify-content:center;
+}
+
+.fpp-poke {
+  width:70px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.fpp-poke img {
+  width:52px;
+}
+
+.fpp-poke-name {
+  font-size:9px;
+}
+
+@media (max-width: 980px) {
+  .fpp-type-grid {
+    grid-template-columns: repeat(6, 90px);
+  }
+}
+
+@media (max-width: 680px) {
+  #favoritePokemonPickerView {
+    padding-top: 60px;
+  }
+
+  .fpp-topbar {
+    padding: 56px 8px 10px;
+  }
+
+  .fpp-type-grid {
+    grid-template-columns: repeat(3, 90px);
+  }
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="start">
-  <h2>Was willst du ranken?</h2>
-
-  <div>
-    <button class="pokeballBtn" onclick="startGen(1)"></button>
-    <div class="btnLabel">GEN 1</div>
-  </div>
-
-  <div>
-    <button class="pokeballBtn" onclick="startGen(2)"></button>
-    <div class="btnLabel">GEN 2</div>
+<div id="mainMenu" class="main-menu-screen">
+  <div class="main-menu-card">
+    <h1>HAUPTMENÜ</h1>
+    <p>Wähle, welches Pokémon-Tool du starten möchtest.</p>
+    <div class="main-menu-actions">
+      <button class="menu-game-button" onclick="showMainAppView('game')">Keep Trade Release</button>
+      <button class="menu-picker-button" onclick="showMainAppView('picker')">Favorite Sprite Picker</button>
+      <button class="menu-team-button" onclick="showMainAppView('teams')">Pokémon Themen Teams</button>
+      <button class="menu-fav-pokemon-button" onclick="showMainAppView('favoritePokemon')">Favorite Pokémon Picker</button>
+    </div>
   </div>
 </div>
 
-<div id="app">
-  <div id="counterBar"></div>
-  <button id="backBtn" onclick="back()">← Zurück</button>
-  <button id="resetBtn" onclick="resetAll()">Reset</button>
-  <button id="shinyBtn" onclick="toggleShiny()">Alle Shiny</button>
-  <div id="list"></div>
+<div id="ktrGameView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+
+<h1 class="main-title"><span class="title-keep">KEEP</span> <span class="title-trade">TRADE</span> <span class="title-release">RELEASE</span></h1>
+
+<details class="button-legend collapsible-panel">
+  <summary>Anleitung</summary>
+  <p class="legend-intro">Würfle dein Team und nutze jede Aktion genau einmal: Keep, Trade und Release.</p>
+  <p class="legend-intro">Danach entscheidet das Glücksrad über deinen Bonus, bevor du gegen den Computer oder einen Arenaleiter antrittst.</p>
+
+  <div class="legend-item">
+    <strong>📦 Laden</strong>
+    Lädt alle Pokémon und Formen vor.
+  </div>
+
+  <div class="legend-item">
+    <strong class="legend-action legend-keep">KEEP</strong>
+    Behalte das gewürfelte Pokémon.
+  </div>
+
+  <div class="legend-item">
+    <strong class="legend-action legend-trade">TRADE</strong>
+    Tauscht gegen ein stärkeres Pokémon, falls möglich.
+  </div>
+
+  <div class="legend-item">
+    <strong class="legend-action legend-release">RELEASE</strong>
+    Entfernt das Pokémon aus deinem Team.
+  </div>
+
+  <div class="legend-item">
+    <strong>🎡 Glücksrad</strong>
+    Erhalte einen Bonus. Danach startet der Kampf automatisch.
+  </div>
+
+</details>
+
+<details class="collection-panel collapsible-panel">
+  <summary>📊 Statistik</summary>
+  <div class="collection-stats" id="collectionStats">Noch keine Daten</div>
+  <button onclick="showCollection()">Pokédex</button>
+  <button onclick="showShinyDex()">Shiny Dex</button>
+  <button onclick="showFormsDex()">Formen Dex</button>
+  <button onclick="showShinyFormsDex()">Shiny Formen Dex</button>
+  <button onclick="resetCollection()">Statistik löschen</button>
+</details>
+
+<div class="collection-modal" id="collectionModal">
+  <div class="collection-content">
+    <h2 id="collectionModalTitle">📘 Pokédex</h2>
+    <div class="dex-toolbar">
+      <button onclick="showCollection()">Pokédex</button>
+      <button onclick="showShinyDex()">Shiny Dex</button>
+      <button onclick="showFormsDex()">Formen Dex</button>
+      <button onclick="showShinyFormsDex()">Shiny Formen Dex</button>
+    </div>
+    <div id="collectionDetails"></div>
+    <div style="text-align:center; margin-top:16px;">
+      <button onclick="hideCollection()">Schließen</button>
+    </div>
+  </div>
 </div>
 
-<div id="spritePicker">
-  <h3>Sprite auswählen</h3>
-  <div id="options"></div>
-  <button onclick="closePicker()">Schließen</button>
+<div class="top-controls">
+
+  <button onclick="startLoad()">📦 Laden</button>
+
+  <div class="progress-container">
+    <div class="progress-bar" id="bar"></div>
+  </div>
+
+  <div class="status" id="status">Nicht geladen</div>
+
+  <div style="margin-top:25px;">
+
+    <button id="keepButton" class="action-button keep-button" onclick="action('keep')">
+      KEEP
+    </button>
+
+    <button id="tradeButton" class="action-button trade-button" onclick="action('trade')">
+      TRADE
+    </button>
+
+    <button id="releaseButton" class="action-button release-button" onclick="action('release')">
+      RELEASE
+    </button>
+
+
+    <button onclick="resetSlots()">
+      RESET
+    </button>
+
+  </div>
+
+</div>
+
+<div class="game-center">
+
+  <div class="slots" id="playerSlots">
+
+    <div class="slot-wrapper">
+      <div class="slot" onclick="selectSlot(this)">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+    <div class="slot-wrapper">
+      <div class="slot" onclick="selectSlot(this)">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+    <div class="slot-wrapper">
+      <div class="slot" onclick="selectSlot(this)">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+  </div>
+
+  <div class="fight-area">
+
+    <div class="action-hint" id="actionHint">Wähle deinen Gegner.</div>
+
+    <div class="luck-wheel-box" id="playerLuckWheelBox">
+      <div class="luck-wheel-title">Dein Glücksrad</div>
+      <div class="luck-wheel" id="playerLuckWheel">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel-face">
+          <div class="wheel-option wheel-roulette">70%<br>Shiny Roulette</div>
+          <div class="wheel-option wheel-scope">20%<br>Scope-Linse</div>
+          <div class="wheel-option wheel-choice">10%<br>Shiny wählen</div>
+        </div>
+      </div>
+      <button onclick="spinPlayerLuckWheel()">🎡 Glücksrad drehen</button>
+    </div>
+
+    <div class="luck-wheel-box computer-wheel" id="computerLuckWheelBox">
+      <div class="luck-wheel-title" id="computerLuckWheelTitle">Computer Glücksrad</div>
+      <div class="luck-wheel" id="computerLuckWheel">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel-face">
+          <div class="wheel-option wheel-roulette">70%<br>Shiny Roulette</div>
+          <div class="wheel-option wheel-scope">20%<br>Scope-Linse</div>
+          <div class="wheel-option wheel-choice">10%<br>Shiny wählen</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="luck-result-center" id="luckResultCenter"></div>
+
+
+    <div class="battle-stage" id="battleStage">
+      <div class="battle-row">
+        <div class="team-power player" id="playerPower">
+          <div class="team-label">handlebart</div>
+          <div class="team-total" id="playerBattleTotal">0</div>
+        </div>
+
+        <div class="battle-beam player" id="playerBeam"></div>
+        <div class="battle-beam computer" id="computerBeam"></div>
+        <div class="impact-burst" id="impactBurst"></div>
+
+        <div class="vs-core" id="vsCore">VS</div>
+
+        <div class="team-power computer" id="computerPower">
+          <div class="team-label" id="computerBattleLabel">Computer</div>
+          <div class="team-total" id="computerBattleTotal">0</div>
+        </div>
+      </div>
+
+      <div class="battle-caption" id="battleCaption"></div>
+      <div class="effectiveness-log" id="effectivenessLog"></div>
+    </div>
+
+    <div class="score-box" id="scoreBox"></div>
+    <div class="result-box" id="fightResult"></div>
+
+  </div>
+
+  <div class="slots" id="computerSlots">
+
+    <div class="leader-art" id="leaderArt">
+      <img id="leaderArtImg" alt="Arenaleiter Artwork">
+      <div class="leader-art-name" id="leaderArtName"></div>
+    </div>
+
+    <div class="slot-wrapper">
+      <div class="slot">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+    <div class="slot-wrapper">
+      <div class="slot">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+    <div class="slot-wrapper">
+      <div class="slot">
+        <div class="reel"><div class="question">?</div></div>
+      </div>
+      <div class="pokemon-name"></div>
+      <div class="base-stat"></div>
+      <div class="special-banner"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="bottom-controls">
+
+  <div class="gym-buttons">
+
+    <button onclick="startComputer()">▶ COMPUTER STARTEN</button>
+
+    <div class="gym-region-title">Kanto</div>
+    <button onclick="startGymLeader('brock')">1. 🪨 Rocko</button>
+    <button onclick="startGymLeader('misty')">2. 💧 Misty</button>
+    <button onclick="startGymLeader('ltSurge')">3. ⚡ Major Bob</button>
+    <button onclick="startGymLeader('erika')">4. 🌿 Erika</button>
+    <button onclick="startGymLeader('koga')">5. ☠ Koga</button>
+    <button onclick="startGymLeader('sabrina')">6. 🔮 Sabrina</button>
+    <button onclick="startGymLeader('blaine')">7. 🔥 Pyro</button>
+    <button onclick="startGymLeader('giovanni')">8. 🌍 Giovanni</button>
+
+    <div class="gym-region-title">Johto</div>
+    <button onclick="startGymLeader('falkner')">1. 🪽 Falk</button>
+    <button onclick="startGymLeader('bugsy')">2. 🐞 Kai</button>
+    <button onclick="startGymLeader('whitney')">3. 🎀 Bianka</button>
+    <button onclick="startGymLeader('morty')">4. 👻 Jens</button>
+    <button onclick="startGymLeader('chuck')">5. 🥊 Hartwig</button>
+    <button onclick="startGymLeader('jasmine')">6. ⚙️ Jasmin</button>
+    <button onclick="startGymLeader('pryce')">7. ❄️ Norbert</button>
+    <button onclick="startGymLeader('clair')">8. 🐉 Sandra</button>
+
+    <div class="gym-region-title">Hoenn</div>
+    <button onclick="startGymLeader('roxanne')">1. 🪨 Felizia</button>
+    <button onclick="startGymLeader('brawly')">2. 🥊 Kamillo</button>
+    <button onclick="startGymLeader('wattson')">3. ⚡ Walter</button>
+    <button onclick="startGymLeader('flannery')">4. 🔥 Flavia</button>
+    <button onclick="startGymLeader('norman')">5. ⭐ Norman</button>
+    <button onclick="startGymLeader('winona')">6. 🪽 Wibke</button>
+    <button onclick="startGymLeader('tateLiza')">7. 🔮 Ben & Svenja</button>
+    <button onclick="startGymLeader('wallace')">8. 💧 Wassili</button>
+
+    <div class="gym-region-title">Sinnoh</div>
+    <button onclick="startGymLeader('roark')">1. 🪨 Veit</button>
+    <button onclick="startGymLeader('gardenia')">2. 🌿 Silvana</button>
+    <button onclick="startGymLeader('maylene')">3. 🥊 Hilda</button>
+    <button onclick="startGymLeader('fantina')">4. 👻 Lamina</button>
+    <button onclick="startGymLeader('crasherWake')">5. 💧 Marinus</button>
+    <button onclick="startGymLeader('byron')">6. ⚙️ Adam</button>
+    <button onclick="startGymLeader('candice')">7. ❄️ Frida</button>
+    <button onclick="startGymLeader('volkner')">8. ⚡ Volkner</button>
+
+  </div>
+
+  <div class="post-fight-controls" id="postFightControls">
+    <button onclick="newMatch()">🔁 Neues Match</button>
+    <button onclick="rematch()">⚔ Revanche</button>
+  </div>
+
+</div>
+
+
+</div>
+
+<div id="favoriteSpritePickerView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+  <div id="fspStart">
+    <h2 class="fsp-title">Was willst du ranken?</h2>
+
+    <div>
+      <button class="fsp-pokeballBtn" onclick="fspStartGen(1)"></button>
+      <div class="fsp-btnLabel">GEN 1</div>
+    </div>
+
+    <div>
+      <button class="fsp-pokeballBtn" onclick="fspStartGen(2)"></button>
+      <div class="fsp-btnLabel">GEN 2</div>
+    </div>
+  </div>
+
+  <div id="fspApp">
+    <div id="fspCounterBar"></div>
+    <button id="fspBackBtn" onclick="fspBack()">← Zurück</button>
+    <button id="fspResetBtn" onclick="fspResetAll()">Reset</button>
+    <button id="fspShinyBtn" onclick="fspToggleShiny()">Alle Shiny</button>
+    <div id="fspList"></div>
+  </div>
+
+  <div id="fspSpritePicker">
+    <h3>Sprite auswählen</h3>
+    <div id="fspOptions"></div>
+    <button onclick="fspClosePicker()">Schließen</button>
+  </div>
 </div>
 
 <script>
-let range=[1,151],mode=1;
-let selections={};
-let counter={};
-let shinyAll=false;
 
-const STORAGE_KEY="poke_rankings";
+const MAX = 1025;
 
-const list=document.getElementById("list");
-const counterBar=document.getElementById("counterBar");
-const options=document.getElementById("options");
-const picker=document.getElementById("spritePicker");
+const extraForms = [
+  10033,10034,10035,10036,10037,
+  10038,10039,10040,10041,10042,
+  10043,10044,10045,10046,10047,
+  10048,10049,10050,10051,10052,
+  10053,10054,10055,10056,10057,
+  10058,10059,10060,10061,10062,
+  10063,10064,10065,10066,10067,
+  10068,10069,10070,10071,10072,
+  10073,10074,10075,10076,10077,
+  10078,10079,10080,
 
-let currentImg=null;
+  10091,10092,10093,10094,10095,
+  10096,10097,10098,10099,10100,
+  10101,10102,10103,10104,10105,
+  10106,10107,10108,
 
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
+  10158,10159,10160,10161,10162,
+  10163,10164,10165,10166,10167,
+  10168,10169,10170,10171,10172,
+  10173,10174,10175,10176,
+
+  10229,10230,10231,10232,10233,
+  10234,10235,10236,10237,10238,
+  10239,10240,10241,10242,10243,
+  10244,
+
+  10250,10251,10252,
+
+  10177,10178,10179,10180,10181,
+  10182,10183,10184,10185,10186,
+  10187,10188,10189,10190,10191,
+  10192,10193,10194,10195,10196,
+  10197,10198,10199,10200,10201,
+  10202,10203,10204,10205,10206,
+  10207,10208
+];
+
+const gymLeaders = {
+  // Kanto
+  brock: {
+    name: "Rocko",
+    type: "rock",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Brock.png"
+  },
+  misty: {
+    name: "Misty",
+    type: "water",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Misty.png"
+  },
+  ltSurge: {
+    name: "Major Bob",
+    type: "electric",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Lt_Surge.png"
+  },
+  erika: {
+    name: "Erika",
+    type: "grass",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Erika.png"
+  },
+  koga: {
+    name: "Koga",
+    type: "poison",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Koga.png"
+  },
+  sabrina: {
+    name: "Sabrina",
+    type: "psychic",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Sabrina.png"
+  },
+  blaine: {
+    name: "Pyro",
+    type: "fire",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Blaine.png"
+  },
+  giovanni: {
+    name: "Giovanni",
+    type: "ground",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Yellow_Giovanni.png"
+  },
+
+  // Johto
+  falkner: {
+    name: "Falk",
+    type: "flying",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Falkner.png"
+  },
+  bugsy: {
+    name: "Kai",
+    type: "bug",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Bugsy.png"
+  },
+  whitney: {
+    name: "Bianka",
+    type: "normal",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Whitney.png"
+  },
+  morty: {
+    name: "Jens",
+    type: "ghost",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Morty.png"
+  },
+  chuck: {
+    name: "Hartwig",
+    type: "fighting",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Chuck.png"
+  },
+  jasmine: {
+    name: "Jasmin",
+    type: "steel",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Jasmine.png"
+  },
+  pryce: {
+    name: "Norbert",
+    type: "ice",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Pryce.png"
+  },
+  clair: {
+    name: "Sandra",
+    type: "dragon",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/HeartGold_SoulSilver_Clair.png"
+  },
+
+  // Hoenn
+  roxanne: {
+    name: "Felizia",
+    type: "rock",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Roxanne.png"
+  },
+  brawly: {
+    name: "Kamillo",
+    type: "fighting",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Brawly.png"
+  },
+  wattson: {
+    name: "Walter",
+    type: "electric",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Wattson.png"
+  },
+  flannery: {
+    name: "Flavia",
+    type: "fire",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Flannery.png"
+  },
+  norman: {
+    name: "Norman",
+    type: "normal",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Norman.png"
+  },
+  winona: {
+    name: "Wibke",
+    type: "flying",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Winona.png"
+  },
+  tateLiza: {
+    name: "Ben & Svenja",
+    type: "psychic",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Liza_%26_Tate.png"
+  },
+  wallace: {
+    name: "Wassili",
+    type: "water",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Omega_Ruby_Alpha_Sapphire_Wallace.png"
+  },
+
+  // Sinnoh
+  roark: {
+    name: "Veit",
+    type: "rock",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Roark.png"
+  },
+  gardenia: {
+    name: "Silvana",
+    type: "grass",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Gardenia.png"
+  },
+  maylene: {
+    name: "Hilda",
+    type: "fighting",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Maylene.png"
+  },
+  fantina: {
+    name: "Lamina",
+    type: "ghost",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Fantina.png"
+  },
+  crasherWake: {
+    name: "Marinus",
+    type: "water",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Crasher_Wake.png"
+  },
+  byron: {
+    name: "Adam",
+    type: "steel",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Byron.png"
+  },
+  candice: {
+    name: "Frida",
+    type: "ice",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Candice.png"
+  },
+  volkner: {
+    name: "Volkner",
+    type: "electric",
+    artwork: "https://archives.bulbagarden.net/wiki/Special:Redirect/file/Brilliant_Diamond_Shining_Pearl_Volkner.png"
+  }
+};
+
+const gymLeaderNames = Object.fromEntries(
+  Object.entries(gymLeaders).map(([id, leader]) => [id, leader.name])
+);
+
+const gymLeaderArtwork = Object.fromEntries(
+  Object.entries(gymLeaders).map(([id, leader]) => [id, leader.artwork])
+);
+
+const preloadedLeaderArtwork = {};
+
+
+function preloadGymLeaderArtwork() {
+  Object.entries(gymLeaderArtwork).forEach(([type, src]) => {
+    if (!src || preloadedLeaderArtwork[type]) return;
+
+    const image = new Image();
+    image.src = src;
+    preloadedLeaderArtwork[type] = image;
+  });
 }
 
-function restore(){
-  const data = localStorage.getItem(STORAGE_KEY);
-  if(data) selections = JSON.parse(data);
+let loadedImages = [];
+const spriteImageCache = {};
+let loadedCount = 0;
+let ready = false;
+let activeSlot = null;
+let computerOpponentName = "Computer";
+let lastOpponentType = null;
+let shinySelectionMode = false;
+let shinyRouletteRunning = false;
+let computerShinyRouletteRunning = false;
+let fightInProgress = false;
+let playerWheelDone = false;
+let computerWheelDone = false;
+let playerWheelRunning = false;
+let computerWheelRunning = false;
+let playerScopeLensActive = false;
+let computerScopeLensActive = false;
+let selectedOpponentType = null;
+let opponentSelected = false;
+let opponentRunStarted = false;
+let opponentTeamRunning = false;
+let autoFightStarted = false;
+
+const playerUsedActions = new Set();
+
+const pokemonCache = {};
+const typeCache = {};
+const globalTypeMap = {};
+
+const COLLECTION_KEY = "pokemonSlotGameCollectionV1";
+
+function getFormCategoryLabel(formKind) {
+  const labels = {
+    mega: "🌟 Mega-Entwicklungen",
+    gmax: "🔥 Gigadynamax",
+    alola: "🏝️ Alola-Formen",
+    galar: "⚔️ Galar-Formen",
+    hisui: "🏔️ Hisui-Formen",
+    paldea: "🌅 Paldea-Formen",
+    form: "✨ Andere Spezialformen"
+  };
+
+  return labels[formKind] || labels.form;
 }
 
-function toggleShiny(){
-  shinyAll = !shinyAll;
-  renderAllSprites();
+function isBasePokemonId(id) {
+  const numberId = parseInt(id);
+  return numberId >= 1 && numberId <= MAX;
 }
 
-function renderAllSprites(){
-  document.querySelectorAll(".pokemon").forEach(div=>{
+function getDexImage(id, shiny = false) {
+  return getSpriteUrl(id, shiny);
+}
+
+function getEmptyCollection() {
+  return {
+    pokemon: {},
+    forms: {},
+    shinyForms: {},
+    stats: {
+      matches: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      shinies: 0,
+      legendaryOrMythical: 0,
+      strongestPokemonName: "-",
+      strongestPokemonStat: 0,
+      highestTeamPower: 0
+    }
+  };
+}
+
+function loadCollection() {
+  try {
+    const stored = localStorage.getItem(COLLECTION_KEY);
+
+    if (!stored) {
+      return getEmptyCollection();
+    }
+
+    const parsed = JSON.parse(stored);
+
+    return {
+      ...getEmptyCollection(),
+      ...parsed,
+      stats: {
+        ...getEmptyCollection().stats,
+        ...(parsed.stats || {})
+      },
+      pokemon: parsed.pokemon || {},
+      forms: parsed.forms || {},
+      shinyForms: parsed.shinyForms || {}
+    };
+  } catch {
+    return getEmptyCollection();
+  }
+}
+
+function saveCollection(data) {
+  localStorage.setItem(COLLECTION_KEY, JSON.stringify(data));
+  updateCollectionStats();
+}
+
+function recordPokemonToCollection(slot, shiny = false) {
+  if (!slot || !slot.closest("#playerSlots") || !slot.dataset.id) {
+    return;
+  }
+
+  const data = loadCollection();
+  const id = String(slot.dataset.id);
+  const stat = parseInt(slot.dataset.stat) || 0;
+  const name = getSlotName(slot);
+  const isSpecial = slot.dataset.special === "true";
+  const formKind = slot.dataset.formKind || "";
+
+  if (!data.pokemon[id]) {
+    data.pokemon[id] = {
+      id: id,
+      name: name,
+      count: 0,
+      shinyCount: 0,
+      bestStat: 0,
+      special: false,
+      formKind: formKind
+    };
+  }
+
+  data.pokemon[id].name = name;
+  data.pokemon[id].count += shiny ? 0 : 1;
+  data.pokemon[id].shinyCount += shiny ? 1 : 0;
+  data.pokemon[id].bestStat = Math.max(data.pokemon[id].bestStat || 0, stat);
+  data.pokemon[id].special = data.pokemon[id].special || isSpecial;
+  data.pokemon[id].formKind = formKind || data.pokemon[id].formKind || "";
+
+  if (formKind || !isBasePokemonId(id)) {
+    if (!data.forms[id]) {
+      data.forms[id] = {
+        id: id,
+        name: name,
+        count: 0,
+        shinyCount: 0,
+        bestStat: 0,
+        formKind: formKind || "form"
+      };
+    }
+
+    data.forms[id].name = name;
+    data.forms[id].count += shiny ? 0 : 1;
+    data.forms[id].shinyCount += shiny ? 1 : 0;
+    data.forms[id].bestStat = Math.max(data.forms[id].bestStat || 0, stat);
+    data.forms[id].formKind = formKind || data.forms[id].formKind || "form";
+
+    if (shiny) {
+      if (!data.shinyForms[id]) {
+        data.shinyForms[id] = {
+          id: id,
+          name: name,
+          count: 0,
+          bestStat: 0,
+          formKind: formKind || "form"
+        };
+      }
+
+      data.shinyForms[id].name = name;
+      data.shinyForms[id].count += 1;
+      data.shinyForms[id].bestStat = Math.max(data.shinyForms[id].bestStat || 0, stat);
+      data.shinyForms[id].formKind = formKind || data.shinyForms[id].formKind || "form";
+    }
+  }
+
+  if (shiny) {
+    data.stats.shinies += 1;
+  }
+
+  if (isSpecial && data.pokemon[id].count + data.pokemon[id].shinyCount === 1) {
+    data.stats.legendaryOrMythical += 1;
+  }
+
+  if (stat > data.stats.strongestPokemonStat) {
+    data.stats.strongestPokemonStat = stat;
+    data.stats.strongestPokemonName = name;
+  }
+
+  saveCollection(data);
+}
+
+function recordMatchToCollection(result, playerTotal) {
+  const data = loadCollection();
+
+  data.stats.matches += 1;
+
+  if (result === "win") {
+    data.stats.wins += 1;
+  } else if (result === "loss") {
+    data.stats.losses += 1;
+  } else {
+    data.stats.draws += 1;
+  }
+
+  data.stats.highestTeamPower =
+    Math.max(data.stats.highestTeamPower || 0, playerTotal || 0);
+
+  saveCollection(data);
+}
+
+function updateCollectionStats() {
+  const statsElement = document.getElementById("collectionStats");
+
+  if (!statsElement) {
+    return;
+  }
+
+  const data = loadCollection();
+  const pokedexCount = Object.values(data.pokemon)
+    .filter(item => isBasePokemonId(item.id) && (item.count || 0) > 0)
+    .length;
+  const shinyDexCount = Object.values(data.pokemon)
+    .filter(item => isBasePokemonId(item.id) && (item.shinyCount || 0) > 0)
+    .length;
+  const formsCount = Object.keys(data.forms || {}).length;
+  const shinyFormsCount = Object.keys(data.shinyForms || {}).length;
+
+  statsElement.innerHTML =
+    `Pokédex: <strong>${pokedexCount}/${MAX}</strong><br>` +
+    `Shiny Dex: <strong>${shinyDexCount}/${MAX}</strong><br>` +
+    `Formen: <strong>${formsCount}</strong><br>` +
+    `Shiny Formen: <strong>${shinyFormsCount}</strong><br>` +
+    `Matches: <strong>${data.stats.matches}</strong><br>` +
+    `Siege: <strong>${data.stats.wins}</strong><br>` +
+    `Top-Team: <strong>${data.stats.highestTeamPower}</strong><br>` +
+    `Stärkstes: <strong>${data.stats.strongestPokemonName} ${data.stats.strongestPokemonStat || ""}</strong>`;
+}
+
+function renderNumberedDex(shiny = false) {
+  const data = loadCollection();
+  const foundCount = Object.values(data.pokemon)
+    .filter(item => isBasePokemonId(item.id) && (shiny ? (item.shinyCount || 0) > 0 : (item.count || 0) > 0))
+    .length;
+
+  const cells = [];
+
+  for (let id = 1; id <= MAX; id++) {
+    const item = data.pokemon[String(id)];
+    const found = item && (shiny ? (item.shinyCount || 0) > 0 : (item.count || 0) > 0);
+
+    cells.push(
+      `<div class="dex-cell ${found ? "found" : ""}">` +
+        (found
+          ? `<img src="${getDexImage(id, shiny)}" alt="${item.name}"><div class="dex-name">${item.name}</div>`
+          : `<div style="font-size:30px;">?</div><div class="dex-number">#${id}</div>`) +
+      `</div>`
+    );
+  }
+
+  return `<div class="dex-progress">${foundCount}/${MAX} entdeckt</div>` +
+    `<div class="dex-grid">${cells.join("")}</div>`;
+}
+
+function showCollection() {
+  document.getElementById("collectionModalTitle").innerText = "📘 Pokédex";
+  document.getElementById("collectionDetails").innerHTML = renderNumberedDex(false);
+  document.getElementById("collectionModal").classList.add("show");
+}
+
+function showShinyDex() {
+  document.getElementById("collectionModalTitle").innerText = "⭐ Shiny Dex";
+  document.getElementById("collectionDetails").innerHTML = renderNumberedDex(true);
+  document.getElementById("collectionModal").classList.add("show");
+}
+
+function renderFormsDex(shiny = false) {
+  const data = loadCollection();
+  const forms = shiny ? (data.shinyForms || {}) : (data.forms || {});
+  const allFormIds = [...new Set([...extraForms.map(String), ...Object.keys(forms)])];
+  const grouped = {};
+
+  allFormIds.forEach(id => {
+    const item = forms[id];
+    let formKind = item?.formKind || pokemonCache[id]?.formKind || "form";
+    const label = getFormCategoryLabel(formKind);
+
+    if (!grouped[label]) {
+      grouped[label] = [];
+    }
+
+    grouped[label].push({
+      id: id,
+      item: item,
+      found: Boolean(item)
+    });
+  });
+
+  const order = [
+    "🌟 Mega-Entwicklungen",
+    "🔥 Gigadynamax",
+    "🏝️ Alola-Formen",
+    "⚔️ Galar-Formen",
+    "🏔️ Hisui-Formen",
+    "🌅 Paldea-Formen",
+    "✨ Andere Spezialformen"
+  ];
+
+  const content = order
+    .filter(label => grouped[label]?.length)
+    .map(label => {
+      const cards = grouped[label]
+        .sort((a, b) => parseInt(a.id) - parseInt(b.id))
+        .map(({id, item, found}) =>
+          `<div class="form-card ${found ? "" : "locked"}">` +
+            (found
+              ? `<img src="${getDexImage(id, shiny)}" alt="${item.name}"><div>${item.name}</div>`
+              : `<div class="form-question">?</div>`) +
+          `</div>`
+        ).join("");
+
+      return `<div class="form-category">${label}</div><div class="form-grid">${cards}</div>`;
+    }).join("");
+
+  return `<div class="dex-progress">${Object.keys(forms).length}/${allFormIds.length} Formen entdeckt</div>` +
+    (content || `<div class="collection-empty">Noch keine Formen entdeckt.</div>`);
+}
+
+function showFormsDex() {
+  document.getElementById("collectionModalTitle").innerText = "🧬 Formen Dex";
+  document.getElementById("collectionDetails").innerHTML = renderFormsDex(false);
+  document.getElementById("collectionModal").classList.add("show");
+}
+
+function showShinyFormsDex() {
+  document.getElementById("collectionModalTitle").innerText = "✨ Shiny Formen Dex";
+  document.getElementById("collectionDetails").innerHTML = renderFormsDex(true);
+  document.getElementById("collectionModal").classList.add("show");
+}
+
+function hideCollection() {
+  document.getElementById("collectionModal").classList.remove("show");
+}
+
+function resetCollection() {
+  if (!confirm("Statistik, Pokédex und Dex-Fortschritt wirklich löschen?")) {
+    return;
+  }
+
+  localStorage.removeItem(COLLECTION_KEY);
+  updateCollectionStats();
+  hideCollection();
+}
+
+const germanTypeNames = {
+  normal: "Normal",
+  fire: "Feuer",
+  water: "Wasser",
+  electric: "Elektro",
+  grass: "Pflanze",
+  ice: "Eis",
+  fighting: "Kampf",
+  poison: "Gift",
+  ground: "Boden",
+  flying: "Flug",
+  psychic: "Psycho",
+  bug: "Käfer",
+  rock: "Gestein",
+  ghost: "Geist",
+  dragon: "Drache",
+  dark: "Unlicht",
+  steel: "Stahl",
+  fairy: "Fee"
+};
+
+const typeEffectiveness = {
+  normal:   { rock: 0.5, ghost: 0, steel: 0.5 },
+  fire:     { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+  water:    { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+  electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
+  grass:    { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+  ice:      { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
+  fighting: { normal: 2, ice: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: 0.5 },
+  poison:   { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
+  ground:   { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
+  flying:   { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
+  psychic:  { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
+  bug:      { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
+  rock:     { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
+  ghost:    { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
+  dragon:   { dragon: 2, steel: 0.5, fairy: 0 },
+  dark:     { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
+  steel:    { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
+  fairy:    { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 }
+};
+
+function img(id) {
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+}
+
+function spriteKey(id, shiny = false) {
+  return `${shiny ? "shiny" : "normal"}:${id}`;
+}
+
+function getSpriteUrl(id, shiny = false) {
+  const base = img(id);
+
+  return shiny
+    ? base.replace('/official-artwork/', '/official-artwork/shiny/')
+    : base;
+}
+
+function rememberSpriteImage(id, image, shiny = false) {
+  spriteImageCache[spriteKey(id, shiny)] = image;
+}
+
+function ensureSpriteImage(id, shiny = false) {
+  const key = spriteKey(id, shiny);
+
+  if (!spriteImageCache[key]) {
+    const image = new Image();
+    image.decoding = "async";
+    image.loading = "eager";
+    image.src = getSpriteUrl(id, shiny);
+    spriteImageCache[key] = image;
+  }
+
+  return spriteImageCache[key];
+}
+
+function setReelImage(reel, id, shiny = false) {
+  ensureSpriteImage(id, shiny);
+
+  const image = document.createElement("img");
+  image.decoding = "async";
+  image.loading = "eager";
+  image.src = getSpriteUrl(id, shiny);
+
+  if (shiny) {
+    image.onerror = () => {
+      image.onerror = null;
+      image.src = getSpriteUrl(id, false);
+    };
+  }
+
+  reel.replaceChildren(image);
+}
+
+function updateHint(text = "") {
+  const hint = document.getElementById("actionHint");
+  if (hint) {
+    hint.innerText = text;
+    hint.style.display = text ? "flex" : "none";
+  }
+}
+
+function updateShinyButtonVisibility() {
+
+  const playerSlots =
+    [...document.querySelectorAll("#playerSlots .slot")];
+
+  const allFilled =
+    playerSlots.every(slot => slot.dataset.id);
+
+  const allActionsUsed =
+    ["keep", "trade", "release"].every(action =>
+      playerUsedActions.has(action)
+    );
+
+  const noSlotSpinning =
+    playerSlots.every(slot => slot.dataset.spinning !== "true");
+
+  if (allFilled && allActionsUsed && noSlotSpinning && !playerWheelDone) {
+    showPlayerLuckWheel();
+  }
+
+  updateFightButtonVisibility();
+}
+
+
+function markActionButtonUsed(type) {
+
+  const buttonMap = {
+    keep: "keepButton",
+    trade: "tradeButton",
+    release: "releaseButton"
+  };
+
+  const button =
+    document.getElementById(buttonMap[type]);
+
+  if (button) {
+    button.disabled = true;
+    button.innerText = button.innerText.replace(" ✓", "") + " ✓";
+  }
+}
+
+function resetActionButtons() {
+
+  const buttons = [
+    ["keepButton", "KEEP"],
+    ["tradeButton", "TRADE"],
+    ["releaseButton", "RELEASE"]
+  ];
+
+  buttons.forEach(([id, text]) => {
+    const button = document.getElementById(id);
+    button.disabled = false;
+    button.innerText = text;
+  });
+
+  hideLuckWheels();
+
+  playerUsedActions.clear();
+}
+
+
+function clearActiveSlots() {
+  document.querySelectorAll(".active-slot")
+    .forEach(slot => slot.classList.remove("active-slot"));
+}
+
+function clearShinyPickables() {
+  document.querySelectorAll(".shiny-pickable")
+    .forEach(slot => slot.classList.remove("shiny-pickable"));
+}
+
+function getSpecialLabel(pokemon) {
+
+  if (pokemon.legendary) {
+    return "✨ LEGENDÄR!";
+  }
+
+  if (pokemon.mythical) {
+    return "✨ MYSTERIÖS!";
+  }
+
+  if (pokemon.formKind === "mega") {
+    return "🌟 MEGA ENTWICKLUNG!";
+  }
+
+  if (pokemon.formKind === "gmax") {
+    return "🔥 GIGADYNAMAX!";
+  }
+
+  return "";
+}
+
+
+function capitalizeFirst(text) {
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function getFormInfo(pokemonName, speciesName, baseName, id) {
+  const form = pokemonName || "";
+  const species = speciesName || "";
+  const numberId = parseInt(id);
+
+  if (form.endsWith("-mega-x")) {
+    return { name: `Mega ${baseName} X`, kind: "mega" };
+  }
+
+  if (form.endsWith("-mega-y")) {
+    return { name: `Mega ${baseName} Y`, kind: "mega" };
+  }
+
+  if (form.endsWith("-mega")) {
+    return { name: `Mega ${baseName}`, kind: "mega" };
+  }
+
+  if (form.endsWith("-gmax")) {
+    return { name: `${baseName} Gigadynamax`, kind: "gmax" };
+  }
+
+  if (form.endsWith("-alola")) {
+    return { name: `${baseName} (Alola)`, kind: "alola" };
+  }
+
+  if (form.endsWith("-galar")) {
+    return { name: `${baseName} (Galar)`, kind: "galar" };
+  }
+
+  if (form.endsWith("-hisui")) {
+    return { name: `${baseName} (Hisui)`, kind: "hisui" };
+  }
+
+  if (form.endsWith("-paldea")) {
+    return { name: `${baseName} (Paldea)`, kind: "paldea" };
+  }
+
+  if (numberId > MAX) {
+    let suffix = form;
+
+    if (species && suffix.startsWith(species + "-")) {
+      suffix = suffix.slice(species.length + 1);
+    }
+
+    suffix = suffix
+      .split("-")
+      .filter(Boolean)
+      .map(capitalizeFirst)
+      .join(" ");
+
+    return {
+      name: suffix ? `${baseName} (${suffix})` : baseName,
+      kind: "form"
+    };
+  }
+
+  return { name: baseName, kind: "" };
+}
+
+async function getPokemonData(id) {
+
+  if (pokemonCache[id]) {
+    return pokemonCache[id];
+  }
+
+  try {
+
+    const response =
+      await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+
+    const data = await response.json();
+
+    const speciesResponse =
+      await fetch(data.species.url);
+
+    const speciesData =
+      await speciesResponse.json();
+
+    const german =
+      speciesData.names.find(
+        n => n.language.name === "de"
+      );
+
+    const baseName = german ? german.name : speciesData.name;
+    const formInfo = getFormInfo(data.name, speciesData.name, baseName, id);
+    const formKind = formInfo.kind;
+
+    const totalStat =
+      data.stats.reduce((sum, s) => {
+        return sum + s.base_stat;
+      }, 0);
+
+    const types =
+      data.types.map(t => t.type.name);
+
+    const result = {
+
+      name: formInfo.name,
+
+      stat: totalStat,
+      types: types,
+
+      legendary: speciesData.is_legendary === true,
+      mythical: speciesData.is_mythical === true,
+      formKind: formKind,
+
+      special:
+        speciesData.is_legendary === true ||
+        speciesData.is_mythical === true ||
+        formKind === "mega" ||
+        formKind === "gmax"
+    };
+
+    globalTypeMap[id] = types;
+
+    pokemonCache[id] = result;
+
+    return result;
+
+  } catch {
+
+    return {
+      name: "Unbekannt",
+      stat: 0,
+      types: [],
+      legendary: false,
+      mythical: false,
+      formKind: "",
+      special: false
+    };
+  }
+}
+
+async function getBetterTradePool(currentStat, pool = loadedImages) {
+
+  const betterPool = [];
+
+  for (const id of pool) {
+
+    const pokemon =
+      await getPokemonData(id);
+
+    if (pokemon.stat > currentStat) {
+      betterPool.push(id);
+    }
+  }
+
+  return betterPool;
+}
+
+async function startLoad() {
+
+  if (ready) return;
+
+  loadedImages = [];
+  loadedCount = 0;
+
+  const allPokemon = [];
+
+  for (let i = 1; i <= MAX; i++) {
+    allPokemon.push(i);
+  }
+
+  extraForms.forEach(f => allPokemon.push(f));
+
+  const total = allPokemon.length;
+
+  // Lädt Arenaleiter-Artworks im Hintergrund vor, ohne den Pokémon-Ladezähler zu verändern.
+  preloadGymLeaderArtwork();
+
+  for (const id of allPokemon) {
+
+    const image = new Image();
+    image.decoding = "async";
+    image.loading = "eager";
+    rememberSpriteImage(id, image, false);
+
+    image.onload = async () => {
+
+      loadedImages.push(id);
+
+      await getPokemonData(id);
+
+      updateProgress(total);
+    };
+
+    image.onerror = () => {
+      updateProgress(total);
+    };
+
+    image.src = img(id);
+  }
+}
+
+function updateProgress(total) {
+
+  loadedCount++;
+
+  const percent =
+    Math.round((loadedCount / total) * 100);
+
+  document.getElementById("bar").style.width =
+    percent + "%";
+
+  document.getElementById("status").innerText =
+    `Lade... ${percent}%`;
+
+  if (loadedCount >= total) {
+
+    ready = true;
+
+    document.getElementById("status").innerText =
+      `✔ ${loadedImages.length} Pokémon/Formen geladen`;
+  }
+}
+
+function selectSlot(slot) {
+
+  if (!ready || shinyRouletteRunning) return;
+
+  if (!opponentSelected && slot.closest("#playerSlots")) {
+    updateHint("Wähle zuerst deinen Gegner.");
+    return;
+  }
+
+  if (shinySelectionMode) {
+
+    if (
+      slot.closest("#playerSlots") &&
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    ) {
+      finishShinySelection(slot);
+    }
+
+    return;
+  }
+
+  if (slot.classList.contains("locked") || slot.dataset.spinning === "true")
+    return;
+
+  clearActiveSlots();
+
+  activeSlot = slot;
+  slot.classList.add("active-slot");
+
+  updateHint("Würfelt...");
+
+  spin(slot);
+
+  const ring =
+    document.createElement("div");
+
+  ring.className = "select-ring";
+
+  slot.appendChild(ring);
+
+  setTimeout(() => ring.remove(), 600);
+}
+
+async function spin(slot, options = {}) {
+
+  slot.dataset.spinning = "true";
+
+  const reel =
+    slot.querySelector(".reel");
+
+  let pool =
+    options.pool || loadedImages;
+
+  if (options.minStat !== undefined && options.minStat !== null) {
+
+    updateHint("TRADE sucht ein stärkeres Pokémon...");
+
+    const betterPool =
+      await getBetterTradePool(options.minStat, pool);
+
+    if (betterPool.length) {
+      pool = betterPool;
+    } else {
+      updateHint("Kein stärkeres Pokémon gefunden. Es wird normal neu gewürfelt.");
+    }
+  }
+
+  const interval = setInterval(() => {
+
+    const id =
+      pool[
+        Math.floor(Math.random() * pool.length)
+      ];
+
+    setReelImage(reel, id);
+
+  }, 100);
+
+  setTimeout(async () => {
+
+    clearInterval(interval);
+
+    const final =
+      pool[
+        Math.floor(Math.random() * pool.length)
+      ];
+
+    slot.dataset.id = final;
+
+    setReelImage(reel, final);
+
+    const pokemon =
+      await getPokemonData(final);
+
+    slot.dataset.baseStat = pokemon.stat;
+    slot.dataset.stat = pokemon.stat;
+    slot.dataset.special = pokemon.special ? "true" : "false";
+    slot.dataset.formKind = pokemon.formKind || "";
+    slot.dataset.types = JSON.stringify(pokemon.types);
+    slot.dataset.pokemonName = pokemon.name;
+    slot.dataset.tradedFromStat = options.minStat || "";
+
+    slot.parentElement
+      .querySelector(".pokemon-name")
+      .innerText = pokemon.name;
+
+    if (options.minStat !== undefined && options.minStat !== null) {
+
+      slot.parentElement
+        .querySelector(".base-stat")
+        .innerText =
+          `⚔ ${pokemon.stat} / vorher ${options.minStat}`;
+
+    } else {
+
+      slot.parentElement
+        .querySelector(".base-stat")
+        .innerText = `⚔ ${pokemon.stat}`;
+    }
+
+    const specialText =
+      getSpecialLabel(pokemon);
+
+    slot.parentElement
+      .querySelector(".special-banner")
+      .innerText = specialText;
+
+    slot.dataset.spinning = "false";
+
+    if (slot.closest("#playerSlots")) {
+      recordPokemonToCollection(slot, false);
+    }
+
+    if (slot.closest("#playerSlots") && activeSlot === slot && !slot.classList.contains("locked")) {
+      updateHint("Wähle eine Aktion für das gewürfelte Pokémon.");
+    } else if (!slot.closest("#playerSlots")) {
+      updateHint("");
+    }
+
+    updateShinyButtonVisibility();
+
+  }, 2000);
+}
+
+function action(type) {
+
+  if (!activeSlot) return;
+
+  const slot = activeSlot;
+
+  if (!slot.dataset.id || slot.dataset.spinning === "true") {
+    updateHint("Warte, bis das Pokémon fertig gewürfelt wurde.");
+    return;
+  }
+
+  if (type === "keep") {
+
+    slot.classList.add("keep", "locked");
+  }
+
+  if (type === "trade") {
+
+    slot.classList.add("trade", "locked");
+
+    const oldStat =
+      parseInt(slot.dataset.stat) || 0;
+
+    spin(slot, {
+      minStat: oldStat
+    });
+  }
+
+  if (type === "release") {
+
+    slot.classList.add("release", "locked");
+
+    const x =
+      document.createElement("div");
+
+    x.className = "x-overlay";
+
+    x.innerHTML = "❌";
+
+    slot.appendChild(x);
+  }
+
+  playerUsedActions.add(type);
+
+  markActionButtonUsed(type);
+
+  clearActiveSlots();
+
+  activeSlot = null;
+
+  updateShinyButtonVisibility();
+
+  if (!playerWheelDone && !playerWheelRunning) {
+    const playerSlots = [...document.querySelectorAll("#playerSlots .slot")];
+    const allFilled = playerSlots.every(s => s.dataset.id);
+    const allActionsUsed = ["keep", "trade", "release"].every(a => playerUsedActions.has(a));
+    const noSlotSpinning = playerSlots.every(s => s.dataset.spinning !== "true");
+
+    if (type === "trade") {
+      updateHint("TRADE sucht ein stärkeres Pokémon...");
+      return;
+    }
+
+    if (!(allFilled && allActionsUsed && noSlotSpinning)) {
+      updateHint("Würfel dein nächstes Pokémon, indem du ein freies ? betätigst.");
+    }
+  }
+}
+
+function shuffleArray(array) {
+  const copy = [...array];
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j =
+      Math.floor(Math.random() * (i + 1));
+
+    [copy[i], copy[j]] =
+      [copy[j], copy[i]];
+  }
+
+  return copy;
+}
+
+function runShinyRoulette(validSlots, onFinish) {
+  const finalSlot =
+    validSlots[
+      Math.floor(Math.random() * validSlots.length)
+    ];
+
+  let rouletteSlots =
+    shuffleArray(validSlots);
+
+  if (!rouletteSlots.includes(finalSlot)) {
+    rouletteSlots.push(finalSlot);
+  }
+
+  let index =
+    Math.floor(Math.random() * rouletteSlots.length);
+
+  let speed =
+    60 + Math.floor(Math.random() * 55);
+
+  let rounds = 0;
+
+  const minRounds =
+    16 + Math.floor(Math.random() * 10);
+
+  const extraRounds =
+    Math.floor(Math.random() * 12);
+
+  const maxRounds =
+    minRounds + extraRounds;
+
+  function stepRoulette() {
+
+    validSlots.forEach(slot =>
+      slot.classList.remove("shiny-roulette-active")
+    );
+
+    let currentSlot =
+      rouletteSlots[index % rouletteSlots.length];
+
+    const shouldLandNow =
+      rounds >= maxRounds;
+
+    if (shouldLandNow) {
+      currentSlot = finalSlot;
+    }
+
+    currentSlot.classList.add("shiny-roulette-active");
+
+    if (shouldLandNow) {
+
+      setTimeout(() => {
+
+        validSlots.forEach(slot =>
+          slot.classList.remove("shiny-roulette-active")
+        );
+
+        onFinish(finalSlot);
+
+      }, 520);
+
+      return;
+    }
+
+    index++;
+    rounds++;
+
+    if (Math.random() < 0.23) {
+      rouletteSlots = shuffleArray(validSlots);
+      index = index % rouletteSlots.length;
+    }
+
+    if (rounds > maxRounds * 0.48) {
+      speed +=
+        18 + Math.floor(Math.random() * 32);
+    } else {
+      speed +=
+        Math.floor(Math.random() * 12);
+    }
+
+    setTimeout(stepRoulette, speed);
+  }
+
+  stepRoulette();
+}
+
+function getActiveTeamSlots(selector) {
+  return [...document.querySelectorAll(`${selector} .slot`)]
+    .filter(slot =>
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    );
+}
+
+function setWheelLayout(active) {
+  const area = document.querySelector(".fight-area");
+  if (!area) return;
+  area.classList.toggle("wheel-layout", !!active);
+}
+
+function hideLuckWheels() {
+  clearLuckResultCenter();
+  setWheelLayout(false);
+
+  ["playerLuckWheelBox", "computerLuckWheelBox"].forEach(id => {
+    const box = document.getElementById(id);
+    if (box) box.classList.remove("show");
+  });
+}
+
+function updateFightButtonVisibility() {
+  // Der Kampf startet jetzt automatisch. Der alte Fight-Button bleibt komplett entfernt.
+}
+
+async function startFightAutomaticallyAfterReady() {
+  if (autoFightStarted || fightInProgress) {
+    return;
+  }
+
+  if (!playerWheelDone || !computerWheelDone) {
+    return;
+  }
+
+  autoFightStarted = true;
+
+  announceLuckResult("🔥 Beide Teams sind bereit. Starte den Kampf!");
+  await wait(1100);
+  await hideLuckResultCenter();
+  await wait(1000);
+  await fight();
+}
+
+function showPlayerLuckWheel() {
+  clearLuckResultCenter();
+
+  if (playerWheelDone || playerWheelRunning) {
+    return;
+  }
+
+  const box =
+    document.getElementById("playerLuckWheelBox");
+
+  if (box) {
+    box.classList.add("show");
+  }
+
+  setWheelLayout(true);
+  updateHint("");
+}
+
+function chooseLuckWheelResult() {
+  const roll = Math.random();
+
+  if (roll < 0.70) {
+    return "roulette";
+  }
+
+  if (roll < 0.90) {
+    return "scope";
+  }
+
+  return "choice";
+}
+
+function animateLuckWheel(wheelId, result) {
+  return new Promise(resolve => {
+    const wheel =
+      document.getElementById(wheelId);
+
+    if (!wheel) {
+      resolve();
+      return;
+    }
+
+    const face =
+      wheel.querySelector(".wheel-face");
+
+    if (!face) {
+      resolve();
+      return;
+    }
+
+    /*
+      Wichtig: Das Ergebnis wird zuerst bestimmt und das Rad landet danach
+      exakt auf dem passenden Segment unter dem oberen Pfeil.
+
+      CSS-conic-gradient startet bei 0° oben. Wenn die Scheibe um X Grad
+      gedreht wird, liegt unter dem Pfeil der ursprüngliche Winkel -X.
+      Deshalb drehen wir auf: 360*n - Segmentmitte.
+    */
+    const segmentCenters = {
+      roulette: 126, // 0° bis 252°
+      scope: 288,   // 252° bis 324°
+      choice: 342   // 324° bis 360°
+    };
+
+    const safeJitter = {
+      roulette: 42,
+      scope: 18,
+      choice: 8
+    };
+
+    const center =
+      segmentCenters[result] ?? segmentCenters.roulette;
+
+    const jitterRange =
+      safeJitter[result] ?? safeJitter.roulette;
+
+    const jitter =
+      Math.random() * jitterRange * 2 - jitterRange;
+
+    const fullTurns =
+      7 + Math.floor(Math.random() * 3);
+
+    const targetDegrees =
+      fullTurns * 360 - center + jitter;
+
+    wheel.classList.remove("spinning");
+    face.style.transition = "none";
+    face.style.transform = "rotate(0deg)";
+
+    // Reflow erzwingen, damit jedes Drehen sichtbar neu startet.
+    void face.offsetWidth;
+
+    face.style.transition =
+      "transform 3.8s cubic-bezier(0.08, 0.76, 0.12, 1)";
+
+    wheel.classList.add("spinning");
+
+    requestAnimationFrame(() => {
+      face.style.transform =
+        `rotate(${targetDegrees}deg)`;
+    });
+
+    setTimeout(() => {
+      wheel.classList.remove("spinning");
+      resolve();
+    }, 3950);
+  });
+}
+
+function hideLuckWheelAnimated(boxId) {
+  return new Promise(resolve => {
+    const box = document.getElementById(boxId);
+
+    if (!box) {
+      resolve();
+      return;
+    }
+
+    box.classList.remove("show");
+    box.classList.add("hide-out");
+
+    setTimeout(() => {
+      box.classList.remove("hide-out");
+      const anyWheelVisible = ["playerLuckWheelBox", "computerLuckWheelBox"].some(id => {
+        const other = document.getElementById(id);
+        return other && other.classList.contains("show");
+      });
+      setWheelLayout(anyWheelVisible);
+      resolve();
+    }, 430);
+  });
+}
+
+function clearLuckResultCenter() {
+  const box = document.getElementById("luckResultCenter");
+  if (!box) return;
+
+  box.classList.remove("show", "hide-out");
+  box.innerText = "";
+}
+
+function announceLuckResult(text) {
+  const box = document.getElementById("luckResultCenter");
+
+  updateHint("");
+  setWheelLayout(false);
+
+  if (!box) {
+    updateHint(text);
+    return;
+  }
+
+  box.innerText = text;
+  box.classList.remove("show", "hide-out");
+  void box.offsetWidth;
+  box.classList.add("show");
+}
+
+function hideLuckResultCenter() {
+  return new Promise(resolve => {
+    const box = document.getElementById("luckResultCenter");
+
+    if (!box || !box.classList.contains("show")) {
+      resolve();
+      return;
+    }
+
+    box.classList.remove("show");
+    box.classList.add("hide-out");
+
+    setTimeout(() => {
+      box.classList.remove("hide-out");
+      box.innerText = "";
+      resolve();
+    }, 300);
+  });
+}
+
+function runTeamShinyRoulette(validSlots, teamName = "") {
+  return new Promise(resolve => {
+    if (!validSlots.length) {
+      resolve();
+      return;
+    }
+
+    runShinyRoulette(validSlots, finalSlot => {
+      applyShiny(finalSlot);
+      const shinyText = `⭐ ${teamName}${getSlotName(finalSlot)} wurde shiny!`;
+      const resultBox = document.getElementById("luckResultCenter");
+      if (resultBox && resultBox.classList.contains("show")) {
+        resultBox.innerText = shinyText;
+      } else {
+        updateHint(shinyText);
+      }
+      resolve(finalSlot);
+    });
+  });
+}
+
+function startPlayerShinyChoice(validSlots) {
+  return new Promise(resolve => {
+    if (!validSlots.length) {
+      resolve();
+      return;
+    }
+
+    shinySelectionMode = true;
+    shinyRouletteRunning = false;
+    activeShinyChoiceResolve = resolve;
+
+    clearActiveSlots();
+    clearShinyPickables();
+
+    validSlots.forEach(slot =>
+      slot.classList.add("shiny-pickable")
+    );
+
+    const resultBox = document.getElementById("luckResultCenter");
+    if (resultBox && resultBox.classList.contains("show")) {
+      resultBox.innerText = "⭐ Shiny auswählen! Klicke eines deiner aktiven Pokémon an.";
+    }
+  });
+}
+
+let activeShinyChoiceResolve = null;
+
+async function spinPlayerLuckWheel() {
+  if (playerWheelRunning || playerWheelDone) {
+    return;
+  }
+
+  const validSlots =
+    getActiveTeamSlots("#playerSlots");
+
+  if (!validSlots.length) {
+    announceLuckResult("Kein aktives Pokémon für den Shiny-Bonus vorhanden.");
+    await wait(900);
+    await hideLuckResultCenter();
+    playerWheelDone = true;
+    updateFightButtonVisibility();
+    await startSelectedOpponentIfReady();
+    return;
+  }
+
+  playerWheelRunning = true;
+  clearLuckResultCenter();
+
+  const computerBox =
+    document.getElementById("computerLuckWheelBox");
+
+  if (computerBox) {
+    computerBox.classList.remove("show", "hide-out");
+  }
+
+  const playerBox =
+    document.getElementById("playerLuckWheelBox");
+
+  if (playerBox) {
+    playerBox.classList.remove("hide-out");
+    playerBox.classList.add("show");
+  }
+
+  setWheelLayout(true);
+  updateHint("");
+
+  await wait(250);
+
+  const result =
+    chooseLuckWheelResult();
+
+  await animateLuckWheel("playerLuckWheel", result);
+  await hideLuckWheelAnimated("playerLuckWheelBox");
+
+  if (result === "roulette") {
+    announceLuckResult("⭐ Gewinn: Shiny Roulette! Das Roulette startet...");
+    shinyRouletteRunning = true;
+    await runTeamShinyRoulette(validSlots, "");
+    shinyRouletteRunning = false;
+    await hideLuckResultCenter();
+  } else if (result === "scope") {
+    playerScopeLensActive = true;
+    announceLuckResult("🔍 Gewinn: Scope-Linse! Deine Volltrefferquote steigt in diesem Kampf auf 25%.");
+    await wait(1200);
+    await hideLuckResultCenter();
+  } else {
+    announceLuckResult("⭐ Gewinn: Shiny auswählen! Wähle eines deiner aktiven Pokémon.");
+    await startPlayerShinyChoice(validSlots);
+    await hideLuckResultCenter();
+  }
+
+  playerWheelDone = true;
+  playerWheelRunning = false;
+  updateFightButtonVisibility();
+  await startSelectedOpponentIfReady();
+}
+
+async function spinComputerLuckWheel(slots) {
+  if (computerWheelRunning || computerWheelDone) {
+    return;
+  }
+
+  const validSlots =
+    slots.filter(slot =>
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    );
+
+  if (!validSlots.length) {
+    computerWheelDone = true;
+    updateFightButtonVisibility();
+    return;
+  }
+
+  computerWheelRunning = true;
+  computerShinyRouletteRunning = true;
+  clearLuckResultCenter();
+
+  const title =
+    document.getElementById("computerLuckWheelTitle");
+
+  if (title) {
+    title.innerText = `${computerOpponentName} Glücksrad`;
+  }
+
+  const playerBox =
+    document.getElementById("playerLuckWheelBox");
+
+  if (playerBox) {
+    playerBox.classList.remove("show", "hide-out");
+  }
+
+  const computerBox =
+    document.getElementById("computerLuckWheelBox");
+
+  if (computerBox) {
+    computerBox.classList.remove("hide-out");
+    computerBox.classList.add("show");
+  }
+
+  setWheelLayout(true);
+  updateHint("");
+
+  await wait(450);
+
+  const result =
+    chooseLuckWheelResult();
+
+  await animateLuckWheel("computerLuckWheel", result);
+  await hideLuckWheelAnimated("computerLuckWheelBox");
+
+  if (result === "roulette") {
+    announceLuckResult(`⭐ ${computerOpponentName} gewinnt: Shiny Roulette!`);
+    await wait(450);
+    await runTeamShinyRoulette(validSlots, `${computerOpponentName}: `);
+    await hideLuckResultCenter();
+  } else if (result === "scope") {
+    computerScopeLensActive = true;
+    announceLuckResult(`🔍 ${computerOpponentName} gewinnt: Scope-Linse! Volltrefferquote steigt auf 25%.`);
+    await wait(1200);
+    await hideLuckResultCenter();
+  } else {
+    const chosenSlot =
+      [...validSlots].sort((a, b) =>
+        (parseInt(b.dataset.stat) || 0) - (parseInt(a.dataset.stat) || 0)
+      )[0];
+
+    announceLuckResult(`⭐ ${computerOpponentName} gewinnt: Shiny auswählen!`);
+
+    validSlots.forEach(slot =>
+      slot.classList.add("shiny-roulette-active")
+    );
+
+    await wait(850);
+
+    validSlots.forEach(slot =>
+      slot.classList.remove("shiny-roulette-active")
+    );
+
+    applyShiny(chosenSlot);
+    const resultBox = document.getElementById("luckResultCenter");
+    if (resultBox && resultBox.classList.contains("show")) {
+      resultBox.innerText = `⭐ ${computerOpponentName}: ${getSlotName(chosenSlot)} wurde shiny!`;
+    }
+    await wait(700);
+    await hideLuckResultCenter();
+  }
+
+  computerWheelDone = true;
+  computerWheelRunning = false;
+  computerShinyRouletteRunning = false;
+
+  if (playerWheelDone && computerWheelDone) {
+    await startFightAutomaticallyAfterReady();
+  }
+
+  updateFightButtonVisibility();
+}
+
+function startShinySelection() {
+  spinPlayerLuckWheel();
+}
+
+
+function finishShinySelection(slot) {
+
+  shinySelectionMode = false;
+
+  clearShinyPickables();
+
+  applyShiny(slot);
+
+  const resultBox = document.getElementById("luckResultCenter");
+  if (resultBox && resultBox.classList.contains("show")) {
+    resultBox.innerText = `⭐ ${getSlotName(slot)} wurde shiny!`;
+  }
+
+  if (activeShinyChoiceResolve) {
+    const resolve = activeShinyChoiceResolve;
+    activeShinyChoiceResolve = null;
+    resolve(slot);
+  }
+}
+
+
+function applyShiny(slot) {
+
+  const id = slot.dataset.id;
+
+  if (!id) return;
+
+  const currentStat =
+    parseInt(slot.dataset.stat) || 0;
+
+  const boostedStat =
+    Math.round(currentStat * 1.1);
+
+  slot.dataset.stat = boostedStat;
+
+  slot.classList.add("shiny");
+
+  slot.parentElement
+    .querySelector(".base-stat")
+    .innerText =
+      `⚔ ${currentStat} +10% = ${boostedStat}`;
+
+  const burst =
+    document.createElement("div");
+
+  burst.className = "shiny-burst";
+
+  burst.innerHTML = "✨⭐✨";
+
+  slot.appendChild(burst);
+
+  setTimeout(() => burst.remove(), 600);
+
+  setReelImage(slot.querySelector(".reel"), id, true);
+
+  if (slot.closest("#playerSlots")) {
+    recordPokemonToCollection(slot, true);
+  }
+}
+
+async function getPokemonByType(type) {
+
+  if (typeCache[type]) {
+    return typeCache[type];
+  }
+
+  const valid = [];
+
+  for (const id of loadedImages) {
+
+    const types = globalTypeMap[id] || [];
+
+    if (types.includes(type)) {
+
+      valid.push(id);
+    }
+  }
+
+  typeCache[type] = valid;
+
+  return valid;
+}
+
+function chooseComputerMove(slot, availableActions) {
+
+  const isSpecial =
+    slot.dataset.special === "true";
+
+  const stat =
+    parseInt(slot.dataset.stat) || 0;
+
+  const canKeep =
+    availableActions.includes("keep");
+
+  const canTrade =
+    availableActions.includes("trade");
+
+  const canRelease =
+    availableActions.includes("release");
+
+  if (isSpecial && canKeep) {
+    return "keep";
+  }
+
+  if (isSpecial && canTrade) {
+    return "trade";
+  }
+
+  if (stat >= 600 && canKeep) {
+    return "keep";
+  }
+
+  if (stat >= 520 && canTrade) {
+    return Math.random() < 0.75 ? "trade" : (canKeep ? "keep" : "trade");
+  }
+
+  if (stat <= 360 && canRelease) {
+    return "release";
+  }
+
+  if (canTrade && !canKeep && stat >= 430) {
+    return "trade";
+  }
+
+  if (canRelease && !canKeep && !canTrade) {
+    return "release";
+  }
+
+  return availableActions[
+    Math.floor(Math.random() * availableActions.length)
+  ];
+}
+
+function removeComputerAction(action, availableActions) {
+
+  const index =
+    availableActions.indexOf(action);
+
+  if (index >= 0) {
+    availableActions.splice(index, 1);
+  }
+}
+
+async function applyComputerMove(slot, move, pool = null) {
+
+  if (move === "keep") {
+
+    slot.classList.add("keep", "locked");
+  }
+
+  if (move === "trade") {
+
+    slot.classList.add("trade", "locked");
+
+    const oldStat =
+      parseInt(slot.dataset.stat) || 0;
+
+    await autoSpin(slot, pool, oldStat);
+  }
+
+  if (move === "release") {
+
+    slot.classList.add("release", "locked");
+
+    const x =
+      document.createElement("div");
+
+    x.className = "x-overlay";
+
+    x.innerHTML = "❌";
+
+    slot.appendChild(x);
+  }
+}
+
+function showGymLeaderArtwork(type) {
+  const box = document.getElementById("leaderArt");
+  const img = document.getElementById("leaderArtImg");
+  const name = document.getElementById("leaderArtName");
+
+  if (!box || !img || !name) {
+    return;
+  }
+
+  img.src = preloadedLeaderArtwork[type]?.src || gymLeaderArtwork[type] || "";
+  img.alt = `${gymLeaderNames[type] || "Arenaleiter"} Artwork`;
+  name.innerText = gymLeaderNames[type] || "Arenaleiter";
+
+  box.classList.remove("show");
+  void box.offsetWidth;
+  box.classList.add("show");
+}
+
+function hideGymLeaderArtwork() {
+  const box = document.getElementById("leaderArt");
+  if (box) {
+    box.classList.remove("show");
+  }
+}
+
+function resetOpponentTeamPreview() {
+  resetOnlyComputerSlots();
+  computerWheelDone = false;
+  computerWheelRunning = false;
+  computerShinyRouletteRunning = false;
+  computerScopeLensActive = false;
+  opponentRunStarted = false;
+  opponentTeamRunning = false;
+  autoFightStarted = false;
+  updateFightButtonVisibility();
+}
+
+async function startSelectedOpponentIfReady() {
+  if (!playerWheelDone || opponentRunStarted || opponentTeamRunning) {
+    return;
+  }
+
+  if (!ready) {
+    return;
+  }
+
+  opponentRunStarted = true;
+  opponentTeamRunning = true;
+
+  let pool = null;
+
+  if (selectedOpponentType) {
+    pool = await getPokemonByType(selectedOpponentType);
+
+    if (!pool.length) {
+      opponentRunStarted = false;
+      opponentTeamRunning = false;
+      updateHint("Keine Pokémon dieses Typs gefunden.");
+      return;
+    }
+  }
+
+  updateHint(`${computerOpponentName} spielt.`);
+
+  await runComputerTeam(pool);
+
+  opponentTeamRunning = false;
+}
+
+async function startComputer() {
+
+  if (!ready) {
+    alert("Bitte zuerst Pokémon laden.");
+    return;
+  }
+
+  computerOpponentName = "Computer";
+  selectedOpponentType = null;
+  opponentSelected = true;
+  lastOpponentType = null;
+  hideGymLeaderArtwork();
+  resetOpponentTeamPreview();
+  updateHint("Würfel dein erstes Pokémon, indem du das erste ? betätigst.");
+
+  await startSelectedOpponentIfReady();
+}
+
+async function startGymLeader(leaderId) {
+
+  if (!ready) {
+
+    alert("Bitte zuerst Pokémon laden.");
+    return;
+  }
+
+  const leader =
+    gymLeaders[leaderId];
+
+  if (!leader) {
+    alert("Dieser Arenaleiter ist nicht bekannt.");
+    return;
+  }
+
+  computerOpponentName = leader.name;
+
+  selectedOpponentType = leader.type;
+  opponentSelected = true;
+  lastOpponentType = leaderId;
+  showGymLeaderArtwork(leaderId);
+  resetOpponentTeamPreview();
+  updateHint("Würfel dein erstes Pokémon, indem du das erste ? betätigst.");
+
+  await startSelectedOpponentIfReady();
+}
+
+async function runComputerTeam(pool = null) {
+
+  const slots =
+    [...document.querySelectorAll("#computerSlots .slot")];
+
+  resetOnlyComputerSlots();
+
+  const availableActions = [
+    "keep",
+    "trade",
+    "release"
+  ];
+
+  for (let i = 0; i < slots.length; i++) {
+
+    const slot = slots[i];
+
+    await autoSpin(slot, pool);
+
+    await wait(500);
+
+    const move =
+      chooseComputerMove(slot, availableActions);
+
+    removeComputerAction(move, availableActions);
+
+    await applyComputerMove(slot, move, pool);
+
+    await wait(700);
+  }
+
+  await wait(1200);
+
+  await spinComputerLuckWheel(slots);
+}
+
+function startComputerShiny(slots) {
+  spinComputerLuckWheel(slots);
+}
+
+
+function autoSpin(slot, customPool = null, minStat = null) {
+
+  return new Promise(async resolve => {
+
+    slot.dataset.spinning = "true";
+
+    const reel =
+      slot.querySelector(".reel");
+
+    let pool =
+      customPool || loadedImages;
+
+    if (minStat !== null) {
+
+      const betterPool =
+        await getBetterTradePool(minStat, pool);
+
+      if (betterPool.length) {
+        pool = betterPool;
+      }
+    }
+
+    const interval = setInterval(() => {
+
+      const id =
+        pool[
+          Math.floor(Math.random() * pool.length)
+        ];
+
+      setReelImage(reel, id);
+
+    }, 100);
+
+    setTimeout(async () => {
+
+      clearInterval(interval);
+
+      const final =
+        pool[
+          Math.floor(Math.random() * pool.length)
+        ];
+
+      slot.dataset.id = final;
+
+      setReelImage(reel, final);
+
+      const pokemon =
+        await getPokemonData(final);
+
+      slot.dataset.baseStat = pokemon.stat;
+      slot.dataset.stat = pokemon.stat;
+      slot.dataset.special = pokemon.special ? "true" : "false";
+      slot.dataset.formKind = pokemon.formKind || "";
+      slot.dataset.types = JSON.stringify(pokemon.types);
+      slot.dataset.pokemonName = pokemon.name;
+      slot.dataset.tradedFromStat = minStat || "";
+
+      slot.parentElement
+        .querySelector(".pokemon-name")
+        .innerText = pokemon.name;
+
+      if (minStat !== null) {
+
+        slot.parentElement
+          .querySelector(".base-stat")
+          .innerText =
+            `⚔ ${pokemon.stat} / vorher ${minStat}`;
+
+      } else {
+
+        slot.parentElement
+          .querySelector(".base-stat")
+          .innerText = `⚔ ${pokemon.stat}`;
+      }
+
+      const specialText =
+        getSpecialLabel(pokemon);
+
+      slot.parentElement
+        .querySelector(".special-banner")
+        .innerText = specialText;
+
+      slot.dataset.spinning = "false";
+
+      resolve();
+
+    }, 2000);
+  });
+}
+
+function getTeamTotal(slots) {
+  return slots.reduce((sum, slot) => {
+    if (slot.classList.contains("release")) {
+      return sum;
+    }
+
+    return sum + (parseInt(slot.dataset.stat) || 0);
+  }, 0);
+}
+
+
+function getSlotTypes(slot) {
+  try {
+    return JSON.parse(slot.dataset.types || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function getSlotName(slot) {
+  return slot.dataset.pokemonName ||
+    slot.parentElement.querySelector(".pokemon-name").innerText ||
+    "Dieses Pokémon";
+}
+
+function getAttackMultiplier(attackerTypes, defenderTypes) {
+  let bestMultiplier = null;
+  let bestAttackType = attackerTypes[0] || "";
+
+  attackerTypes.forEach(attackType => {
+    let multiplier = 1;
+
+    defenderTypes.forEach(defenderType => {
+      const chartValue =
+        typeEffectiveness[attackType]?.[defenderType];
+
+      multiplier *= chartValue === undefined ? 1 : chartValue;
+    });
+
+    if (bestMultiplier === null || multiplier > bestMultiplier) {
+      bestMultiplier = multiplier;
+      bestAttackType = attackType;
+    }
+  });
+
+  return {
+    multiplier: bestMultiplier ?? 1,
+    attackType: bestAttackType
+  };
+}
+
+function describeEffectiveness(attackerSlot, defenderSlot, typeMultiplier) {
+  let status = "normal";
+  let baseModifier = 1;
+  let text = "";
+
+  if (typeMultiplier >= 4) {
+    status = "super";
+    baseModifier = 1.4;
+    text = `${getSlotName(attackerSlot)} ist doppelt sehr effektiv gegen ${getSlotName(defenderSlot)}!`;
+  }
+
+  else if (typeMultiplier > 1) {
+    status = "super";
+    baseModifier = 1.2;
+    text = `${getSlotName(attackerSlot)} ist sehr effektiv gegen ${getSlotName(defenderSlot)}!`;
+  }
+
+  else if (typeMultiplier === 0) {
+    status = "weak";
+    baseModifier = 0.5;
+    text = `${getSlotName(attackerSlot)} hat fast keine Wirkung gegen ${getSlotName(defenderSlot)}.`;
+  }
+
+  else if (typeMultiplier <= 0.25) {
+    status = "weak";
+    baseModifier = 0.6;
+    text = `${getSlotName(attackerSlot)} ist doppelt nicht sehr effektiv gegen ${getSlotName(defenderSlot)}.`;
+  }
+
+  else if (typeMultiplier < 1) {
+    status = "weak";
+    baseModifier = 0.8;
+    text = `${getSlotName(attackerSlot)} ist nicht sehr effektiv gegen ${getSlotName(defenderSlot)}.`;
+  }
+
+  else {
+    text = `${getSlotName(attackerSlot)} trifft ${getSlotName(defenderSlot)} normal.`;
+  }
+
+  return {
+    status: status,
+    baseModifier: baseModifier,
+    text: text
+  };
+}
+
+function analyzeTeamEffectiveness(attackerSlots, defenderSlots, criticalChance = 0.05) {
+  const validAttackers =
+    attackerSlots.filter(slot =>
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    );
+
+  const validDefenders =
+    defenderSlots.filter(slot =>
+      slot.dataset.id &&
+      !slot.classList.contains("release")
+    );
+
+  if (!validAttackers.length || !validDefenders.length) {
+    return [];
+  }
+
+  const adjustments = [];
+
+  validAttackers.forEach(attacker => {
+    const attackerTypes = getSlotTypes(attacker);
+    const originalValue = parseInt(attacker.dataset.stat) || 0;
+
+    if (!attackerTypes.length || originalValue <= 0) {
+      return;
+    }
+
+    validDefenders.forEach(defender => {
+      const defenderTypes = getSlotTypes(defender);
+
+      if (!defenderTypes.length) {
+        return;
+      }
+
+      const result =
+        getAttackMultiplier(attackerTypes, defenderTypes);
+
+      const described =
+        describeEffectiveness(attacker, defender, result.multiplier ?? 1);
+
+      const critical =
+        Math.random() < criticalChance;
+
+      const modifier =
+        critical ? described.baseModifier + 0.5 : described.baseModifier;
+
+      const weightedDelta =
+        Math.round((originalValue * (modifier - 1)) / validDefenders.length);
+
+      let text = described.text;
+
+      if (critical) {
+        text = `💥 VOLLTREFFER! ${text}`;
+      }
+
+      adjustments.push({
+        status: critical ? "critical" : described.status,
+        baseStatus: described.status,
+        modifier: modifier,
+        baseModifier: described.baseModifier,
+        critical: critical,
+        message: text,
+        originalValue: originalValue,
+        adjustedValue: originalValue + weightedDelta,
+        delta: weightedDelta,
+        attacker: attacker,
+        defender: defender
+      });
+    });
+  });
+
+  return adjustments;
+}
+
+function calculateEffectivenessBattle(playerSlots, computerSlots, playerBaseTotal, computerBaseTotal) {
+  const playerCriticalChance = playerScopeLensActive ? 0.25 : 0.05;
+  const computerCriticalChance = computerScopeLensActive ? 0.25 : 0.05;
+
+  const playerAdjustments =
+    analyzeTeamEffectiveness(playerSlots, computerSlots, playerCriticalChance);
+
+  const computerAdjustments =
+    analyzeTeamEffectiveness(computerSlots, playerSlots, computerCriticalChance);
+
+  const playerDelta =
+    playerAdjustments.reduce((sum, item) => sum + item.delta, 0);
+
+  const computerDelta =
+    computerAdjustments.reduce((sum, item) => sum + item.delta, 0);
+
+  return {
+    playerAdjustments: playerAdjustments,
+    computerAdjustments: computerAdjustments,
+    playerFinalTotal: playerBaseTotal + playerDelta,
+    computerFinalTotal: computerBaseTotal + computerDelta
+  };
+}
+
+function addEffectivenessLine(text, status) {
+  const log =
+    document.getElementById("effectivenessLog");
+
+  const line =
+    document.createElement("div");
+
+  line.className =
+    `effectiveness-line ${status}`;
+
+  line.innerText =
+    text;
+
+  log.appendChild(line);
+
+  while (log.children.length > 3) {
+    log.removeChild(log.firstChild);
+  }
+}
+
+async function applyEffectivenessAdjustments(adjustments, totalElement, targetElement, startTotal, teamName) {
+  let currentTotal =
+    startTotal;
+
+  for (const adjustment of adjustments) {
+    if (!adjustment.message) {
+      continue;
+    }
+
+    const multiplierText =
+      `x${adjustment.modifier.toFixed(1).replace(".", ",")}`;
+
+    const prefix =
+      adjustment.critical
+        ? `💥 ${multiplierText}`
+        : adjustment.baseStatus === "super"
+          ? `⬆ ${multiplierText}`
+          : adjustment.baseStatus === "weak"
+            ? `⬇ ${multiplierText}`
+            : `➡ ${multiplierText}`;
+
+    addEffectivenessLine(
+      `${prefix} ${adjustment.message}`,
+      adjustment.status
+    );
+
+    targetElement.classList.add("charging");
+
+    const newTotal =
+      currentTotal + adjustment.delta;
+
+    animateNumber(totalElement, currentTotal, newTotal, 500);
+
+    currentTotal =
+      newTotal;
+
+    setTimeout(() => {
+      targetElement.classList.remove("charging");
+    }, 380);
+
+    await wait(780);
+  }
+
+  return currentTotal;
+}
+
+
+function clearBattleAnimationClasses() {
+  [
+    "playerPower",
+    "computerPower",
+    "vsCore",
+    "playerBeam",
+    "computerBeam",
+    "impactBurst"
+  ].forEach(id => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    element.classList.remove(
+      "charging",
+      "clash",
+      "fire",
+      "attack-left",
+      "attack-right",
+      "hit-left",
+      "hit-right",
+      "victory-glow"
+    );
+  });
+}
+
+function animateNumber(element, from, to, duration = 450) {
+  const start = performance.now();
+
+  function frame(now) {
+    const progress =
+      Math.min((now - start) / duration, 1);
+
+    const eased =
+      1 - Math.pow(1 - progress, 3);
+
+    element.innerText =
+      Math.round(from + (to - from) * eased);
+
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function flyStatChip(slot, targetElement, team, value) {
+  return new Promise(resolve => {
+    const slotRect =
+      slot.getBoundingClientRect();
+
+    const targetRect =
+      targetElement.getBoundingClientRect();
+
+    const chip =
+      document.createElement("div");
+
+    chip.className =
+      `stat-chip ${team}-chip`;
+
+    chip.innerText =
+      `+${value}`;
+
+    chip.style.left =
+      `${slotRect.left + slotRect.width / 2 - 30}px`;
+
+    chip.style.top =
+      `${slotRect.top + slotRect.height / 2 - 18}px`;
+
+    document.body.appendChild(chip);
+
+    requestAnimationFrame(() => {
+      chip.style.left =
+        `${targetRect.left + targetRect.width / 2 - 30}px`;
+
+      chip.style.top =
+        `${targetRect.top + targetRect.height / 2 - 18}px`;
+
+      chip.style.transform =
+        "scale(0.55) rotate(12deg)";
+
+      chip.style.opacity =
+        "0.15";
+    });
+
+    setTimeout(() => {
+      chip.remove();
+      resolve();
+    }, 620);
+  });
+}
+
+async function collectTeamStats(slots, targetElement, totalElement, team, captionText) {
+  let currentTotal = 0;
+
+  document.getElementById("battleCaption").innerText =
+    captionText;
+
+  for (const slot of slots) {
+
+    if (slot.classList.contains("release")) {
+      continue;
+    }
+
+    const value =
+      parseInt(slot.dataset.stat) || 0;
+
+    await flyStatChip(slot, targetElement, team, value);
+
+    const newTotal =
+      currentTotal + value;
+
+    animateNumber(totalElement, currentTotal, newTotal, 300);
+
+    targetElement.classList.add("charging");
+
+    setTimeout(() => {
+      targetElement.classList.remove("charging");
+    }, 360);
+
+    currentTotal =
+      newTotal;
+
+    await wait(180);
+  }
+
+  return currentTotal;
+}
+
+async function playFightAnimation(playerSlots, computerSlots, playerBaseTotal, computerBaseTotal, effectivenessBattle) {
+  const stage =
+    document.getElementById("battleStage");
+
+  const playerPower =
+    document.getElementById("playerPower");
+
+  const computerPower =
+    document.getElementById("computerPower");
+
+  const playerTotalElement =
+    document.getElementById("playerBattleTotal");
+
+  const computerTotalElement =
+    document.getElementById("computerBattleTotal");
+
+  const computerLabel =
+    document.getElementById("computerBattleLabel");
+
+  const caption =
+    document.getElementById("battleCaption");
+
+  const vsCore =
+    document.getElementById("vsCore");
+
+  const playerBeam =
+    document.getElementById("playerBeam");
+
+  const computerBeam =
+    document.getElementById("computerBeam");
+
+  const impactBurst =
+    document.getElementById("impactBurst");
+
+  clearBattleAnimationClasses();
+
+  stage.classList.add("show");
+  playerTotalElement.innerText = "0";
+  computerTotalElement.innerText = "0";
+  computerLabel.innerText = computerOpponentName;
+  caption.innerText = "Basiswerte werden gesammelt...";
+  document.getElementById("effectivenessLog").innerHTML = "";
+
+  await wait(250);
+
+  await collectTeamStats(
+    playerSlots,
+    playerPower,
+    playerTotalElement,
+    "player",
+    "handlebart sammelt Team-Power..."
+  );
+
+  await wait(250);
+
+  await collectTeamStats(
+    computerSlots,
+    computerPower,
+    computerTotalElement,
+    "computer",
+    `${computerOpponentName} sammelt Team-Power...`
+  );
+
+  playerTotalElement.innerText = playerBaseTotal;
+  computerTotalElement.innerText = computerBaseTotal;
+
+  await wait(350);
+
+  caption.innerText = "Typen-Stärken und Schwächen werden berechnet...";
+
+  await applyEffectivenessAdjustments(
+    effectivenessBattle.playerAdjustments,
+    playerTotalElement,
+    playerPower,
+    playerBaseTotal,
+    "handlebart"
+  );
+
+  await wait(200);
+
+  await applyEffectivenessAdjustments(
+    effectivenessBattle.computerAdjustments,
+    computerTotalElement,
+    computerPower,
+    computerBaseTotal,
+    computerOpponentName
+  );
+
+  playerTotalElement.innerText = effectivenessBattle.playerFinalTotal;
+  computerTotalElement.innerText = effectivenessBattle.computerFinalTotal;
+
+  await wait(350);
+
+  caption.innerText = "Die angepassten Team-Werte prallen aufeinander!";
+
+  playerBeam.classList.add("fire");
+  computerBeam.classList.add("fire");
+  vsCore.classList.add("clash");
+  impactBurst.classList.add("fire");
+
+  if (effectivenessBattle.playerFinalTotal > effectivenessBattle.computerFinalTotal) {
+    playerPower.classList.add("attack-left");
+    computerPower.classList.add("hit-right",
+      "victory-glow");
+  }
+
+  else if (effectivenessBattle.computerFinalTotal > effectivenessBattle.playerFinalTotal) {
+    computerPower.classList.add("attack-right");
+    playerPower.classList.add("hit-left");
+  }
+
+  else {
+    playerPower.classList.add("hit-left");
+    computerPower.classList.add("hit-right",
+      "victory-glow");
+  }
+
+  await wait(850);
+
+  playerPower.classList.remove("victory-glow");
+  computerPower.classList.remove("victory-glow");
+
+  if (effectivenessBattle.playerFinalTotal > effectivenessBattle.computerFinalTotal) {
+    caption.innerText = "handlebart landet den entscheidenden Treffer!";
+    playerPower.classList.add("victory-glow");
+    addEffectivenessLine("Gewinner: handlebart", "super");
+  }
+
+  else if (effectivenessBattle.computerFinalTotal > effectivenessBattle.playerFinalTotal) {
+    caption.innerText = `${computerOpponentName} landet den entscheidenden Treffer!`;
+    computerPower.classList.add("victory-glow");
+    addEffectivenessLine(`Gewinner: ${computerOpponentName}`, "super");
+  }
+
+  else {
+    caption.innerText = "Beide Teams sind gleich stark!";
+    addEffectivenessLine("Unentschieden", "normal");
+  }
+
+  await wait(550);
+}
+
+async function fight() {
+
+  if (!playerWheelDone || !computerWheelDone) {
+    updateHint("Erst müssen beide Glücksräder abgeschlossen sein.");
+    updateFightButtonVisibility();
+    return;
+  }
+
+  if (fightInProgress) {
+    return;
+  }
+
+  fightInProgress = true;
+
+  updateHint("");
+  clearLuckResultCenter();
+  setWheelLayout(false);
+
+  document.querySelectorAll(".winner-slot")
+    .forEach(e => e.classList.remove("winner-slot"));
+
+  document.querySelectorAll(".loser-slot")
+    .forEach(e => e.classList.remove("loser-slot"));
+
+  document.getElementById("scoreBox").innerHTML = "";
+  document.getElementById("fightResult").innerHTML = "";
+  document.getElementById("postFightControls").style.display = "none";
+
+  const playerSlots =
+    [...document.querySelectorAll("#playerSlots .slot")];
+
+  const computerSlots =
+    [...document.querySelectorAll("#computerSlots .slot")];
+
+  const playerBaseTotal =
+    getTeamTotal(playerSlots);
+
+  const computerBaseTotal =
+    getTeamTotal(computerSlots);
+
+  const effectivenessBattle =
+    calculateEffectivenessBattle(
+      playerSlots,
+      computerSlots,
+      playerBaseTotal,
+      computerBaseTotal
+    );
+
+  const playerTotal =
+    effectivenessBattle.playerFinalTotal;
+
+  const computerTotal =
+    effectivenessBattle.computerFinalTotal;
+
+  await playFightAnimation(
+    playerSlots,
+    computerSlots,
+    playerBaseTotal,
+    computerBaseTotal,
+    effectivenessBattle
+  );
+
+  document.getElementById("scoreBox").innerHTML = "";
+
+  const result =
+    document.getElementById("fightResult");
+
+  let matchResult = "draw";
+
+  if (playerTotal > computerTotal) {
+
+    matchResult = "win";
+    result.innerHTML = "";
+
+    playerSlots.forEach(s =>
+      s.classList.add("winner-slot"));
+
+    computerSlots.forEach(s =>
+      s.classList.add("loser-slot"));
+  }
+
+  else if (computerTotal > playerTotal) {
+
+    matchResult = "loss";
+    result.innerHTML = "";
+
+    computerSlots.forEach(s =>
+      s.classList.add("winner-slot"));
+
+    playerSlots.forEach(s =>
+      s.classList.add("loser-slot"));
+  }
+
+  else {
+
+    result.innerHTML = "";
+  }
+
+  recordMatchToCollection(matchResult, playerTotal);
+
+  document.getElementById("postFightControls").style.display = "block";
+
+  fightInProgress = false;
+  shinyRouletteRunning = false;
+  computerShinyRouletteRunning = false;
+  playerWheelDone = false;
+  computerWheelDone = false;
+  playerWheelRunning = false;
+  computerWheelRunning = false;
+  opponentSelected = false;
+  opponentRunStarted = false;
+  opponentTeamRunning = false;
+  autoFightStarted = false;
+  activeShinyChoiceResolve = null;
+}
+
+function newMatch() {
+  resetSlots();
+}
+
+function rematch() {
+
+  const rematchType = lastOpponentType;
+
+  resetSlots();
+
+  if (rematchType) {
+    startGymLeader(rematchType);
+  } else {
+    startComputer();
+  }
+}
+
+function resetOnlyComputerSlots() {
+
+  computerScopeLensActive = false;
+  computerWheelDone = false;
+  computerWheelRunning = false;
+  computerShinyRouletteRunning = false;
+  updateFightButtonVisibility();
+
+  document.querySelectorAll("#computerSlots .slot").forEach(slot => {
+
+    slot.className = "slot";
+
+    slot.dataset.id = "";
+    slot.dataset.baseStat = "";
+    slot.dataset.stat = "";
+    slot.dataset.special = "";
+    slot.dataset.formKind = "";
+    slot.dataset.types = "";
+    slot.dataset.pokemonName = "";
+    slot.dataset.spinning = "";
+    slot.dataset.tradedFromStat = "";
+
+    slot.querySelector(".reel").innerHTML =
+      `<div class="question">?</div>`;
+
+    slot.querySelectorAll(".x-overlay")
+      .forEach(e => e.remove());
+
+    slot.querySelectorAll(".shiny-burst")
+      .forEach(e => e.remove());
+
+    slot.querySelectorAll(".select-ring")
+      .forEach(e => e.remove());
+  });
+
+  document.querySelectorAll("#computerSlots .pokemon-name")
+    .forEach(e => e.innerText = "");
+
+  document.querySelectorAll("#computerSlots .base-stat")
+    .forEach(e => e.innerText = "");
+
+  document.querySelectorAll("#computerSlots .special-banner")
+    .forEach(e => e.innerText = "");
+}
+
+function resetSlots() {
+
+  fightInProgress = false;
+  shinyRouletteRunning = false;
+  computerShinyRouletteRunning = false;
+  playerScopeLensActive = false;
+  computerScopeLensActive = false;
+  selectedOpponentType = null;
+  opponentRunStarted = false;
+  opponentTeamRunning = false;
+
+  document.querySelectorAll(".slot").forEach(slot => {
+
+    slot.className = "slot";
+
+    slot.dataset.id = "";
+    slot.dataset.baseStat = "";
+    slot.dataset.stat = "";
+    slot.dataset.special = "";
+    slot.dataset.formKind = "";
+    slot.dataset.types = "";
+    slot.dataset.pokemonName = "";
+    slot.dataset.spinning = "";
+    slot.dataset.tradedFromStat = "";
+
+    slot.querySelector(".reel").innerHTML =
+      `<div class="question">?</div>`;
+
+    slot.querySelectorAll(".x-overlay")
+      .forEach(e => e.remove());
+
+    slot.querySelectorAll(".shiny-burst")
+      .forEach(e => e.remove());
+
+    slot.querySelectorAll(".select-ring")
+      .forEach(e => e.remove());
+  });
+
+  document.querySelectorAll(".pokemon-name")
+    .forEach(e => e.innerText = "");
+
+  document.querySelectorAll(".base-stat")
+    .forEach(e => e.innerText = "");
+
+  document.querySelectorAll(".special-banner")
+    .forEach(e => e.innerText = "");
+
+  document.getElementById("scoreBox").innerHTML = "";
+  document.getElementById("fightResult").innerHTML = "";
+  document.getElementById("postFightControls").style.display = "none";
+
+  const battleStage =
+    document.getElementById("battleStage");
+
+  battleStage.classList.remove("show");
+
+  document.getElementById("playerBattleTotal").innerText = "0";
+  document.getElementById("computerBattleTotal").innerText = "0";
+  document.getElementById("battleCaption").innerText = "";
+  document.getElementById("effectivenessLog").innerHTML = "";
+
+  document.querySelectorAll(".stat-chip")
+    .forEach(e => e.remove());
+
+  document.querySelectorAll(".shiny-roulette-active")
+    .forEach(e => e.classList.remove("shiny-roulette-active"));
+
+  hideLuckWheels();
+  clearLuckResultCenter();
+
+  document.querySelectorAll(".wheel-face")
+    .forEach(face => face.style.transform = "rotate(0deg)");
+
+  clearBattleAnimationClasses();
+
+  activeSlot = null;
+  computerOpponentName = "Computer";
+  shinySelectionMode = false;
+  hideGymLeaderArtwork();
+
+  clearActiveSlots();
+  clearShinyPickables();
+  resetActionButtons();
+  updateHint("Wähle deinen Gegner.");
+}
+
+function wait(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateCollectionStats();
+});
+
+document.addEventListener("DOMContentLoaded", updateCollectionStats);
+</script>
+
+
+
+<div id="pokemonThemeTeamsView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+  <h1>Pokémon Team Builder</h1>
+
+  <div class="tt-categories">
+    <button onclick="ttSetCategory('dog')">🐶 Hunde</button>
+    <button onclick="ttSetCategory('cat')">🐱 Katzen</button>
+    <button onclick="ttSetCategory('monkey')">🐵 Affen</button>
+    <button onclick="ttSetCategory('hoof')">🐴 Huftiere</button>
+    <button onclick="ttSetCategory('item')">🛠️ mit Gegenstand</button>
+
+    <button onclick="ttSetCategory('beard')">🧔 Mit Bart</button>
+    <button onclick="ttSetCategory('blueShiny')">🔵 Blaue Shinys</button>
+    <button onclick="ttSetCategory('yellowShiny')">🟡 Gelbe Shinys</button>
+    <button onclick="ttSetCategory('blackShiny')">⚫ Schwarze Shinys</button>
+    <button onclick="ttSetCategory('redShiny')">🔴 Rote Shinys</button>
+  </div>
+
+  <div class="tt-team">
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+    <div class="tt-slot empty"><span class="tt-qmark">?</span></div>
+  </div>
+
+  <div id="ttSelector">
+    <div class="tt-search">
+      <input type="text" id="ttSearch" placeholder="Pokémon suchen...">
+    </div>
+    <div id="ttList"></div>
+  </div>
+</div>
+
+
+<div id="favoritePokemonPickerView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+  <div class="fpp-topbar" id="fppGenList"></div>
+
+  <div class="fpp-main">
+    <div class="fpp-type-grid" id="fppTypes"></div>
+  </div>
+
+  <div id="fppPicker"></div>
+</div>
+
+<script>
+function showMainAppView(view) {
+  const menu = document.getElementById("mainMenu");
+  const game = document.getElementById("ktrGameView");
+  const picker = document.getElementById("favoriteSpritePickerView");
+  const teams = document.getElementById("pokemonThemeTeamsView");
+  const favoritePokemon = document.getElementById("favoritePokemonPickerView");
+
+  if (menu) menu.classList.toggle("hidden-view", view !== "menu");
+  if (game) game.classList.toggle("hidden-view", view !== "game");
+  if (picker) picker.classList.toggle("hidden-view", view !== "picker");
+  if (teams) teams.classList.toggle("hidden-view", view !== "teams");
+  if (favoritePokemon) favoritePokemon.classList.toggle("hidden-view", view !== "favoritePokemon");
+
+  if (view === "favoritePokemon" && typeof fppInitOnce === "function") {
+    fppInitOnce();
+  }
+
+  document.body.style.overflow = "";
+  window.scrollTo(0, 0);
+
+  if (view === "menu" && typeof fspClosePicker === "function") {
+    fspClosePicker();
+  }
+}
+
+/* ===== FAVORITE SPRITE PICKER JS ===== */
+let fspRange = [1,151], fspMode = 1;
+let fspSelections = {};
+let fspCounter = {};
+let fspShinyAll = false;
+
+const FSP_STORAGE_KEY = "poke_rankings";
+
+const fspList = document.getElementById("fspList");
+const fspCounterBar = document.getElementById("fspCounterBar");
+const fspOptions = document.getElementById("fspOptions");
+const fspPicker = document.getElementById("fspSpritePicker");
+
+let fspCurrentImg = null;
+
+function fspSave(){
+  localStorage.setItem(FSP_STORAGE_KEY, JSON.stringify(fspSelections));
+}
+
+function fspRestore(){
+  const data = localStorage.getItem(FSP_STORAGE_KEY);
+  if(data) fspSelections = JSON.parse(data);
+}
+
+function fspToggleShiny(){
+  fspShinyAll = !fspShinyAll;
+  fspRenderAllSprites();
+}
+
+function fspRenderAllSprites(){
+  document.querySelectorAll(".fsp-pokemon").forEach(div=>{
     const data = JSON.parse(div.dataset.poke);
     const img = div.querySelector("img");
 
-    const sprites = getSprites(data);
+    const sprites = fspGetSprites(data);
 
-    if(selections[data.id]){
-      const match = sprites.find(s => s.gen === selections[data.id]);
+    if(fspSelections[data.id]){
+      const match = sprites.find(s => s.gen === fspSelections[data.id]);
       if(match) img.src = match.src;
     } else {
-      img.src = shinyAll ? getDefaultSprite(data, true) : data.sprites.front_default;
+      img.src = fspShinyAll ? fspGetDefaultSprite(data, true) : data.sprites.front_default;
     }
   });
 }
 
-function getDefaultSprite(d, forceShiny=false){
-  const name=d.name.replace(/-/g,"");
-  if(!forceShiny && !shinyAll) return d.sprites.front_default;
+function fspGetDefaultSprite(d, forceShiny=false){
+  if(!forceShiny && !fspShinyAll) return d.sprites.front_default;
   return d.sprites.front_shiny || d.sprites.front_default;
 }
 
-function rebuildCounter(){
-  Object.keys(counter).forEach(k => counter[k]=0);
+function fspRebuildCounter(){
+  Object.keys(fspCounter).forEach(k => fspCounter[k]=0);
 
-  Object.entries(selections).forEach(([id,gen])=>{
-    if(counter[gen] !== undefined){
-      counter[gen]++;
+  Object.entries(fspSelections).forEach(([id,gen])=>{
+    if(fspCounter[gen] !== undefined){
+      fspCounter[gen]++;
     }
   });
 }
 
-function buildCounterBar(){
-  counterBar.innerHTML="";
+function fspBuildCounterBar(){
+  fspCounterBar.innerHTML="";
 
-  const gens = mode===1
+  const gens = fspMode===1
     ? ["gen1","gen2","gen3","gen4","gen5","modern"]
     : ["gen2","gen3","gen4","gen5","modern"];
 
@@ -298,74 +5593,74 @@ function buildCounterBar(){
   };
 
   gens.forEach((g,i)=>{
-    counter[g]=0;
+    fspCounter[g]=0;
 
     const div=document.createElement("div");
-    div.className="counterItem g"+(i+1);
+    div.className="fsp-counterItem fsp-g"+(i+1);
 
     div.innerHTML=`
       <div>${labels[g]}</div>
-      <div id="${g}">0%</div>
+      <div id="fsp-${g}">0%</div>
     `;
 
-    counterBar.appendChild(div);
+    fspCounterBar.appendChild(div);
   });
 }
 
-function updateCounter(){
-  const total=Object.values(counter).reduce((a,b)=>a+b,0);
+function fspUpdateCounter(){
+  const total=Object.values(fspCounter).reduce((a,b)=>a+b,0);
   if(!total){
-    Object.keys(counter).forEach(k=>{
-      const el=document.getElementById(k);
+    Object.keys(fspCounter).forEach(k=>{
+      const el=document.getElementById("fsp-" + k);
       if(el) el.innerText="0%";
     });
     return;
   }
 
-  Object.keys(counter).forEach(k=>{
-    const el=document.getElementById(k);
-    if(el) el.innerText=Math.round(counter[k]/total*100)+"%";
+  Object.keys(fspCounter).forEach(k=>{
+    const el=document.getElementById("fsp-" + k);
+    if(el) el.innerText=Math.round(fspCounter[k]/total*100)+"%";
   });
 }
 
-function startGen(gen){
-  mode=gen;
-  document.getElementById("start").style.display="none";
-  document.getElementById("app").style.display="block";
+function fspStartGen(gen){
+  fspMode=gen;
+  document.getElementById("fspStart").style.display="none";
+  document.getElementById("fspApp").style.display="block";
 
-  list.innerHTML="";
-  selections={};
-  counter={};
+  fspList.innerHTML="";
+  fspSelections={};
+  fspCounter={};
 
-  range=gen===1?[1,151]:[152,251];
+  fspRange=gen===1?[1,151]:[152,251];
 
-  buildCounterBar();
-  load();
+  fspBuildCounterBar();
+  fspLoad();
 }
 
-function back(){
-  document.getElementById("app").style.display="none";
-  document.getElementById("start").style.display="block";
+function fspBack(){
+  document.getElementById("fspApp").style.display="none";
+  document.getElementById("fspStart").style.display="flex";
 }
 
-function resetAll(){
-  localStorage.removeItem(STORAGE_KEY);
-  selections={};
-  counter={};
+function fspResetAll(){
+  localStorage.removeItem(FSP_STORAGE_KEY);
+  fspSelections={};
+  fspCounter={};
 
-  document.querySelectorAll(".pokemon img").forEach(img=>{
+  document.querySelectorAll(".fsp-pokemon img").forEach(img=>{
     img.src = img.dataset.default;
   });
 
-  buildCounterBar();
-  updateCounter();
+  fspBuildCounterBar();
+  fspUpdateCounter();
 }
 
-async function load(){
-  restore();
+async function fspLoad(){
+  fspRestore();
 
   const ids=[];
-  for(let i=range[0]; i<=range[1]; i++) ids.push(i);
+  for(let i=fspRange[0]; i<=fspRange[1]; i++) ids.push(i);
 
   const promises=ids.map(async id=>{
     try{
@@ -384,19 +5679,19 @@ async function load(){
     .filter(Boolean)
     .sort((a,b)=>a.id-b.id);
 
-  results.forEach(p=>create(p.data,p.name));
+  results.forEach(p=>fspCreate(p.data,p.name));
 
-  rebuildCounter();
-  renderAllSprites();
-  updateCounter();
+  fspRebuildCounter();
+  fspRenderAllSprites();
+  fspUpdateCounter();
 }
 
-function create(d,name){
+function fspCreate(d,name){
   const div=document.createElement("div");
-  div.className="pokemon";
+  div.className="fsp-pokemon";
 
   const img=document.createElement("img");
-  img.src = shinyAll ? getDefaultSprite(d,true) : d.sprites.front_default;
+  img.src = fspShinyAll ? fspGetDefaultSprite(d,true) : d.sprites.front_default;
   img.dataset.default = d.sprites.front_default;
 
   div.dataset.poke = JSON.stringify({
@@ -409,41 +5704,38 @@ function create(d,name){
   p.innerText=name;
 
   div.append(img,p);
-  div.onclick=()=>open(d,img);
+  div.onclick=()=>fspOpen(d,img);
 
-  list.appendChild(div);
+  fspList.appendChild(div);
 }
 
-/* 🔧 ONLY CHANGE: GEN 5 FIX */
-function getSprites(d){
+function fspGetSprites(d){
   const s=d.sprites;
   const name=d.name.replace(/-/g,"");
 
   const arr=[
     {
-      src: shinyAll ? (s.versions?.["generation-i"]?.["red-blue"]?.front_shiny || s.versions?.["generation-i"]?.["red-blue"]?.front_default)
+      src: fspShinyAll ? (s.versions?.["generation-i"]?.["red-blue"]?.front_shiny || s.versions?.["generation-i"]?.["red-blue"]?.front_default)
                     : s.versions?.["generation-i"]?.["red-blue"]?.front_default,
       gen:"gen1",label:"Gen 1"
     },
     {
-      src: shinyAll ? (s.versions?.["generation-ii"]?.crystal?.front_shiny || s.versions?.["generation-ii"]?.crystal?.front_default)
+      src: fspShinyAll ? (s.versions?.["generation-ii"]?.crystal?.front_shiny || s.versions?.["generation-ii"]?.crystal?.front_default)
                     : s.versions?.["generation-ii"]?.crystal?.front_default,
       gen:"gen2",label:"Gen 2"
     },
     {
-      src: shinyAll ? (s.versions?.["generation-iii"]?.emerald?.front_shiny || s.versions?.["generation-iii"]?.emerald?.front_default)
+      src: fspShinyAll ? (s.versions?.["generation-iii"]?.emerald?.front_shiny || s.versions?.["generation-iii"]?.emerald?.front_default)
                     : s.versions?.["generation-iii"]?.emerald?.front_default,
       gen:"gen3",label:"Gen 3"
     },
     {
-      src: shinyAll ? (s.versions?.["generation-iv"]?.platinum?.front_shiny || s.versions?.["generation-iv"]?.platinum?.front_default)
+      src: fspShinyAll ? (s.versions?.["generation-iv"]?.platinum?.front_shiny || s.versions?.["generation-iv"]?.platinum?.front_default)
                     : s.versions?.["generation-iv"]?.platinum?.front_default,
       gen:"gen4",label:"Gen 4"
     },
-
-    /* FIXED GEN 5 */
     {
-      src: shinyAll
+      src: fspShinyAll
         ? (
             s.versions?.["generation-v"]?.["black-white"]?.animated?.front_shiny ||
             s.versions?.["generation-v"]?.["black-white"]?.front_shiny ||
@@ -456,59 +5748,576 @@ function getSprites(d){
           ),
       gen:"gen5",label:"Gen 5"
     },
-
     {
-      src: shinyAll
+      src: fspShinyAll
         ? `https://play.pokemonshowdown.com/sprites/ani-shiny/${name}.gif`
         : `https://play.pokemonshowdown.com/sprites/ani/${name}.gif`,
       gen:"modern",label:"Modern"
     }
   ];
 
-  return mode===1
+  return fspMode===1
     ? arr.filter(x=>x.src)
     : arr.filter(x=>x.src && x.gen!=="gen1");
 }
 
-function open(d,img){
-  currentImg=img;
-  options.innerHTML="";
+function fspOpen(d,img){
+  fspCurrentImg=img;
+  fspOptions.innerHTML="";
   document.body.style.overflow="hidden";
 
-  getSprites(d).forEach(s=>{
+  fspGetSprites(d).forEach(s=>{
     const wrap=document.createElement("div");
-    wrap.className="sprite";
+    wrap.className="fsp-sprite";
 
     const im=document.createElement("img");
     im.src=s.src;
 
     const label=document.createElement("div");
-    label.className="label";
+    label.className="fsp-label";
     label.innerText=s.label;
 
     im.onclick=()=>{
-      if(selections[d.id]) counter[selections[d.id]]--;
+      if(fspSelections[d.id]) fspCounter[fspSelections[d.id]]--;
 
-      selections[d.id]=s.gen;
-      counter[s.gen]++;
+      fspSelections[d.id]=s.gen;
+      fspCounter[s.gen]++;
 
-      currentImg.src=s.src;
+      fspCurrentImg.src=s.src;
 
-      save();
-      updateCounter();
-      closePicker();
+      fspSave();
+      fspUpdateCounter();
+      fspClosePicker();
     };
 
     wrap.append(im,label);
-    options.appendChild(wrap);
+    fspOptions.appendChild(wrap);
   });
 
-  picker.style.display="block";
+  fspPicker.style.display="block";
 }
 
-function closePicker(){
-  picker.style.display="none";
+function fspClosePicker(){
+  if (fspPicker) fspPicker.style.display="none";
   document.body.style.overflow="";
+}
+
+/* ===== POKÉMON THEMEN TEAMS JS ===== */
+const ttSlots = document.querySelectorAll("#pokemonThemeTeamsView .tt-slot");
+const ttSelector = document.getElementById("ttSelector");
+const ttList = document.getElementById("ttList");
+const ttSearchInput = document.getElementById("ttSearch");
+
+let ttActiveSlot = null;
+let ttCurrentCategory = null;
+let ttFilteredPokemon = [];
+
+const ttShinyCategories = ["blueShiny","yellowShiny","blackShiny","redShiny"];
+
+const ttTypeColors = {
+  fire: "#ff6a00", water: "#2196f3", electric: "#ffd500", grass: "#4caf50",
+  dark: "#444444", fighting: "#cc2222", fairy: "#ff9de1", psychic: "#ff4da6",
+  rock: "#a38c21", ground: "#c8a000", normal: "#aaaaaa", ice: "#7fe0ff",
+  ghost: "#6a5acd", steel: "#888888", poison: "#a040a0", bug: "#91a119",
+  dragon: "#5060e1", flying: "#81b9ef"
+};
+
+function ttHexToRGBA(hex, alpha) {
+  const r = parseInt(hex.substring(1,3),16);
+  const g = parseInt(hex.substring(3,5),16);
+  const b = parseInt(hex.substring(5,7),16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function ttResetSlots() {
+  ttSlots.forEach(slot => {
+    slot.innerHTML = '<span class="tt-qmark">?</span>';
+    slot.classList.add("empty");
+    slot.style.border = "4px solid #000";
+    slot.style.borderImage = "none";
+    slot.style.background = "#2c2c3f";
+  });
+}
+
+function ttActivateNextSlot(current) {
+  const index = Array.from(ttSlots).indexOf(current);
+  const next = ttSlots[index + 1];
+
+  document.querySelectorAll("#pokemonThemeTeamsView .tt-qmark").forEach(q => q.classList.remove("active"));
+
+  if (next && next.classList.contains("empty")) {
+    ttActiveSlot = next;
+    const q = next.querySelector(".tt-qmark");
+    if (q) q.classList.add("active");
+  } else {
+    ttActiveSlot = null;
+    ttSelector.style.display = "none";
+  }
+}
+
+const ttCategories = {
+  dog: ["growlithe","arcanine","houndour","houndoom","poochyena","mightyena","lillipup","herdier","stoutland","rockruff","lycanroc-midday","lycanroc-midnight","lycanroc-dusk","yamper","boltund","fidough","dachsbun","maschiff","mabosstiff","greavard","houndstone","entei","suicune","electrike","manectric","riolu","lucario","snubbull","granbull","furfrou","zacian-crowned","zamazenta-crowned","smeargle","shaymin-sky","zygarde-10"],
+  cat: ["meowth","persian","glameow","purugly","purrloin","liepard","espurr","meowstic","meowstic-female","litten","torracat","incineroar","skitty","delcatty","sprigatito","floragato","meowscarada","perrserker","shinx","luxio","luxray","zangoose","absol","eevee","espeon","umbreon","raikou","litleo","pyroar","pyroar-female","solgaleo","zeraora"],
+  monkey: ["mankey","primeape","annihilape","chimchar","monferno","infernape","pansage","simisage","pansear","simisear","panpour","simipour","grookey","thwackey","rillaboom","aipom","ambipom","oranguru","passimian","electivire","darumaka","darmanitan","darumaka-galar","darmanitan-galar-standard","shroodle","grafaiai"],
+  hoof: ["ponyta","rapidash","ponyta-galar","rapidash-galar","glastrier","spectrier","keldeo","tauros","tauros-paldea-combat","tauros-paldea-blaze-breed","tauros-paldea-aqua-breed","miltank","stantler","wyrdeer","deerling","sawsbuck","cobalion","terrakion","virizion","zebstrika","bouffalant","mudbray","mudsdale","skiddo","gogoat","wooloo","dubwool","xerneas","arceus"],
+  item: ["tinkaton","rillaboom","sirfetchd","delphox","pangoro","conkeldurr","alakazam","marowak","marowak-alola","hypno","mr-rime"],
+  beard: ["golem-alola","alakazam","swalot","tropius","walrein","kricketune","samurott-hisui","stoutland","mr-rime","kingambit","centiskorch","probopass"],
+  blueShiny: ["nidoking","venomoth","cloyster","electrode","ditto","articuno-galar","mew","unown","mantine","miltank","sceptile","gardevoir","medicham","swalot","gliscor","reuniclus","tyrantrum","xerneas","lycanroc-midday","klawf"],
+  yellowShiny: ["arcanine","lickitung","zapdos-galar","azumarill","steelix","gorebyss","luvdisc","deoxys","latias","luxray","drifblim","floatzel","mismagius","lucario","rhyperior","goodra","hoopa","volcanion","bewear","turtonator","deoxys"],
+  blackShiny: ["charizard","camerupt","rayquaza","haxorus","braviary-hisui","greninja","furfrou","palossand","tapu-bulu","pincurchin","carbink","cetitan"],
+  redShiny: ["gyarados","moltres-galar","lugia","breloom","absol","rampardos","skuntank","genesect","heliolisk","solgaleo","clawitzer","dhelmise"]
+};
+
+ttSlots.forEach(slot => {
+  slot.onclick = () => {
+    if (!ttCurrentCategory) {
+      alert("Bitte Kategorie wählen!");
+      return;
+    }
+
+    ttActiveSlot = slot;
+    document.querySelectorAll("#pokemonThemeTeamsView .tt-qmark").forEach(q => q.classList.remove("active"));
+    const q = slot.querySelector(".tt-qmark");
+    if (q) q.classList.add("active");
+
+    ttSelector.style.display = "block";
+  };
+});
+
+async function ttSetCategory(cat) {
+  ttCurrentCategory = cat;
+  ttResetSlots();
+  ttFilteredPokemon = [];
+  ttList.innerHTML = "Lade...";
+
+  for (let name of ttCategories[cat]) {
+    try {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const speciesRes = await fetch(data.species.url);
+      const species = await speciesRes.json();
+      const german = species.names.find(n => n.language.name === "de")?.name || name;
+
+      const sprite = ttShinyCategories.includes(cat)
+        ? (data.sprites.other["official-artwork"].front_shiny || data.sprites.front_shiny)
+        : (data.sprites.other["official-artwork"].front_default || data.sprites.front_default);
+
+      ttFilteredPokemon.push({
+        name: german,
+        sprite: sprite,
+        types: data.types.map(t => t.type.name)
+      });
+
+      ttRenderList(ttFilteredPokemon);
+    } catch {}
+  }
+}
+
+function ttRenderList(arr) {
+  ttList.innerHTML = "";
+
+  arr.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "tt-pokemon";
+    div.innerHTML = `<img src="${p.sprite}"><span>${p.name}</span>`;
+
+    div.onclick = () => {
+      if (!ttActiveSlot) return;
+
+      ttActiveSlot.innerHTML = `<img src="${p.sprite}">`;
+      ttActiveSlot.classList.remove("empty");
+
+      const t1 = p.types[0];
+      const c1 = ttTypeColors[t1] || "#00ffff";
+
+      if (p.types.length > 1) {
+        const t2 = p.types[1];
+        const c2 = ttTypeColors[t2] || "#00ffff";
+
+        ttActiveSlot.style.background =
+          `linear-gradient(135deg, ${ttHexToRGBA(c1,0.25)} 50%, ${ttHexToRGBA(c2,0.25)} 50%)`;
+
+        ttActiveSlot.style.border = "4px solid";
+        ttActiveSlot.style.borderImage =
+          `linear-gradient(135deg, ${c1} 50%, ${c2} 50%) 1`;
+      } else {
+        ttActiveSlot.style.background = ttHexToRGBA(c1,0.25);
+        ttActiveSlot.style.border = `4px solid ${c1}`;
+        ttActiveSlot.style.borderImage = "none";
+      }
+
+      ttActivateNextSlot(ttActiveSlot);
+    };
+
+    ttList.appendChild(div);
+  });
+}
+
+if (ttSearchInput) {
+  ttSearchInput.addEventListener("input", () => {
+    const val = ttSearchInput.value.toLowerCase();
+    ttRenderList(ttFilteredPokemon.filter(p => p.name.toLowerCase().includes(val)));
+  });
+}
+
+
+/* ===== FAVORITE POKÉMON PICKER JS ===== */
+const fppGens = {
+  1:[1,151],2:[152,251],3:[252,386],
+  4:[387,493],5:[494,649],6:[650,721],
+  7:[722,809],8:[810,905],9:[906,1025]
+};
+
+const fppTypesList = [
+  "normal","fire","water","electric","grass","ice",
+  "fighting","poison","ground","flying","psychic",
+  "bug","rock","ghost","dragon","steel","fairy","dark"
+];
+
+const fppTypeIcons = {
+  normal:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/normal.svg",
+  fire:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/fire.svg",
+  water:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/water.svg",
+  electric:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/electric.svg",
+  grass:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/grass.svg",
+  ice:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/ice.svg",
+  fighting:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/fighting.svg",
+  poison:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/poison.svg",
+  ground:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/ground.svg",
+  flying:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/flying.svg",
+  psychic:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/psychic.svg",
+  bug:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/bug.svg",
+  rock:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/rock.svg",
+  ghost:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/ghost.svg",
+  dragon:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/dragon.svg",
+  steel:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/steel.svg",
+  fairy:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/fairy.svg",
+  dark:"https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/dark.svg"
+};
+
+let fppPokemon = [];
+let fppNameMap = [];
+let fppCurrentGen = 1;
+let fppActiveBtn = null;
+let fppTypeButtons = {};
+let fppInitialized = false;
+let fppDataLoaded = false;
+
+const FPP_STORAGE_KEY = "pokemonPickerState";
+
+let fppState = {
+  gen:1,
+  selections:{},
+  shiny:{},
+  shinyAll:false
+};
+
+function fppSaveState(){
+  localStorage.setItem(FPP_STORAGE_KEY, JSON.stringify(fppState));
+}
+
+function fppLoadState(){
+  const s=localStorage.getItem(FPP_STORAGE_KEY);
+  if(s){
+    try {
+      fppState=JSON.parse(s);
+      fppCurrentGen=fppState.gen || 1;
+    } catch {}
+  }
+}
+
+function fppResetGen(g){
+  if(fppState.selections[g]){
+    delete fppState.selections[g];
+  }
+  fppSaveState();
+  fppRenderSelections();
+}
+
+function fppResetAll(){
+  fppState.selections={};
+  fppState.shiny={};
+  fppState.shinyAll=false;
+  fppSaveState();
+  fppRenderSelections();
+}
+
+function fppToggleShinyAll(){
+  fppState.shinyAll = !fppState.shinyAll;
+  fppSaveState();
+  fppRenderSelections();
+}
+
+function fppToggleShinyGen(g){
+  fppState.shiny[g] = !fppState.shiny[g];
+  fppSaveState();
+  fppRenderSelections();
+}
+
+function fppBuildTypes(){
+  const container=document.getElementById("fppTypes");
+  if (!container) return;
+
+  container.innerHTML="";
+  fppTypeButtons={};
+
+  fppTypesList.forEach(t=>{
+    const div=document.createElement("div");
+    div.className=`fpp-type-btn fpp-${t}`;
+    div.innerHTML=`<img src="${fppTypeIcons[t]}">`;
+    div.onclick=(e)=>fppOpenPicker(e, t, div);
+    container.appendChild(div);
+    fppTypeButtons[t]=div;
+  });
+
+  fppRenderSelections();
+}
+
+function fppBuildGens(){
+  const genList=document.getElementById("fppGenList");
+  if (!genList || genList.children.length) return;
+
+  for(let g=1;g<=9;g++){
+    const btn=document.createElement("div");
+    btn.className="fpp-gen-btn";
+    btn.innerHTML=`Gen ${g}`;
+
+    btn.onclick = () => {
+      fppCurrentGen = g;
+      fppState.gen = g;
+      fppSaveState();
+      fppRenderSelections();
+
+      document.querySelectorAll("#favoritePokemonPickerView .fpp-gen-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    };
+
+    const shiny=document.createElement("button");
+    shiny.className="fpp-gen-shiny";
+    shiny.innerHTML="★";
+
+    shiny.onclick=(e)=>{
+      e.stopPropagation();
+      fppToggleShinyGen(g);
+      shiny.classList.toggle("active", fppState.shiny[g]);
+    };
+
+    const reset=document.createElement("button");
+    reset.className="fpp-gen-reset";
+    reset.innerHTML="R";
+
+    reset.onclick=(e)=>{
+      e.stopPropagation();
+      fppResetGen(g);
+    };
+
+    btn.appendChild(shiny);
+    btn.appendChild(reset);
+
+    if(g===fppCurrentGen) btn.classList.add("active");
+
+    genList.appendChild(btn);
+  }
+
+  const all=document.createElement("div");
+  all.className="fpp-gen-btn fpp-reset-all";
+  all.innerText="Reset ALL";
+
+  const shinyAll=document.createElement("button");
+  shinyAll.className="fpp-gen-shiny";
+  shinyAll.innerHTML="★";
+
+  shinyAll.onclick=(e)=>{
+    e.stopPropagation();
+    fppToggleShinyAll();
+    shinyAll.classList.toggle("active", fppState.shinyAll);
+  };
+
+  all.appendChild(shinyAll);
+  all.onclick=fppResetAll;
+  genList.appendChild(all);
+}
+
+function fppRenderSelections(){
+  const genData=fppState.selections[fppCurrentGen]||{};
+  const isShinyActive = fppState.shinyAll || fppState.shiny[fppCurrentGen];
+
+  Object.keys(fppTypeButtons).forEach(type=>{
+    const btn=fppTypeButtons[type];
+    btn.classList.remove("selected");
+    btn.innerHTML=`<img src="${fppTypeIcons[type]}">`;
+
+    if(genData[type]){
+      const id=genData[type];
+      btn.classList.add("selected");
+
+      const sprite = isShinyActive
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`
+        : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
+      btn.innerHTML=`<img src="${sprite}">`;
+    }
+  });
+
+  document.querySelectorAll("#favoritePokemonPickerView .fpp-gen-shiny").forEach((b, i)=>{
+    if(i < 9){
+      b.classList.toggle("active", fppState.shinyAll || !!fppState.shiny[i+1]);
+    }
+  });
+
+  const allBtn = document.querySelector("#favoritePokemonPickerView .fpp-reset-all .fpp-gen-shiny");
+  if(allBtn){
+    allBtn.classList.toggle("active", fppState.shinyAll);
+  }
+
+  document.querySelectorAll("#favoritePokemonPickerView .fpp-gen-btn").forEach((btn, index) => {
+    if (index < 9) {
+      btn.classList.toggle("active", index + 1 === fppCurrentGen);
+    }
+  });
+}
+
+async function fppLoadData(){
+  if (fppDataLoaded) return;
+
+  const reqs=[];
+  for(let i=1;i<=1025;i++){
+    reqs.push(fetch(`https://pokeapi.co/api/v2/pokemon/${i}`).then(r=>r.json()));
+  }
+  const data=await Promise.all(reqs);
+
+  data.forEach(p=>{
+    fppPokemon.push({id:p.id,types:p.types.map(t=>t.type.name)});
+  });
+
+  const species=await fetch("https://pokeapi.co/api/v2/pokemon-species?limit=1025").then(r=>r.json());
+
+  await Promise.all(species.results.map(async (s,i)=>{
+    const d=await fetch(s.url).then(r=>r.json());
+    fppNameMap[i+1]=d.names.find(n=>n.language.name==="de")?.name||s.name;
+  }));
+
+  fppDataLoaded = true;
+}
+
+function fppPositionPicker(btn, picker){
+  const rect=btn.getBoundingClientRect();
+  const gap=12;
+  const pickerRect=picker.getBoundingClientRect();
+
+  let top = rect.top;
+  let left = rect.right + gap;
+
+  if(left + pickerRect.width > window.innerWidth){
+    left = rect.left - pickerRect.width - gap;
+  }
+
+  if(left < 0){
+    left = rect.left;
+    top = rect.bottom + gap;
+
+    if(top + pickerRect.height > window.innerHeight){
+      top = rect.top - pickerRect.height - gap;
+    }
+  }
+
+  picker.style.left = Math.max(8, left) + "px";
+  picker.style.top = Math.max(8, top) + "px";
+}
+
+function fppOpenPicker(e, type, btn){
+  if (!fppDataLoaded) {
+    const picker=document.getElementById("fppPicker");
+    picker.style.display="block";
+    picker.innerHTML="Lade Pokémon-Daten...";
+    return;
+  }
+
+  if(fppActiveBtn) fppActiveBtn.classList.remove("active");
+  fppActiveBtn=btn;
+  btn.classList.add("active");
+
+  btn.style.setProperty("--glow-color",getComputedStyle(btn).backgroundColor);
+
+  const picker=document.getElementById("fppPicker");
+  picker.style.display="block";
+  picker.classList.remove("show");
+  picker.innerHTML="";
+
+  const filtered=fppPokemon
+    .filter(p=>p.id>=fppGens[fppCurrentGen][0]&&p.id<=fppGens[fppCurrentGen][1])
+    .filter(p=>p.types.includes(type));
+
+  const cols=Math.max(1, Math.ceil(Math.sqrt(filtered.length)));
+
+  const grid=document.createElement("div");
+  grid.id="fppPickerGrid";
+  grid.style.gridTemplateColumns=`repeat(${cols},70px)`;
+
+  filtered.forEach(p=>{
+    const div=document.createElement("div");
+    div.className="fpp-poke";
+
+    const isShiny = fppState.shinyAll || fppState.shiny[fppCurrentGen];
+
+    const sprite = isShiny
+      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${p.id}.png`
+      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png`;
+
+    div.innerHTML=`
+      <img src="${sprite}">
+      <div class="fpp-poke-name">${fppNameMap[p.id]}</div>
+    `;
+
+    div.onclick=()=>fppSelectPokemon(p, btn, type);
+    grid.appendChild(div);
+  });
+
+  picker.appendChild(grid);
+
+  requestAnimationFrame(()=>picker.classList.add("show"));
+  fppPositionPicker(btn, picker);
+}
+
+function fppSelectPokemon(p, btn, type){
+  if(!fppState.selections[fppCurrentGen]) fppState.selections[fppCurrentGen]={};
+  fppState.selections[fppCurrentGen][type]=p.id;
+
+  fppSaveState();
+  fppRenderSelections();
+
+  const picker = document.getElementById("fppPicker");
+  picker.classList.remove("show");
+  picker.style.display="none";
+
+  btn.classList.remove("active");
+}
+
+document.addEventListener("click",(e)=>{
+  const favoritePokemonView = document.getElementById("favoritePokemonPickerView");
+  if (!favoritePokemonView || favoritePokemonView.classList.contains("hidden-view")) return;
+
+  if(!e.target.closest(".fpp-type-btn")&&!e.target.closest("#fppPicker")){
+    const picker=document.getElementById("fppPicker");
+    if (picker) {
+      picker.classList.remove("show");
+      picker.style.display="none";
+    }
+    if(fppActiveBtn) fppActiveBtn.classList.remove("active");
+  }
+});
+
+async function fppInitOnce(){
+  if (fppInitialized) return;
+
+  fppInitialized = true;
+  fppLoadState();
+  fppBuildTypes();
+  fppBuildGens();
+  await fppLoadData();
+  fppRenderSelections();
 }
 
 </script>
