@@ -3907,6 +3907,7 @@ let lastOpponentType = null;
 let shinySelectionMode = false;
 let bonusRerollMode = null;
 let bonusRerollSpinInProgress = false;
+let playerBonusActionInProgress = false;
 let activeBonusRerollResolve = null;
 let activeLuckDecisionResolve = null;
 let shinyRouletteRunning = false;
@@ -4823,108 +4824,121 @@ function selectSlot(slot) {
 
 async function spin(slot, options = {}) {
 
-  slot.dataset.spinning = "true";
+  return new Promise(resolve => {
 
-  const reel =
-    slot.querySelector(".reel");
+    slot.dataset.spinning = "true";
 
-  let pool =
-    options.pool || loadedImages;
+    const reel =
+      slot.querySelector(".reel");
 
-  if (options.minStat !== undefined && options.minStat !== null) {
+    let pool =
+      options.pool || loadedImages;
 
-    updateHint("TRADE sucht ein stärkeres Pokémon...");
+    const preparePool = async () => {
+      if (options.minStat !== undefined && options.minStat !== null) {
 
-    const betterPool =
-      await getBetterTradePool(options.minStat, pool);
+        updateHint("TRADE sucht ein stärkeres Pokémon...");
 
-    if (betterPool.length) {
-      pool = betterPool;
-    } else {
-      updateHint("Kein stärkeres Pokémon gefunden. Es wird normal neu gewürfelt.");
-    }
-  }
+        const betterPool =
+          await getBetterTradePool(options.minStat, pool);
 
-  const interval = setInterval(() => {
-
-    const id =
-      pool[
-        Math.floor(Math.random() * pool.length)
-      ];
-
-    setReelImage(reel, id);
-
-  }, 100);
-
-  setTimeout(async () => {
-
-    clearInterval(interval);
-
-    const final =
-      pool[
-        Math.floor(Math.random() * pool.length)
-      ];
-
-    slot.dataset.id = final;
-
-    setReelImage(reel, final);
-
-    const pokemon =
-      await getPokemonData(final);
-
-    slot.dataset.baseStat = pokemon.stat;
-    slot.dataset.stat = pokemon.stat;
-    slot.dataset.special = pokemon.special ? "true" : "false";
-    slot.dataset.formKind = pokemon.formKind || "";
-    slot.dataset.types = JSON.stringify(pokemon.types);
-    slot.dataset.pokemonName = pokemon.name;
-    slot.dataset.tradedFromStat = options.minStat || "";
-
-    slot.parentElement
-      .querySelector(".pokemon-name")
-      .innerText = pokemon.name;
-
-    if (options.minStat !== undefined && options.minStat !== null) {
-
-      slot.parentElement
-        .querySelector(".base-stat")
-        .innerText =
-          `⚔ ${pokemon.stat} / vorher ${options.minStat}`;
-
-    } else {
-
-      slot.parentElement
-        .querySelector(".base-stat")
-        .innerText = `⚔ ${pokemon.stat}`;
-    }
-
-    const specialText =
-      getSpecialLabel(pokemon);
-
-    const specialBanner = slot.parentElement.querySelector(".special-banner");
-    specialBanner.className = "special-banner " + getSpecialClass(pokemon);
-    specialBanner.innerText = specialText;
-
-    slot.dataset.spinning = "false";
-
-    if (slot.closest("#playerSlots")) {
-      recordPokemonToCollection(slot, false);
-      if (typeof checkPokemonSpecialAchievements === "function") checkPokemonSpecialAchievements(slot);
-      if (options.minStat !== undefined && options.minStat !== null && typeof recordAchievementPerfectTrade === "function") {
-        recordAchievementPerfectTrade((parseInt(slot.dataset.stat) || 0) - (parseInt(options.minStat) || 0));
+        if (betterPool.length) {
+          pool = betterPool;
+        } else {
+          updateHint("Kein stärkeres Pokémon gefunden. Es wird normal neu gewürfelt.");
+        }
       }
-    }
+    };
 
-    if (slot.closest("#playerSlots") && activeSlot === slot && !slot.classList.contains("locked")) {
-      updateHint("Wähle eine Aktion für das gewürfelte Pokémon.");
-    } else if (!slot.closest("#playerSlots")) {
-      updateHint("");
-    }
+    preparePool().then(() => {
+      const interval = setInterval(() => {
 
-    updateShinyButtonVisibility();
+        const id =
+          pool[
+            Math.floor(Math.random() * pool.length)
+          ];
 
-  }, 2000);
+        setReelImage(reel, id);
+
+      }, 100);
+
+      setTimeout(async () => {
+
+        clearInterval(interval);
+
+        const final =
+          pool[
+            Math.floor(Math.random() * pool.length)
+          ];
+
+        slot.dataset.id = final;
+
+        setReelImage(reel, final);
+
+        const pokemon =
+          await getPokemonData(final);
+
+        slot.dataset.baseStat = pokemon.stat;
+        slot.dataset.stat = pokemon.stat;
+        slot.dataset.special = pokemon.special ? "true" : "false";
+        slot.dataset.legendary = pokemon.legendary ? "true" : "false";
+        slot.dataset.mythical = pokemon.mythical ? "true" : "false";
+        slot.dataset.paradox = pokemon.paradox ? "true" : "false";
+        slot.dataset.formKind = pokemon.formKind || "";
+        slot.dataset.types = JSON.stringify(pokemon.types);
+        slot.dataset.pokemonName = pokemon.name;
+        slot.dataset.tradedFromStat = options.minStat || "";
+
+        slot.parentElement
+          .querySelector(".pokemon-name")
+          .innerText = pokemon.name;
+
+        if (options.minStat !== undefined && options.minStat !== null) {
+
+          slot.parentElement
+            .querySelector(".base-stat")
+            .innerText =
+              `⚔ ${pokemon.stat} / vorher ${options.minStat}`;
+
+        } else {
+
+          slot.parentElement
+            .querySelector(".base-stat")
+            .innerText = `⚔ ${pokemon.stat}`;
+        }
+
+        const specialText =
+          getSpecialLabel(pokemon);
+
+        const specialBanner = slot.parentElement.querySelector(".special-banner");
+        specialBanner.className = "special-banner " + getSpecialClass(pokemon);
+        specialBanner.innerText = specialText;
+
+        slot.dataset.spinning = "false";
+
+        if (slot.closest("#playerSlots")) {
+          recordPokemonToCollection(slot, false);
+          if (typeof checkPokemonSpecialAchievements === "function") checkPokemonSpecialAchievements(slot);
+          if (options.minStat !== undefined && options.minStat !== null && typeof recordAchievementPerfectTrade === "function") {
+            recordAchievementPerfectTrade((parseInt(slot.dataset.stat) || 0) - (parseInt(options.minStat) || 0));
+          }
+        }
+
+        if (slot.closest("#playerSlots") && activeSlot === slot && !slot.classList.contains("locked")) {
+          updateHint("Wähle eine Aktion für das gewürfelte Pokémon.");
+        } else if (!slot.closest("#playerSlots")) {
+          updateHint("");
+        }
+
+        updateShinyButtonVisibility();
+
+        resolve(slot);
+
+      }, 2000);
+    });
+  });
 }
+
 
 function action(type) {
 
@@ -5434,10 +5448,10 @@ async function applyDoubleShiny(validSlots, teamName = "") {
   );
 }
 
-async function getBonusPool(kind) {
+async function getBonusPool(kind, basePool = loadedImages) {
   const pool = [];
 
-  for (const id of loadedImages) {
+  for (const id of basePool) {
     const pokemon = await getPokemonData(id);
 
     if (kind === "mega" && pokemon.formKind === "mega") {
@@ -5481,11 +5495,13 @@ async function finishBonusRerollSelection(slot) {
   }
 
   bonusRerollSpinInProgress = true;
+  playerBonusActionInProgress = true;
   clearShinyPickables();
 
   if (!mode || !slot) {
     bonusRerollMode = null;
     bonusRerollSpinInProgress = false;
+    playerBonusActionInProgress = false;
 
     if (activeBonusRerollResolve) {
       const resolve = activeBonusRerollResolve;
@@ -5503,7 +5519,7 @@ async function finishBonusRerollSelection(slot) {
   }
 
   if (mode === "megaDice" || mode === "legendDice") {
-    const pool = await getBonusPool(mode === "megaDice" ? "mega" : "legend");
+    const pool = await getBonusPool(mode === "megaDice" ? "mega" : "legend", pool || loadedImages);
     const label = mode === "megaDice" ? "Mega-Würfel" : "Legendärer Würfel";
 
     if (!pool.length) {
@@ -5517,6 +5533,7 @@ async function finishBonusRerollSelection(slot) {
 
   bonusRerollMode = null;
   bonusRerollSpinInProgress = false;
+  playerBonusActionInProgress = false;
 
   if (activeBonusRerollResolve) {
     const resolve = activeBonusRerollResolve;
@@ -5525,7 +5542,7 @@ async function finishBonusRerollSelection(slot) {
   }
 }
 
-async function runComputerBonusReroll(validSlots, mode) {
+async function runComputerBonusReroll(validSlots, mode, basePool = loadedImages) {
   const chosenSlot = [...validSlots].sort((a, b) =>
     (parseInt(a.dataset.stat) || 0) - (parseInt(b.dataset.stat) || 0)
   )[0];
@@ -5535,22 +5552,24 @@ async function runComputerBonusReroll(validSlots, mode) {
   if (mode === "extraTrade") {
     const oldStat = parseInt(chosenSlot.dataset.stat) || 0;
     announceLuckResult(`🔁 ${computerOpponentName} nutzt Zusatz-Trade!`);
-    await spin(chosenSlot, { minStat: oldStat });
+    await spin(chosenSlot, { minStat: oldStat, pool: basePool });
     await wait(350);
     return;
   }
 
-  const pool = await getBonusPool(mode === "megaDice" ? "mega" : "legend");
+  const filteredBonusPool =
+    await getBonusPool(mode === "megaDice" ? "mega" : "legend", basePool);
+
   const label = mode === "megaDice" ? "Mega-Würfel" : "Legendärer Würfel";
 
-  if (!pool.length) {
+  if (!filteredBonusPool.length) {
     announceLuckResult(`🎲 ${computerOpponentName}: ${label} hat keine Auswahl.`);
     await wait(900);
     return;
   }
 
   announceLuckResult(`🎲 ${computerOpponentName} nutzt ${label}!`);
-  await spin(chosenSlot, { pool });
+  await spin(chosenSlot, { pool: filteredBonusPool });
   await wait(350);
 }
 
@@ -5663,7 +5682,7 @@ async function spinPlayerLuckWheel() {
   }
 }
 
-async function spinComputerLuckWheel(slots) {
+async function spinComputerLuckWheel(slots, basePool = loadedImages) {
   if (computerWheelRunning || computerWheelDone) {
     return;
   }
@@ -5756,13 +5775,13 @@ async function spinComputerLuckWheel(slots) {
     await applyDoubleShiny(validSlots, `${computerOpponentName}: `);
     await hideLuckResultCenter();
   } else if (result === "extraTrade") {
-    await runComputerBonusReroll(validSlots, "extraTrade");
+    await runComputerBonusReroll(validSlots, "extraTrade", basePool);
     await hideLuckResultCenter();
   } else if (result === "megaDice") {
-    await runComputerBonusReroll(validSlots, "megaDice");
+    await runComputerBonusReroll(validSlots, "megaDice", basePool);
     await hideLuckResultCenter();
   } else if (result === "legendDice") {
-    await runComputerBonusReroll(validSlots, "legendDice");
+    await runComputerBonusReroll(validSlots, "legendDice", basePool);
     await hideLuckResultCenter();
   } else {
     announceLuckResult(`😅 ${computerOpponentName} zieht eine Niete! Kein Bonus.`);
@@ -6036,6 +6055,7 @@ async function startSelectedOpponentIfReady() {
   if (
     !playerWheelDone ||
     playerWheelRunning ||
+    playerBonusActionInProgress ||
     bonusRerollMode ||
     bonusRerollSpinInProgress ||
     activeBonusRerollResolve ||
@@ -6152,7 +6172,7 @@ async function runComputerTeam(pool = null) {
 
   await wait(1200);
 
-  await spinComputerLuckWheel(slots);
+  await spinComputerLuckWheel(slots, pool || loadedImages);
 }
 
 function startComputerShiny(slots) {
@@ -6904,6 +6924,8 @@ async function fight() {
   autoFightStarted = false;
   activeShinyChoiceResolve = null;
   bonusRerollMode = null;
+  bonusRerollSpinInProgress = false;
+  playerBonusActionInProgress = false;
   activeBonusRerollResolve = null;
 }
 
