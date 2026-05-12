@@ -2330,6 +2330,42 @@ button.dice-discard-button {
   font-weight: 900;
 }
 
+
+/* ===== Erfolge: kompakte Trophäen + neuer Erfolg Glow ===== */
+.achievement-panel.achievement-new,
+.achievement-panel.achievement-new summary {
+  animation: achievementGlowPulse 1.15s ease-in-out infinite;
+}
+
+@keyframes achievementGlowPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,215,0,0.0); }
+  50% { box-shadow: 0 0 24px rgba(255,215,0,0.9); }
+}
+
+#achievementTrophies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.achievement-trophy-summary {
+  font-size: 18px;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid #ddd;
+}
+
+.achievement-progress {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #444;
+}
+
 </style>
 </head>
 
@@ -2401,7 +2437,7 @@ button.dice-discard-button {
 </details>
 
 
-<details class="achievement-panel collapsible-panel" open>
+<details class="achievement-panel collapsible-panel">
   <summary>🏆 Erfolge</summary>
   <div id="achievementPanel">
     <div id="achievementTrophies"></div>
@@ -6723,8 +6759,9 @@ async function fight() {
     result.innerHTML = "";
   }
 
+  const achievementOpponentId = lastOpponentType;
   recordMatchToCollection(matchResult, playerTotal);
-  if (typeof recordAchievementBattleResult === 'function') { recordAchievementBattleResult(matchResult, playerTotal, playerSlots); }
+  if (typeof recordAchievementBattleResult === "function") { recordAchievementBattleResult(matchResult, playerTotal, playerSlots, achievementOpponentId); }
 
   document.getElementById("postFightControls").style.display = "block";
 
@@ -6981,13 +7018,14 @@ document.addEventListener("click", (event) => {
 
 
 
+
 const achievements = [
-  {id:"newbie", name:"Neuling", tier:"Bronze", desc:"Gewinne gegen einen beliebigen Arenaleiter."},
-  {id:"battle_exp", name:"Kampferfahren", tier:"Silber", desc:"Gewinne gegen 10 verschiedene Arenaleiter."},
+  {id:"newbie", name:"Neuling", tier:"Bronze", desc:"Gewinne gegen einen beliebigen Arenaleiter.", target:1},
+  {id:"battle_exp", name:"Kampferfahren", tier:"Silber", desc:"Gewinne gegen 10 verschiedene Arenaleiter.", target:10},
   {id:"veteran", name:"Veteran", tier:"Gold", desc:"Gewinne gegen alle verschiedenen Arenaleiter."},
-  {id:"trainer", name:"Trainer", tier:"Bronze", desc:"Gewinne 10 Kämpfe."},
-  {id:"ace_trainer", name:"Ass-Trainer", tier:"Silber", desc:"Gewinne 100 Kämpfe."},
-  {id:"champ", name:"Champ", tier:"Gold", desc:"Gewinne insgesamt 250 Kämpfe."},
+  {id:"trainer", name:"Trainer", tier:"Bronze", desc:"Gewinne 10 Kämpfe.", target:10},
+  {id:"ace_trainer", name:"Ass-Trainer", tier:"Silber", desc:"Gewinne 100 Kämpfe.", target:100},
+  {id:"champ", name:"Champ", tier:"Gold", desc:"Gewinne insgesamt 250 Kämpfe.", target:250},
   {id:"kanto_challenger", name:"Kanto Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Kanto-Arenaleiter."},
   {id:"johto_challenger", name:"Johto Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Johto-Arenaleiter."},
   {id:"hoenn_challenger", name:"Hoenn Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Hoenn-Arenaleiter."},
@@ -6997,38 +7035,38 @@ const achievements = [
   {id:"alola_challenger", name:"Alola Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Prüfungsleiter und Inselkönige."},
   {id:"galar_challenger", name:"Galar Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Galar-Arenaleiter."},
   {id:"paldea_challenger", name:"Paldea Herausforderer", tier:"Bronze", desc:"Gewinne gegen alle Paldea-Arenaleiter."},
-  {id:"rivalry", name:"Rivalität", tier:"Silber", desc:"Gewinne gegen 5 verschiedene Rivalen."},
+  {id:"rivalry", name:"Rivalität", tier:"Silber", desc:"Gewinne gegen 5 verschiedene Rivalen.", target:5},
   {id:"unmatched", name:"Konkurrenzlos", tier:"Gold", desc:"Gewinne gegen alle verschiedenen Rivalen."},
-  {id:"collector", name:"Sammler", tier:"Bronze", desc:"Registriere 10 verschiedene Pokémon im Pokédex."},
-  {id:"hoarder", name:"Horter", tier:"Silber", desc:"Registriere 100 verschiedene Pokémon im Pokédex."},
-  {id:"professor", name:"Professor", tier:"Gold", desc:"Registriere 500 verschiedene Pokémon im Pokédex."},
-  {id:"oak", name:"Eich wäre stolz!", tier:"Platin", desc:"Registriere alle 1025 Pokémon im Pokédex."},
-  {id:"first_shiny", name:"Eine andere Farbe", tier:"Bronze", desc:"Registriere dein erstes Shiny Pokémon im Shiny-Dex."},
-  {id:"hundred_shiny", name:"Wie sehn‘ die denn aus?", tier:"Silber", desc:"Registriere 100 verschiedene Shinys im Shiny-Dex."},
-  {id:"shiny_professor", name:"Schillernder Professor", tier:"Gold", desc:"Registriere 500 verschiedene Shinys im Shiny-Dex."},
-  {id:"all_shiny", name:"ALLES GLÄNZT", tier:"Platin", desc:"Registriere alle 1025 verschiedenen Shinys im Shiny-Dex."},
-  {id:"form_collector", name:"Formensammler", tier:"Silber", desc:"Registriere 75 Pokémon im Formen-Dex."},
+  {id:"collector", name:"Sammler", tier:"Bronze", desc:"Registriere 10 verschiedene Pokémon im Pokédex.", target:10},
+  {id:"hoarder", name:"Horter", tier:"Silber", desc:"Registriere 100 verschiedene Pokémon im Pokédex.", target:100},
+  {id:"professor", name:"Professor", tier:"Gold", desc:"Registriere 500 verschiedene Pokémon im Pokédex.", target:500},
+  {id:"oak", name:"Eich wäre stolz!", tier:"Platin", desc:"Registriere alle 1025 Pokémon im Pokédex.", target:1025},
+  {id:"first_shiny", name:"Eine andere Farbe", tier:"Bronze", desc:"Registriere dein erstes Shiny Pokémon im Shiny-Dex.", target:1},
+  {id:"hundred_shiny", name:"Wie sehn‘ die denn aus?", tier:"Silber", desc:"Registriere 100 verschiedene Shinys im Shiny-Dex.", target:100},
+  {id:"shiny_professor", name:"Schillernder Professor", tier:"Gold", desc:"Registriere 500 verschiedene Shinys im Shiny-Dex.", target:500},
+  {id:"all_shiny", name:"ALLES GLÄNZT", tier:"Platin", desc:"Registriere alle 1025 verschiedenen Shinys im Shiny-Dex.", target:1025},
+  {id:"form_collector", name:"Formensammler", tier:"Silber", desc:"Registriere 75 Pokémon im Formen-Dex.", target:75},
   {id:"many_forms", name:"Formen über Formen", tier:"Gold", desc:"Registriere alle Pokémon im Formen-Dex."},
   {id:"shiny_form_expert", name:"Schillernder Form-Experte", tier:"Platin", desc:"Registriere alle Pokémon im Shiny-Formen-Dex."},
   {id:"mega_expert", name:"Mega-Experte", tier:"Gold", desc:"Registriere alle Mega-Entwicklungen im Formen-Dex."},
   {id:"giga_expert", name:"Giga-Experte", tier:"Gold", desc:"Registriere alle Gigadynamax Pokémon im Formen-Dex."},
-  {id:"crit_master", name:"Volltreffer!", tier:"Silber", desc:"Lande insgesamt 500 mal einen Volltreffer."},
-  {id:"wheel_expert", name:"Glücksrad-Kenner", tier:"Gold", desc:"Erhalte jeweils einmal einen Legendären Würfel und einen Mega-Würfel."},
-  {id:"scope_aim", name:"Zielsicher", tier:"Bronze", desc:"Erhalte die Scope-Linse am Glücksrad insgesamt 10 mal."},
-  {id:"eternamax", name:"Stärker geht’s nicht", tier:"Gold", desc:"Erhalte Endynalos (Eternamax)."},
-  {id:"eeveelutions", name:"Evolitionär", tier:"Silber", desc:"Registriere alle Weiterentwicklungen von Evoli im Pokédex."},
-  {id:"starters", name:"Startklar", tier:"Silber", desc:"Registriere alle Starter Pokémon im Pokédex."},
-  {id:"legendary_battle", name:"Legendärer Kampf", tier:"Bronze", desc:"Kämpfe mit zwei legendären Pokémon gegen deinen Gegner."},
-  {id:"mythical_battle", name:"Mysteriöser Kampf", tier:"Silber", desc:"Kämpfe mit zwei mysteriösen Pokémon gegen deinen Gegner."},
-  {id:"mega_battle", name:"Mega-Kampf", tier:"Bronze", desc:"Kämpfe mit zwei Mega-Entwicklungen gegen deinen Gegner."},
-  {id:"dyna_battle", name:"Dyna-Kampf", tier:"Gold", desc:"Kämpfe mit zwei Gigadynamax Pokémon gegen deinen Gegner."},
-  {id:"strong_team", name:"Echt Stark", tier:"Gold", desc:"Erreiche einen Team-Score von mindestens 2000."},
-  {id:"platinum_loss", name:"Dafür gibt’s ne Platin?!", tier:"Platin", desc:"Verliere insgesamt 250 mal."},
-  {id:"perfect_trade", name:"Perfekter Tausch", tier:"Silber", desc:"Erhalte beim Trade ein Pokémon mit mindestens 500 Basispunkten mehr."},
-  {id:"miss_10", name:"Du Niete!", tier:"Bronze", desc:"Erhalte am Glücksrad mindestens 10 mal eine Niete."},
-  {id:"double_shiny_25", name:"Doppelt hält besser", tier:"Gold", desc:"Erhalte am Glücksrad mindestens 25 mal Doppel-Shiny."},
-  {id:"bad_keeper", name:"Schlechter Keeper", tier:"Bronze", desc:"Benutze Keep bei einem Pokémon mit einem Basiswert von unter 200."},
-  {id:"legend_release", name:"Legendärer Freiheitskämpfer", tier:"Gold", desc:"Release 50 Legendäre Pokémon."}
+  {id:"crit_master", name:"Volltreffer!", tier:"Silber", desc:"Lande insgesamt 500 mal einen Volltreffer.", target:500},
+  {id:"wheel_expert", name:"Glücksrad-Kenner", tier:"Gold", desc:"Erhalte jeweils einmal einen Legendären Würfel und einen Mega-Würfel.", target:2},
+  {id:"scope_aim", name:"Zielsicher", tier:"Bronze", desc:"Erhalte die Scope-Linse am Glücksrad insgesamt 10 mal.", target:10},
+  {id:"eternamax", name:"Stärker geht’s nicht", tier:"Gold", desc:"Registriere Endynalos (Eternamax) im Pokédex.", target:1},
+  {id:"eeveelutions", name:"Evolitionär", tier:"Silber", desc:"Registriere alle Weiterentwicklungen von Evoli im Pokédex.", target:8},
+  {id:"starters", name:"Startklar", tier:"Silber", desc:"Registriere alle Starter Pokémon im Pokédex.", target:27},
+  {id:"legendary_battle", name:"Legendärer Kampf", tier:"Bronze", desc:"Kämpfe mit zwei legendären Pokémon gegen deinen Gegner.", target:2},
+  {id:"mythical_battle", name:"Mysteriöser Kampf", tier:"Silber", desc:"Kämpfe mit zwei mysteriösen Pokémon gegen deinen Gegner.", target:2},
+  {id:"mega_battle", name:"Mega-Kampf", tier:"Bronze", desc:"Kämpfe mit zwei Mega-Entwicklungen gegen deinen Gegner.", target:2},
+  {id:"dyna_battle", name:"Dyna-Kampf", tier:"Gold", desc:"Kämpfe mit zwei Gigadynamax Pokémon gegen deinen Gegner.", target:2},
+  {id:"strong_team", name:"Echt Stark", tier:"Gold", desc:"Erreiche einen Team-Score von mindestens 2000.", target:2000},
+  {id:"platinum_loss", name:"Dafür gibt’s ne Platin?!", tier:"Platin", desc:"Verliere insgesamt 250 mal.", target:250},
+  {id:"perfect_trade", name:"Perfekter Tausch", tier:"Silber", desc:"Erhalte beim Trade ein Pokémon mit mindestens 500 Basispunkten mehr.", target:1},
+  {id:"miss_10", name:"Du Niete!", tier:"Bronze", desc:"Erhalte am Glücksrad mindestens 10 mal eine Niete.", target:10},
+  {id:"double_shiny_25", name:"Doppelt hält besser", tier:"Gold", desc:"Erhalte am Glücksrad mindestens 25 mal Doppel-Shiny.", target:25},
+  {id:"bad_keeper", name:"Schlechter Keeper", tier:"Bronze", desc:"Benutze Keep bei einem Pokémon mit einem Basiswert von unter 200.", target:1},
+  {id:"legend_release", name:"Legendärer Freiheitskämpfer", tier:"Gold", desc:"Release 50 Legendäre Pokémon.", target:50}
 ];
 
 const achievementRegions = {
@@ -7064,19 +7102,21 @@ function getDefaultAchievementData() {
     crits: 0,
     legendaryReleases: 0,
     perfectTrades: 0,
-    badKeeps: 0
+    badKeeps: 0,
+    latestNew: false
   };
 }
 
 function loadAchievementData() {
   try {
+    const raw = JSON.parse(localStorage.getItem(ACHIEVEMENT_KEY) || "{}");
     return {
       ...getDefaultAchievementData(),
-      ...(JSON.parse(localStorage.getItem(ACHIEVEMENT_KEY) || "{}")),
-      wheel: {
-        ...getDefaultAchievementData().wheel,
-        ...((JSON.parse(localStorage.getItem(ACHIEVEMENT_KEY) || "{}")).wheel || {})
-      }
+      ...raw,
+      unlocked: raw.unlocked || {},
+      wonOpponents: raw.wonOpponents || {},
+      wonRivals: raw.wonRivals || {},
+      wheel: { ...getDefaultAchievementData().wheel, ...(raw.wheel || {}) }
     };
   } catch {
     return getDefaultAchievementData();
@@ -7101,55 +7141,27 @@ function achievementColor(tier) {
   return "#7b68ee";
 }
 
+function setAchievementGlow(active) {
+  const panel = document.querySelector(".achievement-panel");
+  if (panel) panel.classList.toggle("achievement-new", !!active);
+}
+
 function unlockAchievement(id) {
   const data = loadAchievementData();
   if (data.unlocked[id]) return;
 
   data.unlocked[id] = true;
+  data.latestNew = true;
   saveAchievementData(data);
+  setAchievementGlow(true);
   renderAchievements();
-
-  const ach = achievements.find(a => a.id === id);
-  if (ach && typeof announceLuckResult === "function") {
-    announceLuckResult(`🏆 Erfolg freigeschaltet: ${ach.name}`);
-  }
-}
-
-function renderAchievements() {
-  const list = document.getElementById("achievementList");
-  const trophies = document.getElementById("achievementTrophies");
-  if (!list || !trophies) return;
-
-  const data = loadAchievementData();
-  trophies.innerHTML = "";
-
-  achievements.forEach(a => {
-    if (data.unlocked[a.id]) {
-      const el = document.createElement("div");
-      el.className = "achievement-trophy";
-      el.textContent = achievementIcon(a.tier);
-      el.title = a.name;
-      trophies.appendChild(el);
-    }
-  });
-
-  list.innerHTML = achievements.map(a => {
-    const unlocked = !!data.unlocked[a.id];
-    return `
-      <div class="achievement-card ${unlocked ? "unlocked" : "locked"}" style="border-color:${achievementColor(a.tier)}">
-        <div class="achievement-title">${achievementIcon(a.tier)} ${a.name}</div>
-        <div class="achievement-desc">${a.desc}</div>
-        <div class="achievement-state" style="color:${unlocked ? "green" : "#666"}">${unlocked ? "Abgeschlossen" : "Nicht abgeschlossen"}</div>
-      </div>
-    `;
-  }).join("");
 }
 
 function getAchievementCollectionCounts() {
   const data = loadCollection();
   const pokemon = Object.values(data.pokemon || {});
   return {
-    pokedex: pokemon.filter(item => isBasePokemonId(item.id) && (item.count || 0) > 0).length,
+    pokedex: pokemon.filter(item => isBasePokemonId(item.id) && ((item.count || 0) > 0 || (item.shinyCount || 0) > 0)).length,
     shinyDex: pokemon.filter(item => isBasePokemonId(item.id) && (item.shinyCount || 0) > 0).length,
     forms: Object.keys(data.forms || {}).length,
     shinyForms: Object.keys(data.shinyForms || {}).length,
@@ -7159,15 +7171,129 @@ function getAchievementCollectionCounts() {
     totalMegaForms: (typeof forms !== "undefined") ? Object.values(forms).filter(f => f.formKind === "mega").length : 0,
     totalGmaxForms: (typeof forms !== "undefined") ? Object.values(forms).filter(f => f.formKind === "gmax").length : 0,
     pokemonData: data.pokemon || {},
+    formsData: data.forms || {},
     stats: data.stats || {}
   };
 }
 
-function achievementHasAllIds(idList, pokemonData, shiny = false) {
+function achievementHasAllIds(idList, pokemonData) {
   return idList.every(id => {
     const entry = pokemonData[String(id)];
-    return entry && (shiny ? (entry.shinyCount || 0) > 0 : ((entry.count || 0) > 0 || (entry.shinyCount || 0) > 0));
+    return entry && ((entry.count || 0) > 0 || (entry.shinyCount || 0) > 0);
   });
+}
+
+function getEternamaxProgress(counts) {
+  const formEntry = counts.formsData["10229"];
+  const pokemonEntry = counts.pokemonData["10229"];
+  return (formEntry || pokemonEntry) ? 1 : 0;
+}
+
+function getAchievementProgress(id) {
+  const data = loadAchievementData();
+  const counts = getAchievementCollectionCounts();
+  const stats = counts.stats;
+
+  const gymWins = Object.keys(data.wonOpponents || {}).filter(id => achievementAllGymOpponents.includes(id)).length;
+  const rivalWins = Object.keys(data.wonRivals || {}).length;
+
+  if (id === "newbie") return { current: gymWins > 0 ? 1 : 0, target: 1 };
+  if (id === "battle_exp") return { current: gymWins, target: 10 };
+  if (id === "veteran") return { current: gymWins, target: achievementAllGymOpponents.length };
+
+  const regionEntry = Object.entries(achievementRegions).find(([achId]) => achId === id);
+  if (regionEntry) {
+    const ids = regionEntry[1];
+    return { current: ids.filter(leaderId => data.wonOpponents && data.wonOpponents[leaderId]).length, target: ids.length };
+  }
+
+  if (id === "rivalry") return { current: rivalWins, target: 5 };
+  if (id === "unmatched") return { current: rivalWins, target: achievementRivals.length };
+
+  if (id === "trainer") return { current: stats.wins || 0, target: 10 };
+  if (id === "ace_trainer") return { current: stats.wins || 0, target: 100 };
+  if (id === "champ") return { current: stats.wins || 0, target: 250 };
+  if (id === "platinum_loss") return { current: stats.losses || 0, target: 250 };
+  if (id === "strong_team") return { current: stats.highestTeamPower || 0, target: 2000 };
+
+  if (id === "collector") return { current: counts.pokedex, target: 10 };
+  if (id === "hoarder") return { current: counts.pokedex, target: 100 };
+  if (id === "professor") return { current: counts.pokedex, target: 500 };
+  if (id === "oak") return { current: counts.pokedex, target: 1025 };
+
+  if (id === "first_shiny") return { current: counts.shinyDex, target: 1 };
+  if (id === "hundred_shiny") return { current: counts.shinyDex, target: 100 };
+  if (id === "shiny_professor") return { current: counts.shinyDex, target: 500 };
+  if (id === "all_shiny") return { current: counts.shinyDex, target: 1025 };
+
+  if (id === "form_collector") return { current: counts.forms, target: 75 };
+  if (id === "many_forms") return { current: counts.forms, target: counts.totalForms || 1 };
+  if (id === "shiny_form_expert") return { current: counts.shinyForms, target: counts.totalForms || 1 };
+  if (id === "mega_expert") return { current: counts.megaForms, target: counts.totalMegaForms || 1 };
+  if (id === "giga_expert") return { current: counts.gmaxForms, target: counts.totalGmaxForms || 1 };
+
+  if (id === "crit_master") return { current: data.crits || 0, target: 500 };
+  if (id === "scope_aim") return { current: data.wheel.scope || 0, target: 10 };
+  if (id === "miss_10") return { current: data.wheel.miss || 0, target: 10 };
+  if (id === "double_shiny_25") return { current: data.wheel.doubleShiny || 0, target: 25 };
+  if (id === "wheel_expert") return { current: (data.wheel.megaDice ? 1 : 0) + (data.wheel.legendDice ? 1 : 0), target: 2 };
+
+  if (id === "eternamax") return { current: getEternamaxProgress(counts), target: 1 };
+  if (id === "eeveelutions") return { current: achievementEeveeEvolutions.filter(eid => achievementHasAllIds([eid], counts.pokemonData)).length, target: achievementEeveeEvolutions.length };
+  if (id === "starters") return { current: achievementStarterIds.filter(eid => achievementHasAllIds([eid], counts.pokemonData)).length, target: achievementStarterIds.length };
+
+  if (id === "legendary_battle") return { current: 0, target: 2 };
+  if (id === "mythical_battle") return { current: 0, target: 2 };
+  if (id === "mega_battle") return { current: 0, target: 2 };
+  if (id === "dyna_battle") return { current: 0, target: 2 };
+
+  if (id === "perfect_trade") return { current: data.perfectTrades || 0, target: 1 };
+  if (id === "bad_keeper") return { current: data.badKeeps || 0, target: 1 };
+  if (id === "legend_release") return { current: data.legendaryReleases || 0, target: 50 };
+
+  return { current: data.unlocked[id] ? 1 : 0, target: 1 };
+}
+
+function renderAchievements() {
+  const list = document.getElementById("achievementList");
+  const trophies = document.getElementById("achievementTrophies");
+  if (!list || !trophies) return;
+
+  const data = loadAchievementData();
+  setAchievementGlow(!!data.latestNew);
+
+  const countsByTier = { Bronze: 0, Silber: 0, Gold: 0, Platin: 0 };
+  achievements.forEach(a => {
+    if (data.unlocked[a.id]) countsByTier[a.tier] += 1;
+  });
+
+  trophies.innerHTML = ["Bronze", "Silber", "Gold", "Platin"].map(tier =>
+    `<div class="achievement-trophy-summary" style="border-color:${achievementColor(tier)}">${achievementIcon(tier)} ${countsByTier[tier]}</div>`
+  ).join("");
+
+  list.innerHTML = achievements.map(a => {
+    const unlocked = !!data.unlocked[a.id];
+    const progress = getAchievementProgress(a.id);
+    const shownCurrent = Math.min(progress.current || 0, progress.target || 1);
+    const progressText = unlocked ? "Abgeschlossen" : `${shownCurrent}/${progress.target}`;
+    return `
+      <div class="achievement-card ${unlocked ? "unlocked" : "locked"}" style="border-color:${achievementColor(a.tier)}">
+        <div class="achievement-title">${achievementIcon(a.tier)} ${a.name}</div>
+        <div class="achievement-desc">${a.desc}</div>
+        <div class="achievement-progress">Fortschritt: ${shownCurrent}/${progress.target}</div>
+        <div class="achievement-state" style="color:${unlocked ? "green" : "#666"}">${progressText}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function clearAchievementNewGlow() {
+  const data = loadAchievementData();
+  if (!data.latestNew) return;
+  data.latestNew = false;
+  saveAchievementData(data);
+  setAchievementGlow(false);
+  renderAchievements();
 }
 
 function checkAchievements() {
@@ -7175,8 +7301,9 @@ function checkAchievements() {
   const counts = getAchievementCollectionCounts();
   const stats = counts.stats;
 
-  if ((stats.wins || 0) >= 1 && Object.keys(a.wonOpponents || {}).some(id => achievementAllGymOpponents.includes(id))) unlockAchievement("newbie");
-  if (Object.keys(a.wonOpponents || {}).filter(id => achievementAllGymOpponents.includes(id)).length >= 10) unlockAchievement("battle_exp");
+  const gymWins = Object.keys(a.wonOpponents || {}).filter(id => achievementAllGymOpponents.includes(id)).length;
+  if (gymWins >= 1) unlockAchievement("newbie");
+  if (gymWins >= 10) unlockAchievement("battle_exp");
   if (achievementAllGymOpponents.every(id => a.wonOpponents && a.wonOpponents[id])) unlockAchievement("veteran");
 
   if ((stats.wins || 0) >= 10) unlockAchievement("trainer");
@@ -7219,25 +7346,11 @@ function checkAchievements() {
   if ((a.perfectTrades || 0) >= 1) unlockAchievement("perfect_trade");
   if ((a.badKeeps || 0) >= 1) unlockAchievement("bad_keeper");
 
+  if (getEternamaxProgress(counts) >= 1) unlockAchievement("eternamax");
   if (achievementHasAllIds(achievementEeveeEvolutions, counts.pokemonData)) unlockAchievement("eeveelutions");
   if (achievementHasAllIds(achievementStarterIds, counts.pokemonData)) unlockAchievement("starters");
 
   renderAchievements();
-}
-
-
-function recordAchievementBattleResult(matchResult, playerTotal, playerSlots) {
-  if (matchResult === "win") {
-    recordAchievementOpponentWin(lastOpponentType);
-  }
-
-  checkBattleTeamAchievements(playerSlots);
-
-  if (playerTotal >= 2000) {
-    unlockAchievement("strong_team");
-  }
-
-  checkAchievements();
 }
 
 function recordAchievementOpponentWin(opponentId) {
@@ -7312,17 +7425,37 @@ function checkBattleTeamAchievements(playerSlots) {
 }
 
 function checkPokemonSpecialAchievements(slot) {
+  if (!slot || !slot.dataset) return;
   const id = String(slot.dataset.id || "");
-  const name = String(slot.dataset.pokemonName || "").toLowerCase();
-  if (id === "10229" || (name.includes("endynalos") || name.includes("eternatus")) && name.includes("eternamax")) {
-    unlockAchievement("eternamax");
+  if (id === "10229") unlockAchievement("eternamax");
+}
+
+function recordAchievementBattleResult(matchResult, playerTotal, playerSlots, opponentIdAtBattle) {
+  if (matchResult === "win") {
+    recordAchievementOpponentWin(opponentIdAtBattle || lastOpponentType);
   }
+
+  checkBattleTeamAchievements(playerSlots);
+
+  if (playerTotal >= 2000) {
+    unlockAchievement("strong_team");
+  }
+
+  checkAchievements();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderAchievements();
   setTimeout(checkAchievements, 300);
+
+  const panel = document.querySelector(".achievement-panel");
+  if (panel) {
+    panel.addEventListener("toggle", () => {
+      if (panel.open) clearAchievementNewGlow();
+    });
+  }
 });
+
 
 </script>
 
