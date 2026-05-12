@@ -2898,8 +2898,6 @@ function registerCustomMegaFormsEverywhere() {
   });
 }
 
-registerCustomMegaFormsEverywhere();
-
 
 function isCustomMegaFormId(id) {
   return Boolean(customMegaFormMap[String(id)]);
@@ -4237,6 +4235,8 @@ async function startLoad() {
   loadedImages = [];
   loadedCount = 0;
 
+  registerCustomMegaFormsEverywhere();
+
   const allPokemon = [];
 
   for (let i = 1; i <= MAX; i++) {
@@ -4244,7 +4244,6 @@ async function startLoad() {
   }
 
   extraForms.forEach(f => allPokemon.push(f));
-  registerCustomMegaFormsEverywhere();
   customMegaForms.forEach(form => allPokemon.push(form.id));
   allPokemon.splice(0, allPokemon.length, ...new Set(allPokemon.map(String)));
 
@@ -4273,7 +4272,7 @@ async function startLoad() {
       updateProgress(total);
     };
 
-    image.src = img(id);
+    image.src = getSpriteUrl(id, false);
   }
 }
 
