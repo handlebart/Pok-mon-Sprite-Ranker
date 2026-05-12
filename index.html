@@ -2409,6 +2409,53 @@ button.dice-discard-button {
   color: #a855f7;
 }
 
+
+/* ===== Spezialbanner-Farbfix final ===== */
+.special-banner {
+  color: inherit;
+}
+
+.special-banner.legendary {
+  color: #b8860b !important;
+}
+
+.special-banner.mega {
+  color: #39b54a !important;
+}
+
+.special-banner.gmax {
+  color: #dc2626 !important;
+}
+
+.special-banner.mythical {
+  color: #38bdf8 !important;
+}
+
+.special-banner.paradox {
+  color: #a855f7 !important;
+}
+
+
+.gym-region-box {
+  margin: 10px auto;
+  padding: 8px 10px;
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.9);
+}
+
+.gym-region-box > summary {
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 16px;
+  text-align: center;
+  padding: 4px;
+}
+
+.gym-region-box button {
+  margin: 5px;
+}
+
 </style>
 </head>
 
@@ -2696,50 +2743,53 @@ button.dice-discard-button {
   <div class="gym-buttons">
 
     <button onclick="startComputer()">▶ COMPUTER STARTEN</button>
-
-    <div class="gym-region-title">Kanto</div>
-    <button onclick="startGymLeader('brock')">1. 🪨 Rocko</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Kanto</summary>
+<button onclick="startGymLeader('brock')">1. 🪨 Rocko</button>
     <button onclick="startGymLeader('misty')">2. 💧 Misty</button>
     <button onclick="startGymLeader('ltSurge')">3. ⚡ Major Bob</button>
     <button onclick="startGymLeader('erika')">4. 🌿 Erika</button>
     <button onclick="startGymLeader('koga')">5. ☠ Koga</button>
     <button onclick="startGymLeader('sabrina')">6. 🔮 Sabrina</button>
     <button onclick="startGymLeader('blaine')">7. 🔥 Pyro</button>
-    <button onclick="startGymLeader('giovanni')">8. 🌍 Giovanni</button>
+    <button onclick="startGymLeader('giovanni')">8. 🌍 Giovanni</button>    </details>
 
-    <div class="gym-region-title">Johto</div>
-    <button onclick="startGymLeader('falkner')">1. 🪽 Falk</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Johto</summary>
+<button onclick="startGymLeader('falkner')">1. 🪽 Falk</button>
     <button onclick="startGymLeader('bugsy')">2. 🐞 Kai</button>
     <button onclick="startGymLeader('whitney')">3. 🎀 Bianka</button>
     <button onclick="startGymLeader('morty')">4. 👻 Jens</button>
     <button onclick="startGymLeader('chuck')">5. 🥊 Hartwig</button>
     <button onclick="startGymLeader('jasmine')">6. ⚙️ Jasmin</button>
     <button onclick="startGymLeader('pryce')">7. ❄️ Norbert</button>
-    <button onclick="startGymLeader('clair')">8. 🐉 Sandra</button>
+    <button onclick="startGymLeader('clair')">8. 🐉 Sandra</button>    </details>
 
-    <div class="gym-region-title">Hoenn</div>
-    <button onclick="startGymLeader('roxanne')">1. 🪨 Felizia</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Hoenn</summary>
+<button onclick="startGymLeader('roxanne')">1. 🪨 Felizia</button>
     <button onclick="startGymLeader('brawly')">2. 🥊 Kamillo</button>
     <button onclick="startGymLeader('wattson')">3. ⚡ Walter</button>
     <button onclick="startGymLeader('flannery')">4. 🔥 Flavia</button>
     <button onclick="startGymLeader('norman')">5. ⭐ Norman</button>
     <button onclick="startGymLeader('winona')">6. 🪽 Wibke</button>
     <button onclick="startGymLeader('tateLiza')">7. 🔮 Ben & Svenja</button>
-    <button onclick="startGymLeader('wallace')">8. 💧 Wassili</button>
+    <button onclick="startGymLeader('wallace')">8. 💧 Wassili</button>    </details>
 
-    <div class="gym-region-title">Sinnoh</div>
-    <button onclick="startGymLeader('roark')">1. 🪨 Veit</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Sinnoh</summary>
+<button onclick="startGymLeader('roark')">1. 🪨 Veit</button>
     <button onclick="startGymLeader('gardenia')">2. 🌿 Silvana</button>
     <button onclick="startGymLeader('maylene')">3. 🥊 Hilda</button>
     <button onclick="startGymLeader('fantina')">4. 👻 Lamina</button>
     <button onclick="startGymLeader('crasherWake')">5. 💧 Marinus</button>
     <button onclick="startGymLeader('byron')">6. ⚙️ Adam</button>
     <button onclick="startGymLeader('candice')">7. ❄️ Frida</button>
-    <button onclick="startGymLeader('volkner')">8. ⚡ Volkner</button>
+    <button onclick="startGymLeader('volkner')">8. ⚡ Volkner</button>    </details>
 
-
-    <div class="gym-region-title">Einall (Schwarz/Weiß)</div>
-    <button onclick="startGymLeader('cilan')">1a. 🌿 Benny</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Einall (Schwarz/Weiß)</summary>
+<button onclick="startGymLeader('cilan')">1a. 🌿 Benny</button>
     <button onclick="startGymLeader('chili')">1b. 🔥 Maik</button>
     <button onclick="startGymLeader('cress')">1c. 💧 Colin</button>
     <button onclick="startGymLeader('lenora')">2. ⭐ Aloe</button>
@@ -2748,29 +2798,33 @@ button.dice-discard-button {
     <button onclick="startGymLeader('clayBw2')">5. 🌍 Turner</button>
     <button onclick="startGymLeader('skylaBw2')">6. 🪽 Géraldine</button>
     <button onclick="startGymLeader('brycen')">7. ❄️ Sandro</button>
-    <button onclick="startGymLeader('drayden')">8. 🐉 Lysander</button>
-<div class="gym-region-title">Einall (Schwarz/Weiß 2)</div>
-    <button onclick="startGymLeader('cheren')">1. ⭐ Cheren</button>
+    <button onclick="startGymLeader('drayden')">8. 🐉 Lysander</button>    </details>
+
+    <details class="gym-region-box collapsible-panel">
+      <summary>Einall (Schwarz/Weiß 2)</summary>
+<button onclick="startGymLeader('cheren')">1. ⭐ Cheren</button>
     <button onclick="startGymLeader('roxie')">2. ☠ Mica</button>
     <button onclick="startGymLeader('burghBw2')">3. 🐞 Artie</button>
     <button onclick="startGymLeader('elesaBw2')">4. ⚡ Kamilla</button>
     <button onclick="startGymLeader('clayBw2')">5. 🌍 Turner</button>
     <button onclick="startGymLeader('skylaBw2')">6. 🪽 Géraldine</button>
     <button onclick="startGymLeader('draydenBw2')">7. 🐉 Lysander</button>
-    <button onclick="startGymLeader('marlon')">8. 💧 Benson</button>
+    <button onclick="startGymLeader('marlon')">8. 💧 Benson</button>    </details>
 
-    <div class="gym-region-title">Kalos</div>
-    <button onclick="startGymLeader('viola')">1. 🐞 Viola</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Kalos</summary>
+<button onclick="startGymLeader('viola')">1. 🐞 Viola</button>
     <button onclick="startGymLeader('grant')">2. 🪨 Lino</button>
     <button onclick="startGymLeader('korrina')">3. 🥊 Connie</button>
     <button onclick="startGymLeader('ramos')">4. 🌿 Amaro</button>
     <button onclick="startGymLeader('clemont')">5. ⚡ Citro</button>
     <button onclick="startGymLeader('valerie')">6. 🎀 Valerie</button>
     <button onclick="startGymLeader('olympia')">7. 🔮 Astrid</button>
-    <button onclick="startGymLeader('wulfric')">8. ❄️ Galantho</button>
+    <button onclick="startGymLeader('wulfric')">8. ❄️ Galantho</button>    </details>
 
-    <div class="gym-region-title">Alola</div>
-    <button onclick="startGymLeader('ilima')">1. ⭐ Elima</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Alola</summary>
+<button onclick="startGymLeader('ilima')">1. ⭐ Elima</button>
     <button onclick="startGymLeader('lana')">2. 💧 Tracy</button>
     <button onclick="startGymLeader('kiawe')">3. 🔥 Kiawe</button>
     <button onclick="startGymLeader('mallow')">4. 🌿 Maho</button>
@@ -2780,10 +2834,11 @@ button.dice-discard-button {
     <button onclick="startGymLeader('hala')">Kahuna 1. 🥊 Hala</button>
     <button onclick="startGymLeader('olivia')">Kahuna 2. 🪨 Mayla</button>
     <button onclick="startGymLeader('nanu')">Kahuna 3. 🌑 Yasu</button>
-    <button onclick="startGymLeader('hapu')">Kahuna 4. 🌍 Hapu’u</button>
+    <button onclick="startGymLeader('hapu')">Kahuna 4. 🌍 Hapu’u</button>    </details>
 
-    <div class="gym-region-title">Galar</div>
-    <button onclick="startGymLeader('milo')">1. 🌿 Yarro</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Galar</summary>
+<button onclick="startGymLeader('milo')">1. 🌿 Yarro</button>
     <button onclick="startGymLeader('nessa')">2. 💧 Kate</button>
     <button onclick="startGymLeader('kabu')">3. 🔥 Kabu</button>
     <button onclick="startGymLeader('bea')">4a. 🥊 Saida</button>
@@ -2792,22 +2847,22 @@ button.dice-discard-button {
     <button onclick="startGymLeader('gordie')">6a. 🪨 Mac</button>
     <button onclick="startGymLeader('melony')">6b. ❄️ Mel</button>
     <button onclick="startGymLeader('piers')">7. 🌑 Nezz</button>
-    <button onclick="startGymLeader('raihan')">8. 🐉 Roy</button>
+    <button onclick="startGymLeader('raihan')">8. 🐉 Roy</button>    </details>
 
-
-    <div class="gym-region-title">Paldea</div>
-    <button onclick="startGymLeader('katy')">1. 🐞 Ronah</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Paldea</summary>
+<button onclick="startGymLeader('katy')">1. 🐞 Ronah</button>
     <button onclick="startGymLeader('brassius')">2. 🌿 Colzo</button>
     <button onclick="startGymLeader('iono')">3. ⚡ Enigmara</button>
     <button onclick="startGymLeader('kofu')">4. 💧 Kombu</button>
     <button onclick="startGymLeader('larry')">5. ⭐ Aoki</button>
     <button onclick="startGymLeader('ryme')">6. 👻 Etta</button>
     <button onclick="startGymLeader('tulip')">7. 🔮 Tulip</button>
-    <button onclick="startGymLeader('grusha')">8. ❄️ Grusha</button>
+    <button onclick="startGymLeader('grusha')">8. ❄️ Grusha</button>    </details>
 
-
-    <div class="gym-region-title">Rivalen</div>
-    <button onclick="startGymLeader('blueRival')">Blau</button>
+    <details class="gym-region-box collapsible-panel">
+      <summary>Rivalen</summary>
+<button onclick="startGymLeader('blueRival')">Blau</button>
     <button onclick="startGymLeader('silverRival')">Silber</button>
     <button onclick="startGymLeader('brendanRival')">Brix</button>
     <button onclick="startGymLeader('mayRival')">Maike</button>
@@ -4445,7 +4500,7 @@ function getSpecialLabel(pokemon) {
   }
 
   if (pokemon.formKind === "mega") {
-    return "🌟 MEGA-ENTWICKLUNG!";
+    return "🌟 MEGA!";
   }
 
   if (pokemon.formKind === "gmax") {
@@ -5431,7 +5486,6 @@ async function finishBonusRerollSelection(slot) {
   if (!mode || !slot) {
     bonusRerollMode = null;
     bonusRerollSpinInProgress = false;
-    bonusActionInProgress = false;
 
     if (activeBonusRerollResolve) {
       const resolve = activeBonusRerollResolve;
@@ -5463,7 +5517,6 @@ async function finishBonusRerollSelection(slot) {
 
   bonusRerollMode = null;
   bonusRerollSpinInProgress = false;
-  bonusActionInProgress = false;
 
   if (activeBonusRerollResolve) {
     const resolve = activeBonusRerollResolve;
@@ -7625,7 +7678,8 @@ document.addEventListener("DOMContentLoaded", () => {
   <div class="fpp-topbar" id="fppGenList"></div>
 
   <div class="fpp-main">
-    <div class="fpp-type-grid" id="fppTypes"></div>
+    <div class="fpp-type-grid" id="fppTypes"></div>    </details>
+
   </div>
 
   <div id="fppPicker"></div>
