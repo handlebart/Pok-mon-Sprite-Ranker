@@ -2366,6 +2366,49 @@ button.dice-discard-button {
   color: #444;
 }
 
+
+/* ===== Erfolgsfarben und Spezialbanner ===== */
+.achievement-card.tier-bronze {
+  background: linear-gradient(90deg, rgba(184,115,51,0.18), rgba(255,255,255,0.96));
+}
+.achievement-card.tier-silber {
+  background: linear-gradient(90deg, rgba(192,192,192,0.30), rgba(255,255,255,0.96));
+}
+.achievement-card.tier-gold {
+  background: linear-gradient(90deg, rgba(212,175,55,0.23), rgba(255,255,255,0.96));
+}
+.achievement-card.tier-platin {
+  background: linear-gradient(90deg, rgba(123,104,238,0.20), rgba(255,255,255,0.96));
+}
+.achievement-card.unlocked.tier-bronze {
+  background: linear-gradient(90deg, rgba(184,115,51,0.28), rgba(232,255,232,0.96));
+}
+.achievement-card.unlocked.tier-silber {
+  background: linear-gradient(90deg, rgba(192,192,192,0.42), rgba(232,255,232,0.96));
+}
+.achievement-card.unlocked.tier-gold {
+  background: linear-gradient(90deg, rgba(212,175,55,0.34), rgba(232,255,232,0.96));
+}
+.achievement-card.unlocked.tier-platin {
+  background: linear-gradient(90deg, rgba(123,104,238,0.30), rgba(232,255,232,0.96));
+}
+
+.special-banner.legendary {
+  color: #b8860b;
+}
+.special-banner.mega {
+  color: #39b54a;
+}
+.special-banner.gmax {
+  color: #8b5cf6;
+}
+.special-banner.mythical {
+  color: #38bdf8;
+}
+.special-banner.paradox {
+  color: #a855f7;
+}
+
 </style>
 </head>
 
@@ -2916,7 +2959,8 @@ const extraForms = [
   10192,10193,10194,10195,10196,
   10197,10198,10199,10200,10201,
   10202,10203,10204,10205,10206,
-  10207,10208
+  10207,10208,
+  10217
 ];
 
 
@@ -3831,6 +3875,26 @@ const pokemonCache = {};
 const typeCache = {};
 const globalTypeMap = {};
 
+
+const paradoxPokemonIds = new Set([
+  "984","985","986","987","988","989","990","991","992","993","994","995",
+  "1005","1006","1007","1008","1009","1010","1020","1021","1022","1023"
+]);
+
+function isParadoxPokemonId(id) {
+  return paradoxPokemonIds.has(String(id));
+}
+
+function getSpecialClass(pokemon) {
+  if (pokemon.paradox) return "paradox";
+  if (pokemon.legendary) return "legendary";
+  if (pokemon.mythical) return "mythical";
+  if (pokemon.formKind === "mega") return "mega";
+  if (pokemon.formKind === "gmax") return "gmax";
+  return "";
+}
+
+
 const COLLECTION_KEY = "pokemonSlotGameCollectionV1";
 
 function getFormCategoryLabel(formKind) {
@@ -4368,6 +4432,10 @@ function clearShinyPickables() {
 
 function getSpecialLabel(pokemon) {
 
+  if (pokemon.paradox) {
+    return "🌀 PARADOX!";
+  }
+
   if (pokemon.legendary) {
     return "✨ LEGENDÄR!";
   }
@@ -4377,7 +4445,7 @@ function getSpecialLabel(pokemon) {
   }
 
   if (pokemon.formKind === "mega") {
-    return "🌟 MEGA ENTWICKLUNG!";
+    return "🌟 MEGA-ENTWICKLUNG!";
   }
 
   if (pokemon.formKind === "gmax") {
@@ -4468,6 +4536,7 @@ async function getPokemonData(id) {
       types: form.types,
       legendary: false,
       mythical: false,
+      paradox: false,
       formKind: "mega",
       special: true
     };
@@ -4517,11 +4586,13 @@ async function getPokemonData(id) {
 
       legendary: speciesData.is_legendary === true,
       mythical: speciesData.is_mythical === true,
+      paradox: isParadoxPokemonId(id),
       formKind: formKind,
 
       special:
         speciesData.is_legendary === true ||
         speciesData.is_mythical === true ||
+        isParadoxPokemonId(id) ||
         formKind === "mega" ||
         formKind === "gmax"
     };
@@ -4540,6 +4611,7 @@ async function getPokemonData(id) {
       types: [],
       legendary: false,
       mythical: false,
+      paradox: false,
       formKind: "",
       special: false
     };
@@ -4774,9 +4846,9 @@ async function spin(slot, options = {}) {
     const specialText =
       getSpecialLabel(pokemon);
 
-    slot.parentElement
-      .querySelector(".special-banner")
-      .innerText = specialText;
+    const specialBanner = slot.parentElement.querySelector(".special-banner");
+    specialBanner.className = "special-banner " + getSpecialClass(pokemon);
+    specialBanner.innerText = specialText;
 
     slot.dataset.spinning = "false";
 
@@ -6089,6 +6161,7 @@ function autoSpin(slot, customPool = null, minStat = null) {
       slot.dataset.special = pokemon.special ? "true" : "false";
     slot.dataset.legendary = pokemon.legendary ? "true" : "false";
     slot.dataset.mythical = pokemon.mythical ? "true" : "false";
+    slot.dataset.paradox = pokemon.paradox ? "true" : "false";
     slot.dataset.formKind = pokemon.formKind || "";
       slot.dataset.types = JSON.stringify(pokemon.types);
       slot.dataset.pokemonName = pokemon.name;
@@ -6115,9 +6188,9 @@ function autoSpin(slot, customPool = null, minStat = null) {
       const specialText =
         getSpecialLabel(pokemon);
 
-      slot.parentElement
-        .querySelector(".special-banner")
-        .innerText = specialText;
+      const specialBanner = slot.parentElement.querySelector(".special-banner");
+      specialBanner.className = "special-banner " + getSpecialClass(pokemon);
+      specialBanner.innerText = specialText;
 
       slot.dataset.spinning = "false";
 
@@ -6817,6 +6890,7 @@ function resetOnlyComputerSlots() {
     slot.dataset.formKind = "";
     slot.dataset.legendary = "";
     slot.dataset.mythical = "";
+    slot.dataset.paradox = "";
     slot.dataset.types = "";
     slot.dataset.pokemonName = "";
     slot.dataset.spinning = "";
@@ -6843,6 +6917,8 @@ function resetOnlyComputerSlots() {
 
   document.querySelectorAll("#computerSlots .special-banner")
     .forEach(e => e.innerText = "");
+
+  document.querySelectorAll(".special-banner").forEach(e => e.className = "special-banner");
 }
 
 function resetSlots() {
@@ -6867,6 +6943,7 @@ function resetSlots() {
     slot.dataset.formKind = "";
     slot.dataset.legendary = "";
     slot.dataset.mythical = "";
+    slot.dataset.paradox = "";
     slot.dataset.types = "";
     slot.dataset.pokemonName = "";
     slot.dataset.spinning = "";
@@ -7157,21 +7234,58 @@ function unlockAchievement(id) {
   renderAchievements();
 }
 
+function getAllKnownFormIds() {
+  return [...new Set([
+    ...extraForms.map(String),
+    ...customMegaForms.map(form => String(form.id))
+  ])];
+}
+
+function isKnownMegaFormId(id) {
+  const stringId = String(id);
+  if (isCustomMegaFormId(stringId)) return true;
+  if (pokemonCache[stringId] && pokemonCache[stringId].formKind === "mega") return true;
+
+  // Offizielle Mega-Formen liegen in der PokeAPI in diesem Block. Nach dem Laden wird zusätzlich pokemonCache genutzt.
+  const n = parseInt(stringId);
+  return n >= 10033 && n <= 10090;
+}
+
+function isKnownGmaxFormId(id) {
+  const stringId = String(id);
+  if (pokemonCache[stringId] && pokemonCache[stringId].formKind === "gmax") return true;
+  const n = parseInt(stringId);
+
+  // Gigadynamax-Formen liegen in den neueren PokeAPI-Form-IDs; Cache bestätigt nach dem Laden die exakte Zuordnung.
+  return n >= 10195 && n <= 10228;
+}
+
+function isFormRegistered(formCollection, id) {
+  return Boolean(formCollection && formCollection[String(id)]);
+}
+
 function getAchievementCollectionCounts() {
   const data = loadCollection();
   const pokemon = Object.values(data.pokemon || {});
+  const allFormIds = getAllKnownFormIds();
+  const megaFormIds = allFormIds.filter(isKnownMegaFormId);
+  const gmaxFormIds = allFormIds.filter(isKnownGmaxFormId);
+  const formsData = data.forms || {};
+  const shinyFormsData = data.shinyForms || {};
+
   return {
     pokedex: pokemon.filter(item => isBasePokemonId(item.id) && ((item.count || 0) > 0 || (item.shinyCount || 0) > 0)).length,
     shinyDex: pokemon.filter(item => isBasePokemonId(item.id) && (item.shinyCount || 0) > 0).length,
-    forms: Object.keys(data.forms || {}).length,
-    shinyForms: Object.keys(data.shinyForms || {}).length,
-    megaForms: Object.values(data.forms || {}).filter(item => item.formKind === "mega").length,
-    gmaxForms: Object.values(data.forms || {}).filter(item => item.formKind === "gmax").length,
-    totalForms: (typeof forms !== "undefined") ? Object.keys(forms).length : 0,
-    totalMegaForms: (typeof forms !== "undefined") ? Object.values(forms).filter(f => f.formKind === "mega").length : 0,
-    totalGmaxForms: (typeof forms !== "undefined") ? Object.values(forms).filter(f => f.formKind === "gmax").length : 0,
+    forms: allFormIds.filter(id => isFormRegistered(formsData, id)).length,
+    shinyForms: allFormIds.filter(id => isFormRegistered(shinyFormsData, id)).length,
+    megaForms: megaFormIds.filter(id => isFormRegistered(formsData, id)).length,
+    gmaxForms: gmaxFormIds.filter(id => isFormRegistered(formsData, id)).length,
+    totalForms: allFormIds.length,
+    totalMegaForms: megaFormIds.length,
+    totalGmaxForms: gmaxFormIds.length,
     pokemonData: data.pokemon || {},
-    formsData: data.forms || {},
+    formsData: formsData,
+    shinyFormsData: shinyFormsData,
     stats: data.stats || {}
   };
 }
@@ -7184,9 +7298,16 @@ function achievementHasAllIds(idList, pokemonData) {
 }
 
 function getEternamaxProgress(counts) {
-  const formEntry = counts.formsData["10229"];
-  const pokemonEntry = counts.pokemonData["10229"];
-  return (formEntry || pokemonEntry) ? 1 : 0;
+  const possibleIds = ["10217", "10229"];
+  const inForms = possibleIds.some(id => counts.formsData && counts.formsData[id]);
+  const inPokemon = Object.values(counts.pokemonData || {}).some(item =>
+    String(item.id) === "10217" ||
+    String(item.id) === "10229" ||
+    String(item.name || "").toLowerCase().includes("eternamax") ||
+    String(item.name || "").toLowerCase().includes("endynalos")
+  );
+
+  return (inForms || inPokemon) ? 1 : 0;
 }
 
 function getAchievementProgress(id) {
@@ -7277,7 +7398,7 @@ function renderAchievements() {
     const shownCurrent = Math.min(progress.current || 0, progress.target || 1);
     const progressText = unlocked ? "Abgeschlossen" : `${shownCurrent}/${progress.target}`;
     return `
-      <div class="achievement-card ${unlocked ? "unlocked" : "locked"}" style="border-color:${achievementColor(a.tier)}">
+      <div class="achievement-card ${unlocked ? "unlocked" : "locked"} tier-${a.tier.toLowerCase()}" style="border-color:${achievementColor(a.tier)}">
         <div class="achievement-title">${achievementIcon(a.tier)} ${a.name}</div>
         <div class="achievement-desc">${a.desc}</div>
         <div class="achievement-progress">Fortschritt: ${shownCurrent}/${progress.target}</div>
@@ -7427,7 +7548,7 @@ function checkBattleTeamAchievements(playerSlots) {
 function checkPokemonSpecialAchievements(slot) {
   if (!slot || !slot.dataset) return;
   const id = String(slot.dataset.id || "");
-  if (id === "10229") unlockAchievement("eternamax");
+  if (id === "10217" || id === "10229") unlockAchievement("eternamax");
 }
 
 function recordAchievementBattleResult(matchResult, playerTotal, playerSlots, opponentIdAtBattle) {
