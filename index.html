@@ -2528,10 +2528,31 @@ button.dice-discard-button {
 .special-banner.paradox { color: #a855f7 !important; }
 .special-banner.ultrabeast { color: #ff4fd8 !important; }
 
+
+/* ===== Sound-System ===== */
+.sound-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 9999;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 13px;
+  font-weight: 900;
+  background: rgba(20,20,20,0.82);
+  color: white;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.sound-toggle.sound-muted {
+  background: rgba(120,120,120,0.82);
+}
+
 </style>
 </head>
 
 <body>
+<button id="soundToggleButton" class="sound-toggle" onclick="toggleGameSound()">🔊 Sound</button>
+
 
 <div id="mainMenu" class="main-menu-screen">
   <div class="main-menu-card">
@@ -2848,6 +2869,288 @@ button.dice-discard-button {
 </div>
 
 <script>
+
+// ===== Sound-System =====
+const SOUND_STORAGE_KEY = "ktrSoundMutedV1";
+let gameSoundMuted = localStorage.getItem(SOUND_STORAGE_KEY) === "true";
+let gameAudioContext = null;
+let gameAudioUnlocked = false;
+let lastSoundPlayedAt = {};
+let diceSoundInterval = null;
+
+function getGameAudioContext() {
+  if (gameSoundMuted) return null;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+
+  if (!gameAudioContext) {
+    gameAudioContext = new AudioContextClass();
+  }
+
+  if (gameAudioContext.state === "suspended") {
+    gameAudioContext.resume().catch(() => {});
+  }
+
+  return gameAudioContext;
+}
+
+function unlockGameAudio() {
+  if (gameSoundMuted || gameAudioUnlocked) return;
+
+  const ctx = getGameAudioContext();
+  if (!ctx) return;
+
+  const gain = ctx.createGain();
+  gain.gain.value = 0.0001;
+  gain.connect(ctx.destination);
+
+  const osc = ctx.createOscillator();
+  osc.frequency.value = 440;
+  osc.connect(gain);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.02);
+
+  gameAudioUnlocked = true;
+}
+
+function updateSoundToggleButton() {
+  const button = document.getElementById("soundToggleButton");
+  if (!button) return;
+
+  button.classList.toggle("sound-muted", gameSoundMuted);
+  button.innerText = gameSoundMuted ? "🔇 Sound" : "🔊 Sound";
+}
+
+function toggleGameSound() {
+  gameSoundMuted = !gameSoundMuted;
+  localStorage.setItem(SOUND_STORAGE_KEY, String(gameSoundMuted));
+
+  if (gameSoundMuted) {
+    stopDiceSoundLoop();
+  }
+
+  if (!gameSoundMuted) {
+    unlockGameAudio();
+  }
+
+  updateSoundToggleButton();
+}
+
+function playTone(frequency, duration = 0.08, type = "sine", volume = 0.035, delay = 0) {
+  if (gameSoundMuted) return;
+
+  const ctx = getGameAudioContext();
+  if (!ctx) return;
+
+  const start = ctx.currentTime + delay;
+  const end = start + duration;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(frequency, start);
+
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0002), start + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(start);
+  osc.stop(end + 0.02);
+}
+
+function playNoise(duration = 0.10, volume = 0.035, delay = 0) {
+  if (gameSoundMuted) return;
+
+  const ctx = getGameAudioContext();
+  if (!ctx) return;
+
+  const start = ctx.currentTime + delay;
+  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+
+  const source = ctx.createBufferSource();
+  const gain = ctx.createGain();
+
+  source.buffer = buffer;
+  gain.gain.setValueAtTime(volume, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+  source.connect(gain);
+  gain.connect(ctx.destination);
+
+  source.start(start);
+  source.stop(start + duration + 0.02);
+}
+
+
+function startDiceSoundLoop() {
+  if (gameSoundMuted || diceSoundInterval) return;
+
+  unlockGameAudio();
+
+  playTone(150, 0.045, "square", 0.018);
+  playNoise(0.045, 0.012, 0.012);
+
+  diceSoundInterval = setInterval(() => {
+    if (gameSoundMuted) {
+      stopDiceSoundLoop();
+      return;
+    }
+
+    const freq = 130 + Math.floor(Math.random() * 90);
+    playTone(freq, 0.04, "square", 0.016);
+    playNoise(0.035, 0.010, 0.006);
+  }, 145);
+}
+
+function stopDiceSoundLoop() {
+  if (diceSoundInterval) {
+    clearInterval(diceSoundInterval);
+    diceSoundInterval = null;
+  }
+}
+
+function playGameSound(name) {
+  if (gameSoundMuted) return;
+
+  unlockGameAudio();
+
+  const now = Date.now();
+  const minGap = {
+    click: 45,
+    tick: 70,
+    spin: 160,
+    reveal: 120,
+    wheel: 400,
+    shiny: 180,
+    bonus: 180,
+    miss: 300,
+    battle: 500,
+    hit: 220,
+    win: 500,
+    loss: 500,
+    draw: 500
+  }[name] || 80;
+
+  if (lastSoundPlayedAt[name] && now - lastSoundPlayedAt[name] < minGap) {
+    return;
+  }
+
+  lastSoundPlayedAt[name] = now;
+
+  switch (name) {
+    case "click":
+      playTone(420, 0.035, "square", 0.018);
+      break;
+
+    case "spin":
+      playTone(180, 0.06, "sawtooth", 0.018);
+      playTone(260, 0.06, "sawtooth", 0.014, 0.045);
+      break;
+
+    case "tick":
+      playTone(680, 0.025, "square", 0.014);
+      break;
+
+    case "reveal":
+      playTone(520, 0.08, "triangle", 0.035);
+      playTone(780, 0.09, "triangle", 0.030, 0.055);
+      break;
+
+    case "wheel":
+      playTone(250, 0.10, "sawtooth", 0.026);
+      playTone(330, 0.10, "sawtooth", 0.020, 0.09);
+      playTone(420, 0.10, "sawtooth", 0.018, 0.18);
+      break;
+
+    case "shiny":
+      playTone(880, 0.09, "sine", 0.040);
+      playTone(1175, 0.10, "sine", 0.034, 0.07);
+      playTone(1568, 0.12, "sine", 0.028, 0.15);
+      break;
+
+    case "doubleShiny":
+      playTone(784, 0.10, "sine", 0.040);
+      playTone(1047, 0.10, "sine", 0.034, 0.08);
+      playTone(1319, 0.12, "sine", 0.032, 0.16);
+      playTone(1760, 0.14, "sine", 0.025, 0.25);
+      break;
+
+    case "bonus":
+      playTone(330, 0.09, "triangle", 0.034);
+      playTone(660, 0.11, "triangle", 0.028, 0.09);
+      break;
+
+    case "miss":
+      playTone(220, 0.12, "sawtooth", 0.025);
+      playTone(140, 0.16, "sawtooth", 0.020, 0.12);
+      break;
+
+    case "battle":
+      playTone(196, 0.16, "sawtooth", 0.035);
+      playTone(392, 0.16, "sawtooth", 0.030, 0.12);
+      break;
+
+    case "hit":
+      playNoise(0.12, 0.055);
+      playTone(90, 0.10, "square", 0.035);
+      break;
+
+    case "notEffective":
+      playTone(180, 0.10, "sine", 0.022);
+      playTone(135, 0.12, "sine", 0.018, 0.09);
+      break;
+
+    case "normalHit":
+      playTone(360, 0.08, "triangle", 0.026);
+      playNoise(0.055, 0.018, 0.035);
+      break;
+
+    case "superEffective":
+      playTone(660, 0.08, "square", 0.035);
+      playTone(990, 0.11, "square", 0.028, 0.07);
+      playNoise(0.075, 0.030, 0.045);
+      break;
+
+    case "win":
+      playTone(523, 0.12, "triangle", 0.035);
+      playTone(659, 0.12, "triangle", 0.032, 0.10);
+      playTone(784, 0.18, "triangle", 0.030, 0.20);
+      break;
+
+    case "loss":
+      playTone(330, 0.16, "sawtooth", 0.026);
+      playTone(247, 0.18, "sawtooth", 0.022, 0.15);
+      break;
+
+    case "draw":
+      playTone(440, 0.10, "triangle", 0.025);
+      playTone(440, 0.10, "triangle", 0.025, 0.14);
+      break;
+  }
+}
+
+document.addEventListener("pointerdown", unlockGameAudio, { once: false });
+
+document.addEventListener("click", event => {
+  if (event.target.closest("button")) {
+    playGameSound("click");
+  }
+}, true);
+
+document.addEventListener("DOMContentLoaded", updateSoundToggleButton);
+
+
 
 // ===== Bonus-Aktion Fight-Start Guard =====
 let bonusActionInProgress = false;
@@ -4795,6 +5098,9 @@ function selectSlot(slot) {
 
 async function spin(slot, options = {}) {
 
+  playGameSound("spin");
+  startDiceSoundLoop();
+
   return new Promise(resolve => {
 
     slot.dataset.spinning = "true";
@@ -4836,6 +5142,8 @@ async function spin(slot, options = {}) {
       setTimeout(async () => {
 
         clearInterval(interval);
+        stopDiceSoundLoop();
+        playGameSound("reveal");
 
         const final =
           pool[
@@ -5052,6 +5360,7 @@ function runShinyRoulette(validSlots, onFinish) {
     }
 
     currentSlot.classList.add("shiny-roulette-active");
+    playGameSound("tick");
 
     if (shouldLandNow) {
       stopped = true;
@@ -5120,6 +5429,7 @@ function updateFightButtonVisibility() {
 }
 
 async function startFightAutomaticallyAfterReady() {
+  playGameSound("battle");
   if (fightInProgress) {
     return;
   }
@@ -5219,6 +5529,8 @@ function chooseLuckWheelResult() {
 }
 
 function animateLuckWheel(wheelId, result) {
+  playGameSound("wheel");
+
   return new Promise(resolve => {
     const wheel =
       document.getElementById(wheelId);
@@ -5373,6 +5685,8 @@ function resolveLuckDecision(useBonus) {
 }
 
 function askLuckDecision(text) {
+  playGameSound("bonus");
+
   return new Promise(resolve => {
     announceLuckResult(text);
     activeLuckDecisionResolve = resolve;
@@ -5467,6 +5781,8 @@ function startPlayerShinyChoice(validSlots) {
 
 
 async function applyDoubleShiny(validSlots, teamName = "") {
+  playGameSound("doubleShiny");
+
   const targets = validSlots.slice(0, 2);
 
   if (!targets.length) return;
@@ -5673,6 +5989,8 @@ async function spinPlayerLuckWheel() {
   if (typeof recordAchievementWheelResult === 'function') recordAchievementWheelResult(result);
 
   await animateLuckWheel("playerLuckWheel", result);
+  if (["extraTrade", "megaDice", "legendDice"].includes(result)) playGameSound("bonus");
+  if (result === "miss") playGameSound("miss");
   await hideLuckWheelAnimated("playerLuckWheelBox");
 
   if (result === "roulette") {
@@ -5793,6 +6111,8 @@ async function spinComputerLuckWheel(slots, basePool = loadedImages) {
       chooseLuckWheelResult();
 
     await animateLuckWheel("computerLuckWheel", result);
+    if (["extraTrade", "megaDice", "legendDice"].includes(result)) playGameSound("bonus");
+    if (result === "miss") playGameSound("miss");
     await hideLuckWheelAnimated("computerLuckWheelBox");
 
     if (result === "roulette") {
@@ -5894,6 +6214,8 @@ function finishShinySelection(slot) {
 
 
 function applyShiny(slot) {
+
+  playGameSound("shiny");
 
   const id = slot.dataset.id;
 
@@ -6250,6 +6572,9 @@ function startComputerShiny(slots) {
 
 function autoSpin(slot, customPool = null, minStat = null) {
 
+  playGameSound("spin");
+  startDiceSoundLoop();
+
   return new Promise(async resolve => {
 
     slot.dataset.spinning = "true";
@@ -6284,6 +6609,8 @@ function autoSpin(slot, customPool = null, minStat = null) {
     setTimeout(async () => {
 
       clearInterval(interval);
+      stopDiceSoundLoop();
+      playGameSound("reveal");
 
       const final =
         pool[
@@ -6366,28 +6693,32 @@ function getSlotName(slot) {
 }
 
 function getAttackMultiplier(attackerTypes, defenderTypes) {
-  let bestMultiplier = null;
-  let bestAttackType = attackerTypes[0] || "";
+  if (!attackerTypes.length || !defenderTypes.length) {
+    return {
+      multiplier: 1,
+      attackType: attackerTypes[0] || ""
+    };
+  }
+
+  let totalMultiplier = 1;
 
   attackerTypes.forEach(attackType => {
-    let multiplier = 1;
+    let typeMultiplier = 1;
 
     defenderTypes.forEach(defenderType => {
       const chartValue =
         typeEffectiveness[attackType]?.[defenderType];
 
-      multiplier *= chartValue === undefined ? 1 : chartValue;
+      typeMultiplier *=
+        chartValue === undefined ? 1 : chartValue;
     });
 
-    if (bestMultiplier === null || multiplier > bestMultiplier) {
-      bestMultiplier = multiplier;
-      bestAttackType = attackType;
-    }
+    totalMultiplier *= typeMultiplier;
   });
 
   return {
-    multiplier: bestMultiplier ?? 1,
-    attackType: bestAttackType
+    multiplier: totalMultiplier,
+    attackType: attackerTypes.join("/")
   };
 }
 
@@ -6581,6 +6912,14 @@ async function applyEffectivenessAdjustments(adjustments, totalElement, targetEl
       `${prefix} ${adjustment.message}`,
       adjustment.status
     );
+
+    if (adjustment.baseStatus === "super") {
+      playGameSound("superEffective");
+    } else if (adjustment.baseStatus === "weak" || adjustment.modifier < 1) {
+      playGameSound("notEffective");
+    } else {
+      playGameSound("normalHit");
+    }
 
     targetElement.classList.add("charging");
 
@@ -6826,6 +7165,7 @@ async function playFightAnimation(playerSlots, computerSlots, playerBaseTotal, c
   await wait(350);
 
   caption.innerText = "Die angepassten Team-Werte prallen aufeinander!";
+  playGameSound("hit");
 
   playerBeam.classList.add("fire");
   computerBeam.classList.add("fire");
@@ -6966,6 +7306,7 @@ async function fight() {
 
   if (playerTotal > computerTotal) {
 
+    playGameSound("win");
     matchResult = "win";
     result.innerHTML = "";
 
@@ -6978,6 +7319,7 @@ async function fight() {
 
   else if (computerTotal > playerTotal) {
 
+    playGameSound("loss");
     matchResult = "loss";
     result.innerHTML = "";
 
@@ -6990,6 +7332,7 @@ async function fight() {
 
   else {
 
+    playGameSound("draw");
     result.innerHTML = "";
   }
 
@@ -7088,6 +7431,7 @@ function resetOnlyComputerSlots() {
 }
 
 function resetSlots() {
+  stopDiceSoundLoop();
 
   fightInProgress = false;
   shinyRouletteRunning = false;
