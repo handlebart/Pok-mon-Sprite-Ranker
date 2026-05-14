@@ -2547,6 +2547,39 @@ button.dice-discard-button {
   background: rgba(120,120,120,0.82);
 }
 
+
+/* ===== Action Buttons unter Hinweisfeld ===== */
+.action-button-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 10px auto 16px;
+  position: relative;
+  z-index: 20;
+}
+
+.action-button-panel.hidden {
+  display: none !important;
+}
+
+.fight-area.wheel-layout .action-button-panel {
+  display: none !important;
+}
+
+@media (max-width: 620px) {
+  .action-button-panel {
+    gap: 8px;
+  }
+
+  .action-button-panel .action-button {
+    min-width: 92px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
 </style>
 </head>
 
@@ -2666,19 +2699,6 @@ button.dice-discard-button {
 
   <div style="margin-top:25px;">
 
-    <button id="keepButton" class="action-button keep-button" onclick="action('keep')">
-      KEEP
-    </button>
-
-    <button id="tradeButton" class="action-button trade-button" onclick="action('trade')">
-      TRADE
-    </button>
-
-    <button id="releaseButton" class="action-button release-button" onclick="action('release')">
-      RELEASE
-    </button>
-
-
     <button onclick="resetSlots()">
       RESET
     </button>
@@ -2723,6 +2743,21 @@ button.dice-discard-button {
   <div class="fight-area">
 
     <div class="action-hint" id="actionHint">Wähle deinen Gegner.</div>
+
+    <div class="action-button-panel" id="actionButtonPanel">
+      <button id="keepButton" class="action-button keep-button" onclick="action('keep')">
+        KEEP
+      </button>
+
+      <button id="tradeButton" class="action-button trade-button" onclick="action('trade')">
+        TRADE
+      </button>
+
+      <button id="releaseButton" class="action-button release-button" onclick="action('release')">
+        RELEASE
+      </button>
+    </div>
+
 
     <div class="luck-wheel-box" id="playerLuckWheelBox">
       <div class="luck-wheel-title">Dein Glücksrad</div>
@@ -3148,7 +3183,7 @@ document.addEventListener("click", event => {
   }
 }, true);
 
-document.addEventListener("DOMContentLoaded", updateSoundToggleButton);
+document.addEventListener("DOMContentLoaded", () => { updateSoundToggleButton(); updateActionButtonPanelVisibility(); });
 
 
 
@@ -4674,12 +4709,31 @@ function setReelImage(reel, id, shiny = false) {
   reel.replaceChildren(image);
 }
 
+
+function updateActionButtonPanelVisibility() {
+  const panel = document.getElementById("actionButtonPanel");
+  if (!panel) return;
+
+  const shouldHide =
+    playerWheelRunning ||
+    computerWheelRunning ||
+    playerWheelDone ||
+    computerWheelDone ||
+    shinyRouletteRunning ||
+    computerShinyRouletteRunning ||
+    fightInProgress;
+
+  panel.classList.toggle("hidden", !!shouldHide);
+}
+
 function updateHint(text = "") {
   const hint = document.getElementById("actionHint");
   if (hint) {
     hint.innerText = text;
     hint.style.display = text ? "flex" : "none";
   }
+
+  updateActionButtonPanelVisibility();
 }
 
 function updateShinyButtonVisibility() {
@@ -4740,6 +4794,7 @@ function resetActionButtons() {
   hideLuckWheels();
 
   playerUsedActions.clear();
+  updateActionButtonPanelVisibility();
 }
 
 
@@ -5412,6 +5467,7 @@ function setWheelLayout(active) {
   const area = document.querySelector(".fight-area");
   if (!area) return;
   area.classList.toggle("wheel-layout", !!active);
+  updateActionButtonPanelVisibility();
 }
 
 function hideLuckWheels() {
@@ -5511,6 +5567,7 @@ function showPlayerLuckWheel() {
   }
 
   setWheelLayout(true);
+  updateActionButtonPanelVisibility();
   updateHint("");
 }
 
@@ -6438,6 +6495,7 @@ function resetOpponentTeamPreview() {
   opponentTeamRunning = false;
   autoFightStarted = false;
   updateFightButtonVisibility();
+  updateActionButtonPanelVisibility();
 }
 
 async function startSelectedOpponentIfReady() {
