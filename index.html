@@ -2940,6 +2940,7 @@ function setStoredSoundMuted(value) {
 let gameSoundMuted = getStoredSoundMuted();
 let gameAudioContext = null;
 let gameAudioUnlocked = false;
+let gameAudioResumePromise = null;
 let lastSoundPlayedAt = {};
 let diceSoundInterval = null;
 
@@ -2949,9 +2950,12 @@ function getGameAudioContext() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return null;
 
-  if (!gameAudioContext) {
+  // Safari kann einen Context nach Navigation/Tab-Wechsel als "closed" zurücklassen.
+  if (!gameAudioContext || gameAudioContext.state === "closed") {
     try {
       gameAudioContext = new AudioContextClass();
+      gameAudioUnlocked = false;
+      gameAudioResumePromise = null;
     } catch (error) {
       return null;
     }
@@ -2960,27 +2964,50 @@ function getGameAudioContext() {
   return gameAudioContext;
 }
 
-function resumeGameAudioContext() {
+function resumeGameAudioContext(callback) {
   const ctx = getGameAudioContext();
   if (!ctx) return null;
 
-  if (ctx.state === "suspended") {
-    const resumePromise = ctx.resume();
-    if (resumePromise && typeof resumePromise.catch === "function") {
-      resumePromise.catch(() => {});
+  const finish = () => {
+    if (ctx.state === "running") {
+      gameAudioUnlocked = true;
+    }
+    if (typeof callback === "function" && !gameSoundMuted) {
+      callback(ctx);
+    }
+  };
+
+  if (ctx.state === "running") {
+    finish();
+    return ctx;
+  }
+
+  if (typeof ctx.resume === "function") {
+    try {
+      const promise = ctx.resume();
+      if (promise && typeof promise.then === "function") {
+        gameAudioResumePromise = promise;
+        promise.then(finish).catch(() => {
+          gameAudioResumePromise = null;
+        });
+      } else {
+        finish();
+      }
+    } catch (error) {
+      // Wenn Safari den alten Context ablehnt, beim nächsten Versuch frisch erzeugen.
+      gameAudioContext = null;
+      gameAudioUnlocked = false;
+      gameAudioResumePromise = null;
     }
   }
 
   return ctx;
 }
 
-function unlockGameAudio() {
-  if (gameSoundMuted) return;
+function primeGameAudio(ctx) {
+  if (!ctx || gameSoundMuted) return;
 
-  const ctx = resumeGameAudioContext();
-  if (!ctx) return;
-
-  // Safari/iOS braucht oft einen sehr kurzen Ton direkt innerhalb der User-Geste.
+  // Safari/iOS braucht oft einen winzigen Ton direkt innerhalb der echten User-Geste.
   try {
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
@@ -2990,12 +3017,50 @@ function unlockGameAudio() {
     osc.frequency.setValueAtTime(440, ctx.currentTime);
     osc.connect(gain);
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.025);
+    osc.stop(ctx.currentTime + 0.035);
 
     gameAudioUnlocked = true;
   } catch (error) {
     gameAudioUnlocked = false;
   }
+}
+
+function unlockGameAudio() {
+  if (gameSoundMuted) return null;
+
+  const ctx = resumeGameAudioContext(readyCtx => {
+    primeGameAudio(readyCtx);
+  });
+
+  // Falls resume() synchron läuft, sofort primen.
+  if (ctx && ctx.state === "running") {
+    primeGameAudio(ctx);
+  }
+
+  return ctx;
+}
+
+function runWhenGameAudioReady(callback) {
+  if (gameSoundMuted || typeof callback !== "function") return;
+
+  const ctx = resumeGameAudioContext(readyCtx => {
+    if (!gameSoundMuted) callback(readyCtx);
+  });
+
+  if (!ctx) return;
+
+  if (ctx.state === "running") {
+    callback(ctx);
+    return;
+  }
+
+  // Extra-Fallback: manche Safari-Versionen lösen resume() verzögert, aber wechseln danach auf running.
+  setTimeout(() => {
+    const retryCtx = getGameAudioContext();
+    if (!gameSoundMuted && retryCtx && retryCtx.state === "running") {
+      callback(retryCtx);
+    }
+  }, 80);
 }
 
 function updateSoundToggleButton() {
@@ -3012,10 +3077,10 @@ function toggleGameSound() {
 
   if (gameSoundMuted) {
     stopDiceSoundLoop();
-  }
-
-  if (!gameSoundMuted) {
+  } else {
+    // Direkt im Button-Klick unlocken und hörbaren Mini-Testton auslösen.
     unlockGameAudio();
+    playTone(660, 0.055, "sine", 0.030);
   }
 
   updateSoundToggleButton();
@@ -3024,56 +3089,64 @@ function toggleGameSound() {
 function playTone(frequency, duration = 0.08, type = "sine", volume = 0.035, delay = 0) {
   if (gameSoundMuted) return;
 
-  const ctx = resumeGameAudioContext();
-  if (!ctx) return;
+  runWhenGameAudioReady(ctx => {
+    try {
+      const start = ctx.currentTime + delay;
+      const end = start + duration;
 
-  const start = ctx.currentTime + delay;
-  const end = start + duration;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency, start);
 
-  osc.type = type;
-  osc.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0002), start + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
 
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0002), start + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(start);
-  osc.stop(end + 0.02);
+      osc.start(start);
+      osc.stop(end + 0.02);
+    } catch (error) {
+      gameAudioContext = null;
+      gameAudioUnlocked = false;
+    }
+  });
 }
 
 function playNoise(duration = 0.10, volume = 0.035, delay = 0) {
   if (gameSoundMuted) return;
 
-  const ctx = resumeGameAudioContext();
-  if (!ctx) return;
+  runWhenGameAudioReady(ctx => {
+    try {
+      const start = ctx.currentTime + delay;
+      const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
 
-  const start = ctx.currentTime + delay;
-  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
 
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-  }
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
 
-  const source = ctx.createBufferSource();
-  const gain = ctx.createGain();
+      source.buffer = buffer;
+      gain.gain.setValueAtTime(volume, start);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 
-  source.buffer = buffer;
-  gain.gain.setValueAtTime(volume, start);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      source.connect(gain);
+      gain.connect(ctx.destination);
 
-  source.connect(gain);
-  gain.connect(ctx.destination);
-
-  source.start(start);
-  source.stop(start + duration + 0.02);
+      source.start(start);
+      source.stop(start + duration + 0.02);
+    } catch (error) {
+      gameAudioContext = null;
+      gameAudioUnlocked = false;
+    }
+  });
 }
 
 
@@ -3224,18 +3297,19 @@ function playGameSound(name) {
   }
 }
 
-document.addEventListener("pointerdown", unlockGameAudio, { once: false, passive: true });
-document.addEventListener("touchstart", unlockGameAudio, { once: false, passive: true });
-document.addEventListener("keydown", unlockGameAudio, { once: false });
+// Möglichst viele echte User-Gesten abfangen: Safari/GitHub Pages sind hier strenger als Chrome.
+["pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "touchend", "keydown", "click"].forEach(eventName => {
+  document.addEventListener(eventName, unlockGameAudio, { capture: true, passive: true });
+});
 
 document.addEventListener("click", event => {
   if (event.target.closest("button")) {
+    unlockGameAudio();
     playGameSound("click");
   }
 }, true);
 
 document.addEventListener("DOMContentLoaded", () => { updateSoundToggleButton(); updateActionButtonPanelVisibility(); });
-
 
 
 // ===== Bonus-Aktion Fight-Start Guard =====
