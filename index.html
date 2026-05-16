@@ -4409,6 +4409,15 @@ function updateSpecialBanner(slot, pokemon, specialText) {
   setSpecialBannerColor(specialBanner, specialClass);
 }
 
+function clearTeamSpecialBanners(teamSelector) {
+  document.querySelectorAll(`${teamSelector} .special-banner`).forEach(banner => {
+    banner.innerText = "";
+    banner.className = "special-banner";
+    banner.removeAttribute("data-special-class");
+    banner.style.removeProperty("color");
+  });
+}
+
 
 const COLLECTION_KEY = "pokemonSlotGameCollectionV1";
 
@@ -6256,6 +6265,8 @@ async function spinPlayerLuckWheel() {
     await hideLuckResultCenter();
   }
 
+  clearTeamSpecialBanners("#playerSlots");
+
   playerWheelDone = true;
   playerWheelRunning = false;
   bonusActionInProgress = false;
@@ -6281,6 +6292,8 @@ async function spinComputerLuckWheel(slots, basePool = loadedImages) {
     computerWheelDone = true;
     computerWheelRunning = false;
     computerShinyRouletteRunning = false;
+    clearTeamSpecialBanners("#computerSlots");
+
     updateFightButtonVisibility();
 
     if (playerWheelDone && computerWheelDone) {
@@ -6394,6 +6407,8 @@ async function spinComputerLuckWheel(slots, basePool = loadedImages) {
     computerWheelDone = true;
     computerWheelRunning = false;
     computerShinyRouletteRunning = false;
+    clearTeamSpecialBanners("#computerSlots");
+
     updateFightButtonVisibility();
 
     if (playerWheelDone && computerWheelDone) {
