@@ -2528,6 +2528,14 @@ button.dice-discard-button {
 .special-banner.paradox { color: #a855f7 !important; }
 .special-banner.ultrabeast { color: #ff4fd8 !important; }
 
+/* Harter Farbanker: verhindert, dass Banner im Spielverlauf durch geerbte/überschriebene Styles schwarz werden. */
+.special-banner.legendary, .special-banner[data-special-class="legendary"] { color: #b8860b !important; }
+.special-banner.mega, .special-banner[data-special-class="mega"] { color: #39b54a !important; }
+.special-banner.gmax, .special-banner[data-special-class="gmax"] { color: #dc2626 !important; }
+.special-banner.mythical, .special-banner[data-special-class="mythical"] { color: #38bdf8 !important; }
+.special-banner.paradox, .special-banner[data-special-class="paradox"] { color: #a855f7 !important; }
+.special-banner.ultrabeast, .special-banner[data-special-class="ultrabeast"] { color: #ff4fd8 !important; }
+
 
 /* ===== Sound-System ===== */
 .sound-toggle {
@@ -2555,7 +2563,7 @@ button.dice-discard-button {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin: -56px auto 16px;
+  margin: -52px auto 16px;
   position: relative;
   z-index: 20;
 }
@@ -2907,7 +2915,24 @@ button.dice-discard-button {
 
 // ===== Sound-System =====
 const SOUND_STORAGE_KEY = "ktrSoundMutedV1";
-let gameSoundMuted = localStorage.getItem(SOUND_STORAGE_KEY) === "true";
+
+function getStoredSoundMuted() {
+  try {
+    return localStorage.getItem(SOUND_STORAGE_KEY) === "true";
+  } catch (error) {
+    return false;
+  }
+}
+
+function setStoredSoundMuted(value) {
+  try {
+    localStorage.setItem(SOUND_STORAGE_KEY, String(value));
+  } catch (error) {
+    // Safari/Private Mode oder strikte GitHub-Preview-Umgebungen können Storage blockieren.
+  }
+}
+
+let gameSoundMuted = getStoredSoundMuted();
 let gameAudioContext = null;
 let gameAudioUnlocked = false;
 let lastSoundPlayedAt = {};
@@ -2920,33 +2945,52 @@ function getGameAudioContext() {
   if (!AudioContextClass) return null;
 
   if (!gameAudioContext) {
-    gameAudioContext = new AudioContextClass();
-  }
-
-  if (gameAudioContext.state === "suspended") {
-    gameAudioContext.resume().catch(() => {});
+    try {
+      gameAudioContext = new AudioContextClass();
+    } catch (error) {
+      return null;
+    }
   }
 
   return gameAudioContext;
 }
 
-function unlockGameAudio() {
-  if (gameSoundMuted || gameAudioUnlocked) return;
-
+function resumeGameAudioContext() {
   const ctx = getGameAudioContext();
+  if (!ctx) return null;
+
+  if (ctx.state === "suspended") {
+    const resumePromise = ctx.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(() => {});
+    }
+  }
+
+  return ctx;
+}
+
+function unlockGameAudio() {
+  if (gameSoundMuted) return;
+
+  const ctx = resumeGameAudioContext();
   if (!ctx) return;
 
-  const gain = ctx.createGain();
-  gain.gain.value = 0.0001;
-  gain.connect(ctx.destination);
+  // Safari/iOS braucht oft einen sehr kurzen Ton direkt innerhalb der User-Geste.
+  try {
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.connect(ctx.destination);
 
-  const osc = ctx.createOscillator();
-  osc.frequency.value = 440;
-  osc.connect(gain);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.02);
+    const osc = ctx.createOscillator();
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.connect(gain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.025);
 
-  gameAudioUnlocked = true;
+    gameAudioUnlocked = true;
+  } catch (error) {
+    gameAudioUnlocked = false;
+  }
 }
 
 function updateSoundToggleButton() {
@@ -2959,7 +3003,7 @@ function updateSoundToggleButton() {
 
 function toggleGameSound() {
   gameSoundMuted = !gameSoundMuted;
-  localStorage.setItem(SOUND_STORAGE_KEY, String(gameSoundMuted));
+  setStoredSoundMuted(gameSoundMuted);
 
   if (gameSoundMuted) {
     stopDiceSoundLoop();
@@ -2975,7 +3019,7 @@ function toggleGameSound() {
 function playTone(frequency, duration = 0.08, type = "sine", volume = 0.035, delay = 0) {
   if (gameSoundMuted) return;
 
-  const ctx = getGameAudioContext();
+  const ctx = resumeGameAudioContext();
   if (!ctx) return;
 
   const start = ctx.currentTime + delay;
@@ -3001,7 +3045,7 @@ function playTone(frequency, duration = 0.08, type = "sine", volume = 0.035, del
 function playNoise(duration = 0.10, volume = 0.035, delay = 0) {
   if (gameSoundMuted) return;
 
-  const ctx = getGameAudioContext();
+  const ctx = resumeGameAudioContext();
   if (!ctx) return;
 
   const start = ctx.currentTime + delay;
@@ -3175,7 +3219,9 @@ function playGameSound(name) {
   }
 }
 
-document.addEventListener("pointerdown", unlockGameAudio, { once: false });
+document.addEventListener("pointerdown", unlockGameAudio, { once: false, passive: true });
+document.addEventListener("touchstart", unlockGameAudio, { once: false, passive: true });
+document.addEventListener("keydown", unlockGameAudio, { once: false });
 
 document.addEventListener("click", event => {
   if (event.target.closest("button")) {
@@ -4240,16 +4286,18 @@ function updateSpecialBanner(slot, pokemon, specialText) {
   if (!specialBanner) return;
 
   const specialClass = getSpecialClass(pokemon);
+  const specialColor = getSpecialColorClassColor(specialClass);
 
   specialBanner.className = "special-banner";
-  specialBanner.style.color = "";
+  specialBanner.dataset.specialClass = specialClass || "";
+  specialBanner.innerText = specialText || "";
 
   if (specialClass) {
     specialBanner.classList.add(specialClass);
-    specialBanner.style.color = getSpecialColorClassColor(specialClass);
+    specialBanner.style.setProperty("color", specialColor, "important");
+  } else {
+    specialBanner.style.removeProperty("color");
   }
-
-  specialBanner.innerText = specialText || "";
 }
 
 
@@ -7485,7 +7533,7 @@ function resetOnlyComputerSlots() {
   document.querySelectorAll("#computerSlots .special-banner")
     .forEach(e => e.innerText = "");
 
-  document.querySelectorAll(".special-banner").forEach(e => { e.className = "special-banner"; e.style.color = ""; });
+  document.querySelectorAll(".special-banner").forEach(e => { e.className = "special-banner"; e.style.removeProperty("color"); e.dataset.specialClass = ""; });
 }
 
 function resetSlots() {
