@@ -2593,16 +2593,6 @@ button.dice-discard-button {
   }
 }
 
-
-
-/* ===== FINALER Spezialbanner-Schutz: Farbe aus data/class/inline absichern ===== */
-.special-banner[data-special-class="legendary"] { color: #b8860b !important; }
-.special-banner[data-special-class="mega"] { color: #39b54a !important; }
-.special-banner[data-special-class="gmax"] { color: #dc2626 !important; }
-.special-banner[data-special-class="mythical"] { color: #38bdf8 !important; }
-.special-banner[data-special-class="paradox"] { color: #a855f7 !important; }
-.special-banner[data-special-class="ultrabeast"] { color: #ff4fd8 !important; }
-
 </style>
 </head>
 
@@ -4372,20 +4362,21 @@ function getSpecialColorClassColor(specialClass) {
 function inferSpecialClassFromText(specialText) {
   const text = (specialText || "").toLowerCase();
 
-  if (text.includes("paradox")) return "paradox";
   if (text.includes("ultrabestie")) return "ultrabeast";
+  if (text.includes("gigadynamax")) return "gmax";
   if (text.includes("legend")) return "legendary";
   if (text.includes("mysteri")) return "mythical";
+  if (text.includes("paradox")) return "paradox";
   if (text.includes("mega")) return "mega";
-  if (text.includes("gigadynamax")) return "gmax";
 
   return "";
 }
 
-function applySpecialBannerColor(specialBanner, specialClass) {
+function setSpecialBannerColor(specialBanner, specialClass) {
   if (!specialBanner) return;
 
-  const color = getSpecialColorClassColor(specialClass);
+  const safeClass = specialClass || "";
+  const color = getSpecialColorClassColor(safeClass);
 
   specialBanner.classList.remove(
     "legendary",
@@ -4396,15 +4387,13 @@ function applySpecialBannerColor(specialBanner, specialClass) {
     "ultrabeast"
   );
 
-  specialBanner.dataset.specialClass = specialClass || "";
+  specialBanner.dataset.specialClass = safeClass;
 
-  if (specialClass && color) {
-    specialBanner.classList.add(specialClass);
+  if (safeClass && color) {
+    specialBanner.classList.add(safeClass);
     specialBanner.style.setProperty("color", color, "important");
-    specialBanner.style.setProperty("--special-banner-color", color);
   } else {
     specialBanner.style.removeProperty("color");
-    specialBanner.style.removeProperty("--special-banner-color");
   }
 }
 
@@ -4417,36 +4406,8 @@ function updateSpecialBanner(slot, pokemon, specialText) {
 
   specialBanner.className = "special-banner";
   specialBanner.innerText = specialText || "";
-  applySpecialBannerColor(specialBanner, specialClass);
+  setSpecialBannerColor(specialBanner, specialClass);
 }
-
-function repairAllSpecialBannerColors() {
-  document.querySelectorAll(".special-banner").forEach(banner => {
-    const specialClass =
-      banner.dataset.specialClass ||
-      inferSpecialClassFromText(banner.innerText || banner.textContent || "");
-
-    if (specialClass) {
-      applySpecialBannerColor(banner, specialClass);
-    }
-  });
-}
-
-const specialBannerObserver = new MutationObserver(() => {
-  repairAllSpecialBannerColors();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  specialBannerObserver.observe(document.body, {
-    subtree: true,
-    childList: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: ["class", "style", "data-special-class"]
-  });
-
-  repairAllSpecialBannerColors();
-});
 
 
 const COLLECTION_KEY = "pokemonSlotGameCollectionV1";
@@ -7682,7 +7643,7 @@ function resetOnlyComputerSlots() {
   document.querySelectorAll("#computerSlots .special-banner")
     .forEach(e => e.innerText = "");
 
-  document.querySelectorAll(".special-banner").forEach(e => { e.className = "special-banner"; e.style.removeProperty("color"); e.dataset.specialClass = ""; });
+  document.querySelectorAll(".special-banner").forEach(e => { e.className = "special-banner"; e.innerText = ""; setSpecialBannerColor(e, ""); });
 }
 
 function resetSlots() {
@@ -7735,7 +7696,7 @@ function resetSlots() {
     .forEach(e => e.innerText = "");
 
   document.querySelectorAll(".special-banner")
-    .forEach(e => e.innerText = "");
+    .forEach(e => { e.innerText = ""; e.className = "special-banner"; setSpecialBannerColor(e, ""); });
 
   document.getElementById("scoreBox").innerHTML = "";
   document.getElementById("fightResult").innerHTML = "";
