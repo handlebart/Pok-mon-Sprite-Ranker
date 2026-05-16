@@ -2593,6 +2593,16 @@ button.dice-discard-button {
   }
 }
 
+
+
+/* ===== FINALER Spezialbanner-Schutz: Farbe aus data/class/inline absichern ===== */
+.special-banner[data-special-class="legendary"] { color: #b8860b !important; }
+.special-banner[data-special-class="mega"] { color: #39b54a !important; }
+.special-banner[data-special-class="gmax"] { color: #dc2626 !important; }
+.special-banner[data-special-class="mythical"] { color: #38bdf8 !important; }
+.special-banner[data-special-class="paradox"] { color: #a855f7 !important; }
+.special-banner[data-special-class="ultrabeast"] { color: #ff4fd8 !important; }
+
 </style>
 </head>
 
@@ -4359,25 +4369,84 @@ function getSpecialColorClassColor(specialClass) {
   return colors[specialClass] || "";
 }
 
+function inferSpecialClassFromText(specialText) {
+  const text = (specialText || "").toLowerCase();
+
+  if (text.includes("paradox")) return "paradox";
+  if (text.includes("ultrabestie")) return "ultrabeast";
+  if (text.includes("legend")) return "legendary";
+  if (text.includes("mysteri")) return "mythical";
+  if (text.includes("mega")) return "mega";
+  if (text.includes("gigadynamax")) return "gmax";
+
+  return "";
+}
+
+function applySpecialBannerColor(specialBanner, specialClass) {
+  if (!specialBanner) return;
+
+  const color = getSpecialColorClassColor(specialClass);
+
+  specialBanner.classList.remove(
+    "legendary",
+    "mega",
+    "gmax",
+    "mythical",
+    "paradox",
+    "ultrabeast"
+  );
+
+  specialBanner.dataset.specialClass = specialClass || "";
+
+  if (specialClass && color) {
+    specialBanner.classList.add(specialClass);
+    specialBanner.style.setProperty("color", color, "important");
+    specialBanner.style.setProperty("--special-banner-color", color);
+  } else {
+    specialBanner.style.removeProperty("color");
+    specialBanner.style.removeProperty("--special-banner-color");
+  }
+}
+
 function updateSpecialBanner(slot, pokemon, specialText) {
   const specialBanner = slot.parentElement.querySelector(".special-banner");
 
   if (!specialBanner) return;
 
-  const specialClass = getSpecialClass(pokemon);
-  const specialColor = getSpecialColorClassColor(specialClass);
+  const specialClass = getSpecialClass(pokemon) || inferSpecialClassFromText(specialText);
 
   specialBanner.className = "special-banner";
-  specialBanner.dataset.specialClass = specialClass || "";
   specialBanner.innerText = specialText || "";
-
-  if (specialClass) {
-    specialBanner.classList.add(specialClass);
-    specialBanner.style.setProperty("color", specialColor, "important");
-  } else {
-    specialBanner.style.removeProperty("color");
-  }
+  applySpecialBannerColor(specialBanner, specialClass);
 }
+
+function repairAllSpecialBannerColors() {
+  document.querySelectorAll(".special-banner").forEach(banner => {
+    const specialClass =
+      banner.dataset.specialClass ||
+      inferSpecialClassFromText(banner.innerText || banner.textContent || "");
+
+    if (specialClass) {
+      applySpecialBannerColor(banner, specialClass);
+    }
+  });
+}
+
+const specialBannerObserver = new MutationObserver(() => {
+  repairAllSpecialBannerColors();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  specialBannerObserver.observe(document.body, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["class", "style", "data-special-class"]
+  });
+
+  repairAllSpecialBannerColors();
+});
 
 
 const COLLECTION_KEY = "pokemonSlotGameCollectionV1";
@@ -5345,6 +5414,7 @@ async function spin(slot, options = {}) {
         slot.dataset.legendary = pokemon.legendary ? "true" : "false";
         slot.dataset.mythical = pokemon.mythical ? "true" : "false";
         slot.dataset.paradox = pokemon.paradox ? "true" : "false";
+        slot.dataset.ultraBeast = pokemon.ultraBeast ? "true" : "false";
         slot.dataset.formKind = pokemon.formKind || "";
         slot.dataset.types = JSON.stringify(pokemon.types);
         slot.dataset.pokemonName = pokemon.name;
