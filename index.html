@@ -3963,15 +3963,13 @@ body.reset-revealing .slot {
 
   <div style="margin-top:25px;">
 
-    <button id="resetSlotsButton" onclick="resetSlots()">
+    <button onclick="resetSlots()">
       RESET
     </button>
 
   </div>
 
 </div>
-
-<div id="recordingFrame" class="recording-frame">
 
 <div class="game-center">
 
@@ -4134,7 +4132,6 @@ body.reset-revealing .slot {
 
 </div>
 
-</div>
 
 <div class="bottom-controls">
   <details class="opponent-selector compact-opponent-panel">
@@ -4155,12 +4152,7 @@ body.reset-revealing .slot {
     <button onclick="rematch()">⚔ Revanche</button>
   </div>
 
-  <div class="recording-controls">
-    <button id="recordingModeButton" class="recording-mode-button" type="button" onclick="toggleRecordingMode()" aria-pressed="false">🎥 Recording Modus: AUS</button>
-  </div>
 </div>
-
-<div id="recordingFrameMask" class="recording-frame-mask" aria-hidden="true"></div>
 
 <div id="fspApp">
     <div id="fspCounterBar"></div>
@@ -10896,64 +10888,6 @@ async function fppInitOnce(){
     transform: translate(0, -50%) !important;
   }
 }
-
-
-/* ===== Recording-Modus ===== */
-.recording-frame {
-  width: 100%;
-  max-width: 1260px;
-  margin: 0 auto;
-  border-radius: 34px;
-}
-
-.recording-controls {
-  width: min(980px, 94vw);
-  margin: 14px auto 0;
-  text-align: center;
-}
-
-.recording-mode-button {
-  background: #111827;
-  color: white;
-  border: none;
-  border-radius: 999px;
-  padding: 13px 22px;
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.recording-mode-button.active {
-  background: #ff00ff;
-  color: #111827;
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.95), 0 0 28px rgba(255,0,255,0.75);
-}
-
-.recording-frame-mask {
-  display: none;
-  position: fixed;
-  left: var(--record-left, 20px);
-  top: var(--record-top, 160px);
-  width: var(--record-width, calc(100vw - 40px));
-  height: var(--record-height, calc(100vh - 220px));
-  border-radius: 34px;
-  box-shadow: 0 0 0 9999px #ff00ff;
-  pointer-events: none;
-  z-index: 14000;
-}
-
-body.recording-mode .recording-frame-mask {
-  display: block;
-}
-
-body.recording-mode #recordingFrame {
-  position: relative;
-  z-index: 14001;
-}
-
-body.recording-mode #recordingModeButton {
-  position: relative;
-  z-index: 14002;
-}
 </style>
 
 <script>
@@ -10999,83 +10933,6 @@ window.addEventListener('DOMContentLoaded', () => {
     openBtn.classList.toggle('active', panel.classList.contains('show'));
   });
 });
-
-
-// ===== Recording-Modus =====
-let recordingModeEnabled = false;
-
-function getRecordingBounds() {
-  const resetButton = document.getElementById('resetSlotsButton');
-  const elements = [
-    document.getElementById('playerSlots'),
-    document.querySelector('#ktrGameView .fight-area'),
-    document.getElementById('computerSlots'),
-    document.getElementById('actionHint'),
-    document.getElementById('leaderArt'),
-    document.getElementById('luckUseButton'),
-    document.getElementById('luckDiscardButton')
-  ].filter(Boolean);
-
-  const rects = elements
-    .map(el => el.getBoundingClientRect())
-    .filter(rect => rect.width > 0 && rect.height > 0);
-
-  if (!rects.length) {
-    return { left: 20, top: 140, right: window.innerWidth - 20, bottom: window.innerHeight - 40 };
-  }
-
-  const opponentPanel = document.querySelector('#ktrGameView .compact-opponent-panel');
-  const paddingX = 42;
-  const top = resetButton ? resetButton.getBoundingClientRect().bottom + 18 : Math.min(...rects.map(rect => rect.top)) - 24;
-  const left = Math.min(...rects.map(rect => rect.left)) - paddingX;
-  const right = Math.max(...rects.map(rect => rect.right)) + paddingX;
-  // Recording-Bereich soll direkt oberhalb der Gegnerauswahl enden.
-  // Nicht am letzten Gameplay-Element abschneiden, sonst bleibt zu viel Magenta-Lücke.
-  const opponentTop = opponentPanel ? opponentPanel.getBoundingClientRect().top - 1 : Math.max(...rects.map(rect => rect.bottom)) + 18;
-  const bottom = opponentTop;
-
-  return {
-    left: Math.max(8, left),
-    top: Math.max(8, top),
-    right: Math.min(window.innerWidth - 8, right),
-    bottom: Math.min(window.innerHeight - 8, Math.max(top + 120, bottom))
-  };
-}
-
-function updateRecordingFrame() {
-  if (!recordingModeEnabled) return;
-
-  const mask = document.getElementById('recordingFrameMask');
-  if (!mask) return;
-
-  const bounds = getRecordingBounds();
-  mask.style.setProperty('--record-left', `${bounds.left}px`);
-  mask.style.setProperty('--record-top', `${bounds.top}px`);
-  mask.style.setProperty('--record-width', `${Math.max(120, bounds.right - bounds.left)}px`);
-  mask.style.setProperty('--record-height', `${Math.max(120, bounds.bottom - bounds.top)}px`);
-}
-
-function setRecordingMode(enabled) {
-  recordingModeEnabled = Boolean(enabled);
-  document.body.classList.toggle('recording-mode', recordingModeEnabled);
-
-  const button = document.getElementById('recordingModeButton');
-  if (button) {
-    button.classList.toggle('active', recordingModeEnabled);
-    button.setAttribute('aria-pressed', String(recordingModeEnabled));
-    button.textContent = recordingModeEnabled ? '🎥 Recording Modus: AN' : '🎥 Recording Modus: AUS';
-  }
-
-  updateRecordingFrame();
-}
-
-function toggleRecordingMode() {
-  setRecordingMode(!recordingModeEnabled);
-}
-
-window.addEventListener('resize', updateRecordingFrame);
-window.addEventListener('scroll', updateRecordingFrame, true);
-window.addEventListener('DOMContentLoaded', updateRecordingFrame);
 </script>
 
 </body>
