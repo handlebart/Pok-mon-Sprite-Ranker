@@ -678,17 +678,15 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  animation: resultCenterIn 0.35s cubic-bezier(0.2, 1.15, 0.25, 1) forwards;
+  animation: luckChoiceFadeIn 0.22s ease-out forwards;
 }
 
 .luck-choice-use {
-  right: calc(50% + 215px);
-  background: #16a34a;
+  right: calc(50% + 235px) !important;
 }
 
 .luck-choice-discard {
-  left: calc(50% + 215px);
-  background: #dc2626;
+  left: calc(50% + 420px) !important;
 }
 
 .luck-choice-button:hover {
@@ -736,6 +734,20 @@ button:disabled {
   border-radius: 12px;
 }
 
+
+@keyframes luckChoiceFadeIn {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+
 @media (max-width: 850px) {
   .luck-choice-button {
     top: 270px;
@@ -744,12 +756,12 @@ button:disabled {
   }
 
   .luck-choice-use {
-    right: calc(50% + 8px);
-  }
+  right: calc(50% + 235px) !important;
+}
 
   .luck-choice-discard {
-    left: calc(50% + 8px);
-  }
+  left: calc(50% + 420px) !important;
+}
 }
 
 .luck-result-pop {
@@ -930,6 +942,13 @@ button:disabled {
   align-items: center;
   width: 150px;
   flex: 0 0 150px;
+  position: relative;
+  z-index: 1;
+}
+
+.slot-wrapper:has(.active-slot),
+.slot-wrapper:has(.shiny-roulette-active) {
+  z-index: 50;
 }
 
 .slot {
@@ -938,6 +957,7 @@ button:disabled {
   border: 6px solid #ccc;
   background: white;
   position: relative;
+  z-index: 1;
   overflow: hidden;
   box-sizing: border-box;
   margin-left: -6px;
@@ -972,7 +992,7 @@ button:disabled {
     0 0 18px gold,
     0 0 38px rgba(255,215,0,0.9) !important;
   transform: scale(1.08);
-  z-index: 15;
+  z-index: 50;
 }
 
 @keyframes shinyPickPulse {
@@ -1470,8 +1490,10 @@ button:disabled {
 }
 
 .effectiveness-log {
-  min-height: 62px;
-  margin: -8px auto 12px;
+  min-height: 50px;
+  max-height: 86px;
+  overflow: hidden;
+  margin: -8px auto 10px;
   max-width: 720px;
   font-size: 17px;
   font-weight: bold;
@@ -2269,7 +2291,7 @@ button.dice-discard-button {
 
 /* ===== KORREKTUR: Mega-/Legendärer-Würfel Verwerfen-Button ===== */
 .luck-choice-discard {
-  left: min(calc(50% + 330px), calc(100% - 150px)) !important;
+  left: calc(50% + 420px) !important;
 }
 
 .luck-choice-use {
@@ -2278,12 +2300,12 @@ button.dice-discard-button {
 
 @media (max-width: 850px) {
   .luck-choice-discard {
-    left: calc(50% + 92px) !important;
-  }
+  left: calc(50% + 420px) !important;
+}
 
   .luck-choice-use {
-    right: calc(50% + 92px) !important;
-  }
+  right: calc(50% + 235px) !important;
+}
 }
 
 
@@ -2593,6 +2615,1235 @@ button.dice-discard-button {
   }
 }
 
+
+
+/* =========================================================
+   VISUAL REFRESH v1 – nur CSS, keine Spiel-Logik verändert
+   ========================================================= */
+:root {
+  --ktr-bg-1: #eef7ff;
+  --ktr-bg-2: #fff8ec;
+  --ktr-bg-3: #f4efff;
+  --ktr-ink: #172033;
+  --ktr-muted: #5f6b7a;
+  --ktr-card: rgba(255,255,255,0.82);
+  --ktr-card-strong: rgba(255,255,255,0.94);
+  --ktr-border: rgba(23,32,51,0.10);
+  --ktr-shadow: 0 18px 42px rgba(20,32,56,0.13);
+  --ktr-shadow-small: 0 8px 20px rgba(20,32,56,0.12);
+  --ktr-radius: 22px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--ktr-ink);
+  background:
+    radial-gradient(circle at 14% 12%, rgba(34,197,94,0.20), transparent 34%),
+    radial-gradient(circle at 86% 16%, rgba(30,144,255,0.20), transparent 34%),
+    radial-gradient(circle at 50% 92%, rgba(239,68,68,0.16), transparent 34%),
+    linear-gradient(135deg, var(--ktr-bg-1), var(--ktr-bg-2) 48%, var(--ktr-bg-3));
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.32) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.32) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.62), transparent 78%);
+  z-index: -1;
+}
+
+.main-title {
+  margin-top: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.56);
+  border: 1px solid rgba(255,255,255,0.70);
+  box-shadow: var(--ktr-shadow-small);
+  backdrop-filter: blur(10px);
+}
+
+.title-keep,
+.title-trade,
+.title-release {
+  text-shadow: 0 3px 0 rgba(255,255,255,0.75), 0 10px 22px rgba(0,0,0,0.15);
+}
+
+.button-legend,
+.collection-panel,
+.luck-wheel-legend,
+.achievement-panel,
+.compact-opponent-panel,
+.gym-region-box,
+.collection-content {
+  background: var(--ktr-card);
+  border: 1px solid rgba(255,255,255,0.72);
+  box-shadow: var(--ktr-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.button-legend,
+.collection-panel,
+.luck-wheel-legend,
+.achievement-panel,
+.compact-opponent-panel {
+  border-radius: var(--ktr-radius);
+}
+
+.button-legend h3,
+.collection-panel h3,
+.luck-wheel-legend h3,
+.achievement-panel summary,
+.compact-opponent-panel > summary {
+  color: var(--ktr-ink);
+  letter-spacing: 0.2px;
+}
+
+.legend-item,
+.collection-stats,
+.luck-wheel-legend-item,
+.achievement-card,
+.collection-card,
+.gym-region-box {
+  color: var(--ktr-muted);
+}
+
+.legend-action,
+.action-button,
+.fight-button,
+.menu-back-button,
+.collection-panel button,
+.gym-buttons button,
+.gym-region-box button,
+.compact-opponent-panel button,
+.post-fight-controls button,
+.repair-leaders-button,
+#favoriteSpritePickerView button,
+.tt-categories button,
+button {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--ktr-shadow-small);
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+
+button:hover:not(:disabled),
+.action-button:hover:not(:disabled),
+.fight-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.06) saturate(1.06);
+  box-shadow: 0 12px 24px rgba(20,32,56,0.18);
+}
+
+button:active:not(:disabled),
+.action-button:active:not(:disabled),
+.fight-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.action-button.keep-button,
+.legend-keep {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.action-button.trade-button,
+.legend-trade {
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+}
+
+.action-button.release-button,
+.legend-release {
+  background: linear-gradient(135deg, #dc2626, #fb7185);
+}
+
+.top-controls,
+.bottom-controls,
+.game-center {
+  position: relative;
+}
+
+.game-center {
+  gap: 26px;
+}
+
+.slots {
+  padding: 18px 22px 8px;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.42);
+  border: 1px solid rgba(255,255,255,0.62);
+  box-shadow: var(--ktr-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.slot-wrapper {
+  filter: drop-shadow(0 14px 18px rgba(20,32,56,0.12));
+}
+
+.slot {
+  border-width: 4px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,0.95), rgba(241,245,249,0.94));
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.65);
+}
+
+.slot.keep { border-color: #16a34a; }
+.slot.trade { border-color: #2563eb; }
+.slot.release { border-color: #dc2626; }
+
+.active-slot {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 0 5px rgba(250,204,21,0.22), 0 0 28px rgba(250,204,21,0.72) !important;
+}
+
+.pokemon-name {
+  font-size: 17px;
+  color: var(--ktr-ink);
+}
+
+.base-stat {
+  color: var(--ktr-muted);
+}
+
+.special-banner {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 22px;
+  width: auto;
+  max-width: 235px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid currentColor;
+  box-shadow: 0 5px 14px rgba(20,32,56,0.10);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.75);
+}
+
+.fight-area {
+  border-radius: 30px;
+}
+
+.action-hint,
+.luck-result-center,
+.battle-stage {
+  background: var(--ktr-card-strong);
+  border: 1px solid rgba(255,255,255,0.78);
+  box-shadow: var(--ktr-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.action-hint {
+  color: var(--ktr-ink);
+}
+
+.fight-button {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  box-shadow: 0 15px 28px rgba(239,68,68,0.28);
+}
+
+.battle-stage {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.96), rgba(255,255,255,0.72)),
+    linear-gradient(90deg, rgba(37,99,235,0.18), rgba(255,255,255,0.18), rgba(220,38,38,0.18));
+}
+
+.team-power {
+  border-width: 3px;
+  border-radius: 22px;
+  box-shadow: var(--ktr-shadow-small);
+}
+
+.vs-core {
+  background: linear-gradient(135deg, #111827, #334155);
+  box-shadow: 0 0 0 8px rgba(255,255,255,0.88), 0 16px 32px rgba(15,23,42,0.24);
+}
+
+.luck-wheel .wheel-face {
+  box-shadow: 0 18px 32px rgba(20,32,56,0.28);
+}
+
+.luck-wheel-box button,
+.luck-choice-button {
+  box-shadow: 0 12px 24px rgba(20,32,56,0.24);
+}
+
+.progress-container {
+  border-radius: 999px;
+  background: rgba(255,255,255,0.64);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06), var(--ktr-shadow-small);
+}
+
+.progress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #84cc16);
+}
+
+.collection-card,
+.achievement-card,
+.luck-wheel-legend-item,
+.form-card,
+.dex-cell {
+  border-color: rgba(23,32,51,0.10);
+  background: rgba(255,255,255,0.68);
+  box-shadow: 0 5px 14px rgba(20,32,56,0.07);
+}
+
+.main-menu-screen {
+  background:
+    radial-gradient(circle at 15% 18%, rgba(34,197,94,0.38), transparent 34%),
+    radial-gradient(circle at 84% 18%, rgba(59,130,246,0.38), transparent 34%),
+    radial-gradient(circle at 50% 88%, rgba(239,68,68,0.30), transparent 34%),
+    linear-gradient(135deg, #08111f, #111827 55%, #1e1b4b);
+}
+
+.main-menu-card {
+  background: rgba(255,255,255,0.13);
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.42);
+  backdrop-filter: blur(18px);
+}
+
+.main-menu-card h1 {
+  text-shadow: 0 8px 26px rgba(0,0,0,0.32);
+}
+
+.menu-game-button,
+.menu-picker-button,
+.menu-team-button,
+.menu-fav-pokemon-button {
+  border: 1px solid rgba(255,255,255,0.24);
+}
+
+@media (max-width: 760px) {
+  body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .main-title {
+    border-radius: 24px;
+    padding: 10px 14px;
+  }
+
+  .slots {
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 22px;
+  }
+
+  .slot {
+    border-radius: 16px;
+  }
+}
+
+
+
+/* =========================================================
+   VISUAL REFRESH v2 – nur CSS, keine Spiel-Logik verändert
+   ========================================================= */
+
+/* Keep/Trade/Release Buttons noch etwas tiefer */
+.action-button-panel {
+  margin-top: -34px !important;
+  margin-bottom: 28px !important;
+}
+
+@media (max-width: 620px) {
+  .action-button-panel {
+    margin-top: -24px !important;
+    margin-bottom: 24px !important;
+  }
+}
+
+/* Spezialbanner-Platzhalter komplett verstecken, solange kein Text drinsteht */
+.special-banner:empty {
+  display: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.special-banner:not(:empty) {
+  display: inline-flex !important;
+}
+
+/* Shiny: wieder deutlich strahlender/glänzender Regenbogen – nur der Rahmen */
+.slot.shiny {
+  border: 6px solid transparent !important;
+  border-radius: 22px;
+  overflow: visible !important;
+  position: relative;
+  background:
+    linear-gradient(white, white) padding-box,
+    conic-gradient(
+      from var(--shiny-angle, 0deg),
+      #ff004c,
+      #ff8a00,
+      #fff200,
+      #00ff85,
+      #00d5ff,
+      #3b5bff,
+      #b000ff,
+      #ff00b8,
+      #ff004c
+    ) border-box !important;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.92),
+    0 0 18px rgba(255,0,200,0.62),
+    0 0 32px rgba(0,213,255,0.50),
+    0 0 48px rgba(255,242,0,0.32) !important;
+  animation: shinyBorderSpin 1.45s linear infinite, shinyBorderGlow 0.95s ease-in-out infinite alternate;
+}
+
+.slot.shiny::before,
+.slot.shiny::after {
+  content: none !important;
+  display: none !important;
+}
+
+.slot.shiny img,
+.slot.shiny .reel,
+.slot.shiny .x-overlay {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes shinyBorderSpin {
+  to { --shiny-angle: 360deg; }
+}
+
+@keyframes shinyBorderGlow {
+  from {
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.86),
+      0 0 14px rgba(255,0,200,0.50),
+      0 0 26px rgba(0,213,255,0.40),
+      0 0 38px rgba(255,242,0,0.24);
+    filter: saturate(1.08) brightness(1.02);
+  }
+  to {
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,1),
+      0 0 24px rgba(255,0,200,0.78),
+      0 0 42px rgba(0,213,255,0.62),
+      0 0 62px rgba(255,242,0,0.44);
+    filter: saturate(1.28) brightness(1.08);
+  }
+}
+
+
+
+/* =========================================================
+   VISUAL REFRESH v3 – basiert auf v2, NUR CSS
+   - Spezialbanner bleiben einzeilig und vergrößern Slots nicht
+   - Shiny-Rahmen zurück zum alten Pseudo-Element-Stil, nur intensiver
+   ========================================================= */
+
+.special-banner:not(:empty) {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: auto !important;
+  max-width: 252px !important;
+  min-height: 22px !important;
+  height: 22px !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  padding: 3px 10px !important;
+}
+
+.special-banner:empty {
+  display: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Shiny-Rahmen: altes Prinzip wiederhergestellt, aber stärker leuchtend */
+.slot.shiny {
+  border: 6px solid transparent !important;
+  border-radius: 0 !important;
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 3 !important;
+  background: white !important;
+  box-shadow:
+    0 0 14px rgba(255,0,200,0.72),
+    0 0 30px rgba(0,213,255,0.58),
+    0 0 48px rgba(255,230,0,0.42) !important;
+  animation: shinyOldFrameGlow 1.05s ease-in-out infinite alternate !important;
+}
+
+.slot.shiny::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  top: -7px !important;
+  left: -7px !important;
+  right: -7px !important;
+  bottom: -7px !important;
+  background: linear-gradient(45deg,
+    #ff004c,
+    #ff8a00,
+    #fff200,
+    #00ff85,
+    #00d5ff,
+    #3b5bff,
+    #b000ff,
+    #ff00b8,
+    #ff004c
+  ) !important;
+  background-size: 500% 500% !important;
+  animation: rainbowMove 1.15s linear infinite !important;
+  z-index: 0 !important;
+  filter: saturate(1.75) brightness(1.18) drop-shadow(0 0 12px rgba(255,255,255,0.85));
+}
+
+.slot.shiny::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: white !important;
+  z-index: 0 !important;
+}
+
+.slot.shiny img,
+.slot.shiny .reel,
+.slot.shiny .x-overlay {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+@keyframes shinyOldFrameGlow {
+  from {
+    box-shadow:
+      0 0 12px rgba(255,0,200,0.58),
+      0 0 24px rgba(0,213,255,0.46),
+      0 0 38px rgba(255,230,0,0.30);
+    filter: saturate(1.08) brightness(1.02);
+  }
+  to {
+    box-shadow:
+      0 0 22px rgba(255,0,200,0.88),
+      0 0 42px rgba(0,213,255,0.72),
+      0 0 66px rgba(255,230,0,0.52);
+    filter: saturate(1.22) brightness(1.07);
+  }
+}
+
+
+
+/* =========================================================
+   DIREKTFIX AUF USER-UPLOAD – NUR CSS
+   - Shiny-Rahmen rund
+   - Gewinner-/Verliererrahmen ersetzt Shiny am Kampfende
+   ========================================================= */
+.slot.shiny {
+  border-radius: 18px !important;
+}
+
+.slot.shiny::before,
+.slot.shiny::after {
+  border-radius: inherit !important;
+}
+
+.slot.shiny.winner-slot,
+.slot.winner-slot.shiny {
+  border: 6px solid lime !important;
+  border-radius: 18px !important;
+  background: white !important;
+  animation: winnerGlow 1s infinite alternate !important;
+  box-shadow: 0 0 20px lime, 0 0 50px #00ff99 !important;
+}
+
+.slot.shiny.loser-slot,
+.slot.loser-slot.shiny {
+  border: 6px solid red !important;
+  border-radius: 18px !important;
+  background: white !important;
+  animation: loserGlow 1s infinite alternate !important;
+  box-shadow: 0 0 20px red, 0 0 40px darkred !important;
+}
+
+.slot.shiny.winner-slot::before,
+.slot.shiny.winner-slot::after,
+.slot.winner-slot.shiny::before,
+.slot.winner-slot.shiny::after,
+.slot.shiny.loser-slot::before,
+.slot.shiny.loser-slot::after,
+.slot.loser-slot.shiny::before,
+.slot.loser-slot.shiny::after {
+  content: none !important;
+  display: none !important;
+}
+
+.slot.shiny.winner-slot img,
+.slot.winner-slot.shiny img,
+.slot.shiny.loser-slot img,
+.slot.loser-slot.shiny img,
+.slot.shiny.winner-slot .reel,
+.slot.winner-slot.shiny .reel,
+.slot.shiny.loser-slot .reel,
+.slot.loser-slot.shiny .reel,
+.slot.shiny.winner-slot .x-overlay,
+.slot.winner-slot.shiny .x-overlay,
+.slot.shiny.loser-slot .x-overlay,
+.slot.loser-slot.shiny .x-overlay {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+
+
+/* =========================================================
+   SLOT-LAYER-FIX – DIREKT AUF LETZTE DATEI ANGEWENDET
+   Verhindert, dass Nachbar-Slot-Rahmen über aktive Auswahl-,
+   Shiny-, Gewinner- oder Verliererrahmen malen. Nur CSS.
+   ========================================================= */
+.slot-wrapper {
+  position: relative !important;
+  z-index: 1;
+}
+
+.slot {
+  position: relative !important;
+  z-index: 1;
+}
+
+.slot.active-slot,
+.slot.shiny-pickable,
+.slot.shiny-roulette-active,
+.slot.keep,
+.slot.trade,
+.slot.release {
+  z-index: 40 !important;
+}
+
+.slot.shiny {
+  z-index: 45 !important;
+}
+
+.slot.active-slot.shiny,
+.slot.shiny-roulette-active.shiny,
+.slot.shiny-pickable.shiny {
+  z-index: 70 !important;
+}
+
+.slot.winner-slot,
+.slot.loser-slot,
+.slot.shiny.winner-slot,
+.slot.shiny.loser-slot {
+  z-index: 90 !important;
+}
+
+.slot .select-ring,
+.slot .shiny-burst,
+.slot .x-overlay {
+  z-index: 95 !important;
+}
+
+/* ===== FIX: Hinweis-Box exakt mittig zwischen Spieler- und Gegnerfeld ===== */
+.action-hint {
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(720px, 90vw) !important;
+  min-height: 76px !important;
+}
+
+/* Auch während Glücksrad-/Sonderlayouts bleibt die Hinweis-Box mittig im Zwischenfeld. */
+.fight-area.wheel-layout .action-hint {
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(720px, 90vw) !important;
+  min-height: 76px !important;
+  font-size: 22px !important;
+}
+
+
+/* ===== FIX: Keep/Trade/Release direkt im mittigen Hinweisfeld ===== */
+.action-hint {
+  flex-direction: column !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+}
+
+.action-hint-text {
+  display: block;
+  line-height: 1.2;
+}
+
+.action-hint .action-button-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0 !important;
+  position: static !important;
+  z-index: auto !important;
+}
+
+.action-hint .action-button-panel.hidden,
+.action-hint.actions-hidden .action-button-panel,
+.fight-area.wheel-layout .action-hint .action-button-panel {
+  display: none !important;
+}
+
+.action-hint.actions-visible {
+  min-height: 76px !important;
+}
+
+.action-hint.actions-visible .action-hint-text {
+  display: none !important;
+}
+
+.action-hint.actions-visible .action-button-panel {
+  margin: 0 !important;
+}
+
+.action-hint .action-button {
+  top: 0 !important;
+}
+
+
+
+/* ===== Battle Visual Upgrade: stärkerer Impact, Badges, dramatischer VS-Kreis ===== */
+
+/* Impact: größerer, knackigerer Treffer mit Shockwave */
+.impact-burst {
+  background:
+    radial-gradient(circle, white 0%, #fff7b0 18%, gold 34%, orange 52%, rgba(255,60,0,0.55) 66%, rgba(255,0,0,0) 76%) !important;
+  box-shadow:
+    0 0 18px rgba(255,255,255,0.95),
+    0 0 34px rgba(255,215,0,0.95),
+    0 0 58px rgba(255,90,0,0.85);
+}
+
+.impact-burst::before,
+.impact-burst::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.impact-burst::after {
+  inset: -34px;
+  border-color: rgba(255,215,0,0.7);
+}
+
+.impact-burst.fire::before {
+  animation: impactShockwave 0.7s ease-out;
+}
+
+.impact-burst.fire::after {
+  animation: impactShockwave 0.7s ease-out 0.08s;
+}
+
+@keyframes impactBurst {
+  0% { transform: translate(-50%, -50%) scale(0.15); opacity: 0; filter: brightness(1.5); }
+  22% { transform: translate(-50%, -50%) scale(3.2); opacity: 1; filter: brightness(1.9); }
+  55% { transform: translate(-50%, -50%) scale(6.2); opacity: 0.92; filter: brightness(1.35); }
+  100% { transform: translate(-50%, -50%) scale(8.4); opacity: 0; filter: brightness(1); }
+}
+
+@keyframes impactShockwave {
+  0% { transform: scale(0.25); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Typ-Effektivität: zwei gut lesbare Battle-Badges mit sichtbarem Impact */
+.effectiveness-log {
+  gap: 7px !important;
+  min-height: 82px !important;
+  height: 82px !important;
+  max-height: 82px !important;
+  overflow: visible !important;
+  position: relative;
+  margin: 0 auto 14px !important;
+  padding: 4px 0 6px;
+}
+
+.effectiveness-log.hit-flash::before {
+  content: "";
+  position: absolute;
+  inset: 2px 12%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,255,255,0.92), rgba(255,215,0,0.28), transparent 70%);
+  pointer-events: none;
+  animation: effectivenessLogFlash 0.38s ease-out;
+  z-index: 0;
+}
+
+.effectiveness-line {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: min(680px, 88vw);
+  padding: 6px 16px;
+  border-radius: 999px;
+  line-height: 1.14;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.95);
+  border: 3px solid #ddd;
+  box-shadow:
+    0 6px 15px rgba(0,0,0,0.16),
+    inset 0 0 0 2px rgba(255,255,255,0.7);
+  letter-spacing: 0.25px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.85);
+  animation: effectivenessImpact 0.54s cubic-bezier(0.17, 1.35, 0.28, 1), effectivenessHoldGlow 1.1s ease-out;
+  will-change: transform, opacity, filter;
+}
+
+.effectiveness-line::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: inherit;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: effectivenessRipple 0.55s ease-out;
+}
+
+.effectiveness-line.exiting {
+  animation: effectivenessExit 0.22s ease-in forwards !important;
+}
+
+.effectiveness-line.super {
+  color: #087f23 !important;
+  border-color: #22c55e;
+  background: linear-gradient(90deg, rgba(214,255,226,0.98), rgba(255,255,255,0.96));
+  box-shadow:
+    0 6px 15px rgba(0,0,0,0.16),
+    0 0 22px rgba(34,197,94,0.55),
+    0 0 38px rgba(34,197,94,0.20);
+}
+
+.effectiveness-line.weak {
+  color: #b91c1c !important;
+  border-color: #ef4444;
+  background: linear-gradient(90deg, rgba(255,220,220,0.98), rgba(255,255,255,0.96));
+  box-shadow:
+    0 6px 15px rgba(0,0,0,0.16),
+    0 0 22px rgba(239,68,68,0.46),
+    0 0 34px rgba(127,29,29,0.18);
+}
+
+.effectiveness-line.normal {
+  color: #444 !important;
+  border-color: #9ca3af;
+  background: linear-gradient(90deg, rgba(243,244,246,0.98), rgba(255,255,255,0.96));
+}
+
+.effectiveness-line.critical {
+  color: #8a5a00 !important;
+  border-color: gold;
+  background: linear-gradient(90deg, rgba(255,241,160,0.99), rgba(255,255,255,0.97));
+  box-shadow:
+    0 6px 15px rgba(0,0,0,0.16),
+    0 0 28px rgba(255,215,0,0.95),
+    0 0 52px rgba(255,170,0,0.42);
+  animation: criticalImpact 0.62s cubic-bezier(0.16, 1.45, 0.3, 1), criticalGoldPulse 1.15s ease-out;
+}
+
+@keyframes effectivenessImpact {
+  0% { transform: scale(0.42) translateY(11px) rotate(-2deg); opacity: 0; filter: brightness(1.65); }
+  48% { transform: scale(1.18) translateY(-3px) rotate(1deg); opacity: 1; filter: brightness(1.25); }
+  72% { transform: scale(0.96) translateY(1px); filter: brightness(1.08); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes criticalImpact {
+  0% { transform: scale(0.35) translateY(12px) rotate(-4deg); opacity: 0; filter: brightness(2); }
+  38% { transform: scale(1.28) translateY(-5px) rotate(3deg); opacity: 1; filter: brightness(1.55); }
+  62% { transform: scale(0.93) translateY(1px) rotate(-1deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes effectivenessRipple {
+  0% { transform: scale(0.75); opacity: 0.55; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+@keyframes effectivenessExit {
+  to { transform: translateY(-8px) scale(0.88); opacity: 0; filter: blur(2px); }
+}
+
+@keyframes effectivenessHoldGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.16); }
+}
+
+@keyframes criticalGoldPulse {
+  0%, 100% { text-shadow: 0 1px 0 rgba(255,255,255,0.9), 0 0 0 rgba(255,215,0,0); }
+  45% { text-shadow: 0 1px 0 white, 0 0 10px rgba(255,215,0,0.95), 0 0 18px rgba(255,140,0,0.65); }
+}
+
+@keyframes effectivenessLogFlash {
+  0% { transform: scaleX(0.25); opacity: 0; }
+  35% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1.15); opacity: 0; }
+}
+
+/* Battle-Stage: etwas mehr Raum unter dem VS, ohne die Gegner-Slots nach oben zu drängen */
+.battle-stage {
+  min-height: 238px !important;
+  overflow: visible !important;
+}
+
+.battle-row {
+  height: 142px !important;
+  padding-top: 22px !important;
+}
+
+.battle-caption {
+  margin-bottom: 8px !important;
+}
+
+@media (max-width: 680px) {
+  .effectiveness-log {
+    min-height: 94px !important;
+    height: 94px !important;
+    max-height: 94px !important;
+  }
+
+  .effectiveness-line {
+    max-width: 88vw;
+    white-space: normal;
+  }
+}
+
+/* VS-Kreis: mehr Clash, Glow und kurze Energie-Ringe */
+.vs-core {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+  box-shadow:
+    0 0 0 8px rgba(255,255,255,0.95),
+    0 0 28px rgba(0,0,0,0.35),
+    0 0 22px rgba(30,144,255,0.35),
+    0 0 22px rgba(220,20,60,0.35) !important;
+}
+
+.vs-core::before,
+.vs-core::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.vs-core::before {
+  border: 5px solid rgba(30,144,255,0.82);
+  box-shadow: 0 0 22px rgba(30,144,255,0.72);
+}
+
+.vs-core::after {
+  border: 5px solid rgba(220,20,60,0.82);
+  box-shadow: 0 0 22px rgba(220,20,60,0.72);
+}
+
+.vs-core.clash {
+  animation: clashCore 0.72s cubic-bezier(0.15, 1.1, 0.25, 1);
+}
+
+.vs-core.clash::before {
+  animation: vsRingBlue 0.72s ease-out;
+}
+
+.vs-core.clash::after {
+  animation: vsRingRed 0.72s ease-out 0.06s;
+}
+
+@keyframes clashCore {
+  0% {
+    transform: scale(1) rotate(0deg);
+    background: #222;
+    color: white;
+    filter: brightness(1);
+  }
+  22% {
+    transform: scale(1.48) rotate(-12deg);
+    background: linear-gradient(135deg, dodgerblue 0%, #222 48%, crimson 100%);
+    color: white;
+    filter: brightness(1.45);
+  }
+  46% {
+    transform: scale(0.88) rotate(10deg);
+    background: white;
+    color: #111;
+    filter: brightness(1.75);
+  }
+  70% {
+    transform: scale(1.22) rotate(-5deg);
+    background: linear-gradient(135deg, crimson 0%, #222 52%, dodgerblue 100%);
+    color: white;
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    background: #222;
+    color: white;
+    filter: brightness(1);
+  }
+}
+
+@keyframes vsRingBlue {
+  0% { transform: scale(0.55) translateX(-8px); opacity: 0; }
+  28% { opacity: 1; }
+  100% { transform: scale(1.85) translateX(-28px); opacity: 0; }
+}
+
+@keyframes vsRingRed {
+  0% { transform: scale(0.55) translateX(8px); opacity: 0; }
+  28% { opacity: 1; }
+  100% { transform: scale(1.85) translateX(28px); opacity: 0; }
+}
+
+/* Kleine Zusatzintensität für die Angriffsbalken ohne Logikänderung */
+.battle-beam.fire {
+  filter: brightness(1.25) saturate(1.35);
+  box-shadow: 0 0 18px rgba(255,255,255,0.45);
+}
+
+
+
+/* ===== FIX: Keep/Trade/Release Button-Größen stabilisieren =====
+/* Ursache: Nach Nutzung wird per JS ein ✓ an den Buttontext gehängt.
+   Dadurch konnte vor allem TRADE zwischen TRADE und TRADE ✓ sichtbar breiter werden. */
+.action-button-panel .action-button,
+.action-hint .action-button {
+  width: 124px !important;
+  min-width: 124px !important;
+  height: 44px !important;
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+.action-button-panel {
+  align-items: center !important;
+}
+
+@media (max-width: 620px) {
+  .action-button-panel .action-button,
+  .action-hint .action-button {
+    width: 108px !important;
+    min-width: 108px !important;
+    height: 42px !important;
+    padding: 0 10px !important;
+  }
+}
+
+
+/* ===== Kampf-Fokus: Hintergrund bleibt bis zum Reset abgedunkelt =====
+   Die automatische Aufhellung nach Kampfende ist entfernt.
+   Solange die Battle-Stage sichtbar ist, bleibt der Fokus aktiv.
+   Erst resetSlots() entfernt .battle-stage.show; dadurch fadet die Abdunklung
+   smooth und kontinuierlich wieder heraus. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.46);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 12;
+  transition: opacity 1.25s ease-in-out;
+}
+
+body:has(.battle-stage.show)::before {
+  opacity: 1;
+}
+
+body:has(.battle-stage.show) .slots,
+body:has(.battle-stage.show) .fight-area,
+body:has(.battle-stage.show) .leader-art.show {
+  position: relative;
+}
+
+body:has(.battle-stage.show) .slots {
+  z-index: 13;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.34));
+  transition: filter 1.25s ease-in-out;
+}
+
+body:has(.battle-stage.show) .fight-area {
+  z-index: 14;
+}
+
+body:has(.battle-stage.show) .battle-stage {
+  position: relative;
+  z-index: 15;
+  box-shadow:
+    0 16px 42px rgba(0,0,0,0.42),
+    0 0 34px rgba(255,255,255,0.28);
+  transition: box-shadow 1.25s ease-in-out;
+}
+
+body:has(.battle-stage.show) .leader-art.show {
+  z-index: 16;
+  filter: drop-shadow(0 16px 24px rgba(0,0,0,0.48));
+  transition: filter 1.25s ease-in-out;
+}
+
+
+
+/* ===== Reset-Übergang: Pokémon, Infos und Gegner-Artwork synchron ausblenden ===== */
+body.reset-fading::before {
+  opacity: 0 !important;
+}
+
+.slots,
+.battle-stage,
+.leader-art.show {
+  transition:
+    opacity 1.25s ease-in-out,
+    transform 1.25s ease-in-out,
+    filter 1.25s ease-in-out;
+}
+
+body.reset-fading .slots,
+body.reset-fading .battle-stage,
+body.reset-fading .leader-art.show {
+  opacity: 0 !important;
+  transform: translateY(10px) scale(0.985);
+  filter: blur(2px) brightness(1.08);
+  pointer-events: none;
+}
+
+.action-hint-text {
+  display: inline-block;
+  transition:
+    opacity 0.32s ease,
+    transform 0.32s ease,
+    filter 0.32s ease;
+}
+
+.action-hint-text.hint-text-changing {
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  filter: blur(2px);
+}
+
+.action-hint-text.hint-text-entering {
+  animation: hintTextEnter 0.42s ease-out;
+}
+
+@keyframes hintTextEnter {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); filter: blur(2px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+
+/* ===== Reset-Reveal: erst unsichtbar exakt auf Startzustand setzen, dann weich einblenden ===== */
+body.reset-new-hidden .slots,
+body.reset-new-hidden .battle-stage,
+body.reset-new-hidden .leader-art {
+  opacity: 0 !important;
+  transform: translateY(10px) scale(0.985) !important;
+  filter: blur(2px) brightness(1.08) !important;
+  pointer-events: none !important;
+}
+
+body.reset-new-hidden .slot,
+body.reset-new-hidden .team-power,
+body.reset-new-hidden .leader-art,
+body.reset-revealing .slot,
+body.reset-revealing .team-power,
+body.reset-revealing .leader-art {
+  animation: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.reset-new-hidden .slot,
+body.reset-revealing .slot {
+  border-color: #ccc !important;
+  transform: none !important;
+}
+
+body.reset-new-hidden .slot::before,
+body.reset-new-hidden .slot::after,
+body.reset-revealing .slot::before,
+body.reset-revealing .slot::after {
+  animation: none !important;
+  box-shadow: none !important;
+}
+
+
+/* ===== RESET-SHADOW-CLEANUP final =====
+   Beim Neuaufbau nach Reset dürfen die neuen Slots nicht mehr aus dem
+   alten Battle-Fokus-Filter heraus interpolieren. Deshalb wird der
+   unsichtbare neue Startzustand ohne Filter/Transform eingefroren und
+   anschließend nur noch die Opacity eingeblendet. */
+body.reset-new-hidden .slots {
+  opacity: 0 !important;
+  transform: none !important;
+  filter: none !important;
+  pointer-events: none !important;
+  transition: none !important;
+}
+
+body.reset-revealing .slots {
+  transform: none !important;
+  filter: none !important;
+  transition: opacity 1.25s ease-in-out !important;
+}
+
+body.reset-new-hidden .slot-wrapper,
+body.reset-revealing .slot-wrapper {
+  animation: none !important;
+}
+
+body.reset-new-hidden .slot,
+body.reset-revealing .slot {
+  animation: none !important;
+  transition: none !important;
+}
+
 </style>
 </head>
 
@@ -2712,13 +3963,15 @@ button.dice-discard-button {
 
   <div style="margin-top:25px;">
 
-    <button onclick="resetSlots()">
+    <button id="resetSlotsButton" onclick="resetSlots()">
       RESET
     </button>
 
   </div>
 
 </div>
+
+<div id="recordingFrame" class="recording-frame">
 
 <div class="game-center">
 
@@ -2755,20 +4008,22 @@ button.dice-discard-button {
 
   <div class="fight-area">
 
-    <div class="action-hint" id="actionHint">Wähle deinen Gegner.</div>
+    <div class="action-hint actions-hidden" id="actionHint">
+      <span class="action-hint-text" id="actionHintText">Wähle deinen Gegner.</span>
 
-    <div class="action-button-panel" id="actionButtonPanel">
-      <button id="keepButton" class="action-button keep-button" onclick="action('keep')">
-        KEEP
-      </button>
+      <div class="action-button-panel hidden" id="actionButtonPanel">
+        <button id="keepButton" class="action-button keep-button" onclick="action('keep')">
+          KEEP
+        </button>
 
-      <button id="tradeButton" class="action-button trade-button" onclick="action('trade')">
-        TRADE
-      </button>
+        <button id="tradeButton" class="action-button trade-button" onclick="action('trade')">
+          TRADE
+        </button>
 
-      <button id="releaseButton" class="action-button release-button" onclick="action('release')">
-        RELEASE
-      </button>
+        <button id="releaseButton" class="action-button release-button" onclick="action('release')">
+          RELEASE
+        </button>
+      </div>
     </div>
 
 
@@ -2879,6 +4134,7 @@ button.dice-discard-button {
 
 </div>
 
+</div>
 
 <div class="bottom-controls">
   <details class="opponent-selector compact-opponent-panel">
@@ -2899,7 +4155,12 @@ button.dice-discard-button {
     <button onclick="rematch()">⚔ Revanche</button>
   </div>
 
+  <div class="recording-controls">
+    <button id="recordingModeButton" class="recording-mode-button" type="button" onclick="toggleRecordingMode()" aria-pressed="false">🎥 Recording Modus: AUS</button>
+  </div>
 </div>
+
+<div id="recordingFrameMask" class="recording-frame-mask" aria-hidden="true"></div>
 
 <div id="fspApp">
     <div id="fspCounterBar"></div>
@@ -2917,6 +4178,9 @@ button.dice-discard-button {
 </div>
 
 <script>
+const DEBUG_MODE = true;
+let DEBUG_FORCED_LUCK_RESULT = null;
+
 
 // ===== Sound-System =====
 const SOUND_STORAGE_KEY = "ktrSoundMutedV1";
@@ -4876,27 +6140,91 @@ function setReelImage(reel, id, shiny = false) {
 }
 
 
-function updateActionButtonPanelVisibility() {
-  const panel = document.getElementById("actionButtonPanel");
-  if (!panel) return;
+function shouldShowActionButtonsInHint() {
+  if (!activeSlot) return false;
+  if (!activeSlot.closest("#playerSlots")) return false;
+  if (!activeSlot.dataset.id) return false;
+  if (activeSlot.dataset.spinning === "true") return false;
+  if (activeSlot.classList.contains("locked")) return false;
 
-  const shouldHide =
+  return !(
     playerWheelRunning ||
     computerWheelRunning ||
     playerWheelDone ||
     computerWheelDone ||
     shinyRouletteRunning ||
     computerShinyRouletteRunning ||
-    fightInProgress;
+    fightInProgress ||
+    bonusRerollMode ||
+    shinySelectionMode
+  );
+}
 
-  panel.classList.toggle("hidden", !!shouldHide);
+function updateActionButtonPanelVisibility() {
+  const panel = document.getElementById("actionButtonPanel");
+  const hint = document.getElementById("actionHint");
+  if (!panel) return;
+
+  const shouldShow = shouldShowActionButtonsInHint();
+
+  panel.classList.toggle("hidden", !shouldShow);
+
+  if (hint) {
+    hint.classList.toggle("actions-visible", shouldShow);
+    hint.classList.toggle("actions-hidden", !shouldShow);
+  }
+}
+
+
+const RESET_FADE_DURATION = 1250;
+let resetTransitionRunning = false;
+let hintTransitionTimer = null;
+
+function setHintTextSmooth(hintText, text = "") {
+  if (!hintText) return;
+
+  const nextText = text || "";
+  const currentText = hintText.innerText || "";
+
+  clearTimeout(hintTransitionTimer);
+
+  if (currentText === nextText) {
+    hintText.classList.remove("hint-text-changing", "hint-text-entering");
+    return;
+  }
+
+  hintText.classList.remove("hint-text-entering");
+  hintText.classList.add("hint-text-changing");
+
+  hintTransitionTimer = setTimeout(() => {
+    hintText.innerText = nextText;
+    hintText.classList.remove("hint-text-changing");
+    hintText.classList.add("hint-text-entering");
+
+    setTimeout(() => {
+      hintText.classList.remove("hint-text-entering");
+    }, 440);
+  }, 260);
 }
 
 function updateHint(text = "") {
+  // Während Zusatz-Trade, Mega-Würfel oder Legendärer Würfel läuft,
+  // soll nur das luckResultCenter sichtbar bleiben. actionHint wird
+  // deshalb an dieser Stelle bewusst ausgeblendet.
+  if (bonusRerollMode || bonusRerollSpinInProgress) {
+    text = "";
+  }
+
   const hint = document.getElementById("actionHint");
+  const hintText = document.getElementById("actionHintText");
+
+  if (hintText) {
+    setHintTextSmooth(hintText, text);
+  }
+
   if (hint) {
-    hint.innerText = text;
-    hint.style.display = text ? "flex" : "none";
+    const hasText = !!text;
+    hint.style.display = hasText ? "flex" : "none";
   }
 
   updateActionButtonPanelVisibility();
@@ -4974,6 +6302,35 @@ function clearShinyPickables() {
     .forEach(slot => slot.classList.remove("shiny-pickable"));
 }
 
+function clearResetGlowClasses() {
+  document.querySelectorAll(
+    ".winner-slot, .loser-slot, .active-slot, .shiny-roulette-active, .shiny-pickable"
+  ).forEach(element => {
+    element.classList.remove(
+      "winner-slot",
+      "loser-slot",
+      "active-slot",
+      "shiny-roulette-active",
+      "shiny-pickable"
+    );
+  });
+
+  document.querySelectorAll(
+    ".team-power, .vs-core, .battle-beam, .impact-burst"
+  ).forEach(element => {
+    element.classList.remove(
+      "charging",
+      "clash",
+      "fire",
+      "attack-left",
+      "attack-right",
+      "hit-left",
+      "hit-right",
+      "victory-glow"
+    );
+  });
+}
+
 function getSpecialLabel(pokemon) {
 
   if (pokemon.paradox) {
@@ -4997,7 +6354,7 @@ function getSpecialLabel(pokemon) {
   }
 
   if (pokemon.formKind === "gmax") {
-    return "🔥 GIGADYNAMAX!";
+    return "🔥 DYNAMAX!";
   }
 
   return "";
@@ -5739,6 +7096,12 @@ function showPlayerLuckWheel() {
 }
 
 function chooseLuckWheelResult() {
+  if (DEBUG_MODE && DEBUG_FORCED_LUCK_RESULT) {
+    const forcedResult = DEBUG_FORCED_LUCK_RESULT;
+    DEBUG_FORCED_LUCK_RESULT = null;
+    return forcedResult;
+  }
+
   const roll = Math.random() * 100;
 
   if (roll < 50) return "roulette";
@@ -6265,7 +7628,7 @@ async function spinPlayerLuckWheel() {
     await hideLuckResultCenter();
   }
 
-  clearTeamSpecialBanners("#playerSlots");
+  // Spezialbanner bleiben nach dem Spieler-Glücksrad sichtbar bis zum Kampfende/Reset.
 
   playerWheelDone = true;
   playerWheelRunning = false;
@@ -6407,7 +7770,7 @@ async function spinComputerLuckWheel(slots, basePool = loadedImages) {
     computerWheelDone = true;
     computerWheelRunning = false;
     computerShinyRouletteRunning = false;
-    clearTeamSpecialBanners("#computerSlots");
+    // Spezialbanner bleiben nach dem Gegner-Glücksrad sichtbar bis zum Kampfende/Reset.
 
     updateFightButtonVisibility();
 
@@ -7102,6 +8465,25 @@ function addEffectivenessLine(text, status) {
   const log =
     document.getElementById("effectivenessLog");
 
+  if (!log) {
+    return;
+  }
+
+  while (log.children.length >= 2) {
+    const oldLine =
+      log.firstElementChild;
+
+    oldLine.classList.add("exiting");
+
+    setTimeout(() => {
+      if (oldLine.parentNode === log) {
+        log.removeChild(oldLine);
+      }
+    }, 220);
+
+    break;
+  }
+
   const line =
     document.createElement("div");
 
@@ -7113,9 +8495,15 @@ function addEffectivenessLine(text, status) {
 
   log.appendChild(line);
 
-  while (log.children.length > 3) {
-    log.removeChild(log.firstChild);
-  }
+  log.classList.remove("hit-flash");
+
+  void log.offsetWidth;
+
+  log.classList.add("hit-flash");
+
+  setTimeout(() => {
+    log.classList.remove("hit-flash");
+  }, 420);
 }
 
 async function applyEffectivenessAdjustments(adjustments, totalElement, targetElement, startTotal, teamName) {
@@ -7594,14 +8982,14 @@ async function fight() {
 }
 
 function newMatch() {
-  resetSlots();
+  return resetSlots();
 }
 
-function rematch() {
+async function rematch() {
 
   const rematchType = lastOpponentType;
 
-  resetSlots();
+  await resetSlots();
 
   if (rematchType) {
     startGymLeader(rematchType);
@@ -7656,13 +9044,72 @@ function resetOnlyComputerSlots() {
     .forEach(e => e.innerText = "");
 
   document.querySelectorAll("#computerSlots .special-banner")
-    .forEach(e => e.innerText = "");
-
-  document.querySelectorAll(".special-banner").forEach(e => { e.className = "special-banner"; e.innerText = ""; setSpecialBannerColor(e, ""); });
+    .forEach(e => {
+      e.innerText = "";
+      e.className = "special-banner";
+      setSpecialBannerColor(e, "");
+    });
 }
 
-function resetSlots() {
+
+
+function resetSlots(options = {}) {
+  const battleStage = document.getElementById("battleStage");
+  const shouldAnimate =
+    !options.immediate &&
+    battleStage &&
+    battleStage.classList.contains("show") &&
+    !resetTransitionRunning;
+
+  if (!shouldAnimate) {
+    performResetSlotsCleanup();
+    return Promise.resolve();
+  }
+
+  resetTransitionRunning = true;
+  document.body.classList.add("reset-fading");
+  clearResetGlowClasses();
+  updateHint("Wähle deinen Gegner.");
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      document.body.classList.add("reset-new-hidden");
+      performResetSlotsCleanup({ keepResetFadeClass: true, keepResetNewHiddenClass: true });
+
+      // Reflow + zwei Frames erzwingen: Der Browser verwirft zuerst sicher
+      // alle alten Battle-Fokus-Filter/Drop-Shadows. Erst danach werden die
+      // neuen Slots aus exakt ihrem neutralen Ausgangszustand eingeblendet.
+      void document.body.offsetHeight;
+
+      requestAnimationFrame(() => {
+        void document.body.offsetHeight;
+
+        requestAnimationFrame(() => {
+          document.body.classList.remove("reset-fading");
+          document.body.classList.add("reset-revealing");
+
+          requestAnimationFrame(() => {
+            document.body.classList.remove("reset-new-hidden");
+          });
+        });
+      });
+
+      setTimeout(() => {
+        document.body.classList.remove("reset-revealing");
+  if (!options.keepResetNewHiddenClass) {
+    document.body.classList.remove("reset-new-hidden");
+  }
+        resetTransitionRunning = false;
+        resolve();
+      }, RESET_FADE_DURATION + 80);
+    }, RESET_FADE_DURATION);
+  });
+}
+
+function performResetSlotsCleanup(options = {}) {
   stopDiceSoundLoop();
+  clearResetGlowClasses();
+  document.body.classList.remove("reset-revealing");
 
   fightInProgress = false;
   shinyRouletteRunning = false;
@@ -7752,7 +9199,11 @@ function resetSlots() {
   clearShinyPickables();
   resetActionButtons();
   updateHint("Wähle deinen Gegner.");
+  if (!options.keepResetFadeClass) {
+    document.body.classList.remove("reset-fading");
+  }
 }
+
 
 function wait(ms) {
   return new Promise(resolve => {
@@ -9269,6 +10720,362 @@ async function fppInitOnce(){
   fppRenderSelections();
 }
 
+</script>
+
+
+
+
+
+<div id="debugToggle" class="debug-toggle" style="display:none;">
+  <button id="debugOpenBtn" class="debug-open-btn" title="Debug-Modus">🛠</button>
+
+  <div id="debugPanel" class="debug-panel">
+    <div class="debug-title">DEBUG: nächstes Spieler-Glücksrad</div>
+
+    <button class="debug-test-btn" data-debug-result="megaDice" onclick="setForcedLuckResult('megaDice', this)">
+      Mega Würfel
+    </button>
+
+    <button class="debug-test-btn" data-debug-result="legendDice" onclick="setForcedLuckResult('legendDice', this)">
+      Legendärer Würfel
+    </button>
+
+    <button class="debug-test-btn" data-debug-result="extraTrade" onclick="setForcedLuckResult('extraTrade', this)">
+      Zusatz Trade
+    </button>
+
+    <button class="debug-clear-btn" onclick="clearForcedLuckResult()">
+      Auswahl löschen
+    </button>
+  </div>
+</div>
+
+<style>
+.debug-toggle {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 99999;
+}
+
+.debug-open-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,215,0,0.9);
+  background: #111827;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(255,215,0,0.75);
+  animation: debugPulse 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+}
+
+.debug-open-btn.active,
+.debug-open-btn.has-selection {
+  background: #f59e0b;
+  color: #111827;
+  box-shadow: 0 0 26px rgba(255,215,0,1), 0 0 42px rgba(255,215,0,0.55);
+}
+
+.debug-panel {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: 52px;
+  width: 186px;
+  padding: 9px;
+  border-radius: 12px;
+  border: 2px solid #666;
+  background: rgba(0,0,0,0.92);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+.debug-panel.show {
+  display: block;
+}
+
+.debug-title {
+  margin-bottom: 7px;
+  color: #ffd84d;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.4px;
+}
+
+.debug-test-btn,
+.debug-clear-btn {
+  width: 100%;
+  margin: 3px 0;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 2px solid #374151;
+  background: #1f2937;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.debug-test-btn.active {
+  background: linear-gradient(135deg, #facc15, #f97316);
+  color: #111827;
+  border-color: white;
+  box-shadow: 0 0 18px rgba(255,215,0,0.95);
+  transform: scale(1.04);
+}
+
+.debug-clear-btn {
+  margin-top: 8px;
+  background: #374151;
+  font-size: 11px;
+}
+
+@keyframes debugPulse {
+  0% { box-shadow: 0 0 8px rgba(255,215,0,0.45); }
+  50% { box-shadow: 0 0 24px rgba(255,215,0,1); }
+  100% { box-shadow: 0 0 8px rgba(255,215,0,0.45); }
+}
+
+/* Finale Positionierung: Verwenden grün, Verwerfen rot und etwas näher am Hinweisfeld. */
+.luck-choice-use {
+  left: calc(50% - 260px) !important;
+  right: auto !important;
+  transform: translate(-100%, -50%) !important;
+  background: #16a34a !important;
+  color: white !important;
+}
+
+.luck-choice-discard {
+  left: calc(50% + 275px) !important;
+  right: auto !important;
+  transform: translate(0, -50%) !important;
+  background: #dc2626 !important;
+  color: white !important;
+}
+
+.luck-choice-button.show {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: luckChoiceFadeIn 0.22s ease-out forwards;
+}
+
+.luck-choice-use.show {
+  transform: translate(-100%, -50%) !important;
+}
+
+.luck-choice-discard.show {
+  transform: translate(0, -50%) !important;
+}
+
+.luck-choice-use:hover {
+  transform: translate(-100%, -50%) scale(1.04) !important;
+}
+
+.luck-choice-discard:hover {
+  transform: translate(0, -50%) scale(1.04) !important;
+}
+
+@media (max-width: 850px) {
+  .luck-choice-use {
+    left: calc(50% - 12px) !important;
+    right: auto !important;
+    transform: translate(-100%, -50%) !important;
+  }
+
+  .luck-choice-discard {
+    left: calc(50% + 12px) !important;
+    right: auto !important;
+    transform: translate(0, -50%) !important;
+  }
+}
+
+
+/* ===== Recording-Modus ===== */
+.recording-frame {
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+  border-radius: 34px;
+}
+
+.recording-controls {
+  width: min(980px, 94vw);
+  margin: 14px auto 0;
+  text-align: center;
+}
+
+.recording-mode-button {
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 13px 22px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.recording-mode-button.active {
+  background: #ff00ff;
+  color: #111827;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.95), 0 0 28px rgba(255,0,255,0.75);
+}
+
+.recording-frame-mask {
+  display: none;
+  position: fixed;
+  left: var(--record-left, 20px);
+  top: var(--record-top, 160px);
+  width: var(--record-width, calc(100vw - 40px));
+  height: var(--record-height, calc(100vh - 220px));
+  border-radius: 34px;
+  box-shadow: 0 0 0 9999px #ff00ff;
+  pointer-events: none;
+  z-index: 14000;
+}
+
+body.recording-mode .recording-frame-mask {
+  display: block;
+}
+
+body.recording-mode #recordingFrame {
+  position: relative;
+  z-index: 14001;
+}
+
+body.recording-mode #recordingModeButton {
+  position: relative;
+  z-index: 14002;
+}
+</style>
+
+<script>
+function setForcedLuckResult(resultKey, buttonEl) {
+  if (!DEBUG_MODE) return;
+
+  DEBUG_FORCED_LUCK_RESULT = resultKey;
+
+  document.querySelectorAll('.debug-test-btn').forEach(btn => {
+    btn.classList.toggle('active', btn === buttonEl);
+  });
+
+  const openBtn = document.getElementById('debugOpenBtn');
+  if (openBtn) openBtn.classList.add('has-selection');
+
+  console.log('Debug: nächstes Spieler-Glücksrad erzwingt:', resultKey);
+}
+
+function clearForcedLuckResult() {
+  DEBUG_FORCED_LUCK_RESULT = null;
+
+  document.querySelectorAll('.debug-test-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  const openBtn = document.getElementById('debugOpenBtn');
+  if (openBtn) openBtn.classList.remove('has-selection');
+
+  console.log('Debug-Auswahl gelöscht');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.getElementById('debugToggle');
+  const openBtn = document.getElementById('debugOpenBtn');
+  const panel = document.getElementById('debugPanel');
+
+  if (!DEBUG_MODE || !toggle || !openBtn || !panel) return;
+
+  toggle.style.display = 'block';
+
+  openBtn.addEventListener('click', () => {
+    panel.classList.toggle('show');
+    openBtn.classList.toggle('active', panel.classList.contains('show'));
+  });
+});
+
+
+// ===== Recording-Modus =====
+let recordingModeEnabled = false;
+
+function getRecordingBounds() {
+  const resetButton = document.getElementById('resetSlotsButton');
+  const elements = [
+    document.getElementById('playerSlots'),
+    document.querySelector('#ktrGameView .fight-area'),
+    document.getElementById('computerSlots'),
+    document.getElementById('actionHint'),
+    document.getElementById('leaderArt'),
+    document.getElementById('luckUseButton'),
+    document.getElementById('luckDiscardButton')
+  ].filter(Boolean);
+
+  const rects = elements
+    .map(el => el.getBoundingClientRect())
+    .filter(rect => rect.width > 0 && rect.height > 0);
+
+  if (!rects.length) {
+    return { left: 20, top: 140, right: window.innerWidth - 20, bottom: window.innerHeight - 40 };
+  }
+
+  const opponentPanel = document.querySelector('#ktrGameView .compact-opponent-panel');
+  const paddingX = 42;
+  const top = resetButton ? resetButton.getBoundingClientRect().bottom + 18 : Math.min(...rects.map(rect => rect.top)) - 24;
+  const left = Math.min(...rects.map(rect => rect.left)) - paddingX;
+  const right = Math.max(...rects.map(rect => rect.right)) + paddingX;
+  // Recording-Bereich soll direkt oberhalb der Gegnerauswahl enden.
+  // Nicht am letzten Gameplay-Element abschneiden, sonst bleibt zu viel Magenta-Lücke.
+  const opponentTop = opponentPanel ? opponentPanel.getBoundingClientRect().top - 1 : Math.max(...rects.map(rect => rect.bottom)) + 18;
+  const bottom = opponentTop;
+
+  return {
+    left: Math.max(8, left),
+    top: Math.max(8, top),
+    right: Math.min(window.innerWidth - 8, right),
+    bottom: Math.min(window.innerHeight - 8, Math.max(top + 120, bottom))
+  };
+}
+
+function updateRecordingFrame() {
+  if (!recordingModeEnabled) return;
+
+  const mask = document.getElementById('recordingFrameMask');
+  if (!mask) return;
+
+  const bounds = getRecordingBounds();
+  mask.style.setProperty('--record-left', `${bounds.left}px`);
+  mask.style.setProperty('--record-top', `${bounds.top}px`);
+  mask.style.setProperty('--record-width', `${Math.max(120, bounds.right - bounds.left)}px`);
+  mask.style.setProperty('--record-height', `${Math.max(120, bounds.bottom - bounds.top)}px`);
+}
+
+function setRecordingMode(enabled) {
+  recordingModeEnabled = Boolean(enabled);
+  document.body.classList.toggle('recording-mode', recordingModeEnabled);
+
+  const button = document.getElementById('recordingModeButton');
+  if (button) {
+    button.classList.toggle('active', recordingModeEnabled);
+    button.setAttribute('aria-pressed', String(recordingModeEnabled));
+    button.textContent = recordingModeEnabled ? '🎥 Recording Modus: AN' : '🎥 Recording Modus: AUS';
+  }
+
+  updateRecordingFrame();
+}
+
+function toggleRecordingMode() {
+  setRecordingMode(!recordingModeEnabled);
+}
+
+window.addEventListener('resize', updateRecordingFrame);
+window.addEventListener('scroll', updateRecordingFrame, true);
+window.addEventListener('DOMContentLoaded', updateRecordingFrame);
 </script>
 
 </body>
