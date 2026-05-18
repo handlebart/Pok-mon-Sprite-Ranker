@@ -10888,6 +10888,97 @@ async function fppInitOnce(){
     transform: translate(0, -50%) !important;
   }
 }
+
+
+/* =========================================================
+   FINALER RESPONSIVE-FIX: Gegner-Artwork stabil halten
+   ---------------------------------------------------------
+   Problem: Frühere Regeln setzen .leader-art.show während
+   .battle-stage.show auf position: relative. Dadurch wird das
+   Artwork Teil des Slot-Flex-Layouts und kann auf iPad/Desktop
+   in die Slotreihe rutschen.
+
+   Lösung: Das Artwork bleibt immer absolut positioniert und
+   bekommt auf Tablet/kleineren Desktopbreiten eine eigene sichere
+   Position oberhalb der Gegner-Slots, wie auf Handy.
+   ========================================================= */
+#computerSlots {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+body:has(.battle-stage.show) .leader-art.show,
+.leader-art,
+.leader-art.show {
+  position: absolute !important;
+  flex: 0 0 auto !important;
+  pointer-events: none !important;
+}
+
+body:has(.battle-stage.show) .leader-art.show {
+  right: -150px !important;
+  left: auto !important;
+  top: 0 !important;
+  z-index: 16 !important;
+}
+
+@media (max-width: 1250px) {
+  #computerSlots {
+    margin-top: 235px !important;
+  }
+
+  .leader-art,
+  .leader-art.show,
+  body:has(.battle-stage.show) .leader-art.show {
+    left: 50% !important;
+    right: auto !important;
+    top: -225px !important;
+    width: 140px !important;
+    min-height: 210px !important;
+    margin: 0 !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .leader-art.show {
+    animation: leaderSlideInSafe 0.45s ease-out forwards !important;
+  }
+
+  .leader-art img {
+    max-width: 130px !important;
+    max-height: 195px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #computerSlots {
+    margin-top: 215px !important;
+  }
+
+  .leader-art,
+  .leader-art.show,
+  body:has(.battle-stage.show) .leader-art.show {
+    top: -205px !important;
+    width: 120px !important;
+    min-height: 190px !important;
+  }
+
+  .leader-art img {
+    max-width: 115px !important;
+    max-height: 175px !important;
+  }
+}
+
+@keyframes leaderSlideInSafe {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
 </style>
 
 <script>
