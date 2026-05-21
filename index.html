@@ -866,6 +866,39 @@ button:disabled {
   margin-top: 6px;
 }
 
+
+/* ===== DEBUG: fehlgeschlagene Pokémon-/Formen-Bilder ===== */
+.sprite-debug-panel {
+  display: none;
+  width: min(980px, 94vw);
+  margin: 14px auto 0;
+  padding: 12px 14px;
+  border: 3px solid #f59e0b;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #222;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  font-size: 13px;
+}
+.sprite-debug-panel.show { display: block; }
+.sprite-debug-panel h3 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 17px;
+}
+.sprite-debug-panel pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 8px 0 0;
+  max-height: 260px;
+  overflow: auto;
+}
+
 .action-hint {
   position: absolute;
   left: 50%;
@@ -3892,6 +3925,268 @@ body.reset-revealing .slot {
   }
 }
 
+
+/* ===== POKÉMON RANDOM TEAMER (isoliert: keine globalen .slot/.button-Overrides) ===== */
+.menu-random-teamer-button {
+  background: linear-gradient(135deg, #f36f68, #f59e0b, #22c55e);
+}
+
+#pokemonRandomTeamerView {
+  min-height: 100vh;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background: #fffefb;
+  color: #33291f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 18px 40px;
+  box-sizing: border-box;
+}
+
+#pokemonRandomTeamerView.hidden-view {
+  display: none !important;
+}
+
+.prt-app {
+  width: min(1080px, 100%);
+  text-align: center;
+}
+
+.prt-app h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+  color: #4d3928;
+}
+
+.prt-app p {
+  color: #786653;
+}
+
+.prt-button {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 24px;
+  margin: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #f36f68;
+  color: white;
+  transition: 0.2s;
+  box-shadow: 0 8px 22px rgba(243, 111, 104, 0.2);
+}
+
+.prt-button:hover {
+  transform: scale(1.04);
+}
+
+.prt-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prt-status {
+  margin-bottom: 14px;
+  color: #786653;
+  font-weight: bold;
+}
+
+.prt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  width: min(980px, 100%);
+  margin: 0 auto;
+  border: 16px solid #f36f68;
+  border-radius: 24px;
+  background: #111111;
+  overflow: visible;
+  position: relative;
+  box-shadow:
+    0 14px 34px rgba(243,111,104,0.16),
+    0 3px 10px rgba(0,0,0,0.05);
+}
+
+.prt-slot {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,0.96), transparent 42%),
+    #ffffff;
+  border: 2px solid #111111;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.prt-slot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.prt-slot:hover {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255,255,255,1), transparent 44%),
+    #ffffff;
+}
+
+.prt-slot.prt-rolling {
+  border-color: #111111;
+  cursor: default;
+}
+
+.prt-slot.prt-final {
+  border-color: #111111;
+  animation: prtSlotImpact 0.42s ease;
+}
+
+.prt-slot.prt-final::after {
+  animation: prtFlash 0.28s ease;
+}
+
+.prt-slot.prt-selected {
+  z-index: 20;
+  overflow: visible;
+  border-color: #111111;
+  box-shadow:
+    inset 0 0 0 5px #f36f68,
+    inset 0 0 0 10px rgba(255,255,255,0.96),
+    0 0 0 8px rgba(243,111,104,0.55),
+    0 0 28px rgba(243,111,104,0.38),
+    0 18px 36px rgba(0,0,0,0.16);
+  animation: prtSelectedPulse 1.25s infinite ease-in-out;
+}
+
+.prt-slot.prt-selected::before {
+  content: "GEWÄHLT";
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 25;
+  background: #f36f68;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  box-shadow: 0 6px 14px rgba(243,111,104,0.22);
+}
+
+@keyframes prtSelectedPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.026); }
+}
+
+@keyframes prtSlotImpact {
+  0% { transform: scale(1); }
+  18% { transform: scale(1.035) rotate(-0.4deg); }
+  36% { transform: scale(0.985) rotate(0.4deg); }
+  65% { transform: scale(1.018); }
+  100% { transform: scale(1); }
+}
+
+@keyframes prtFlash {
+  0% { opacity: 0; }
+  25% { opacity: 0.45; }
+  100% { opacity: 0; }
+}
+
+.prt-question {
+  font-size: clamp(115px, 15vw, 200px);
+  line-height: 1;
+  font-weight: 900;
+  color: #111111;
+  text-shadow:
+    0 0 8px rgba(0,0,0,0.25),
+    0 0 22px rgba(0,0,0,0.16),
+    0 0 46px rgba(243,111,104,0.26);
+  animation: prtQuestionPulse 1.25s infinite ease-in-out;
+}
+
+@keyframes prtQuestionPulse {
+  0%, 100% { transform: scale(1); opacity: 0.82; }
+  50% { transform: scale(1.16); opacity: 1; }
+}
+
+.prt-pokemon-img {
+  width: 94%;
+  height: 76%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 8px 6px rgba(70, 45, 28, 0.10))
+    drop-shadow(0 16px 18px rgba(70, 45, 28, 0.12));
+  transform-origin: center;
+}
+
+.prt-pokemon-img.prt-pop-in {
+  animation: prtImagePop 0.46s cubic-bezier(.2, 1.4, .35, 1);
+}
+
+.prt-pokemon-img.prt-idle {
+  animation: prtIdleFloat 4.8s ease-in-out infinite;
+}
+
+@keyframes prtImagePop {
+  0% { transform: scale(0.68); opacity: 0; }
+  55% { transform: scale(1.11); opacity: 1; }
+  78% { transform: scale(0.97); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes prtIdleFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-2px) scale(1.006); }
+}
+
+.prt-name {
+  margin-top: 2px;
+  font-size: clamp(18px, 2.1vw, 28px);
+  font-weight: 900;
+  color: #4d3928;
+  text-shadow: 0 2px 0 rgba(255,255,255,0.85);
+}
+
+.prt-id {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  color: #d16b63;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.prt-progress-wrap {
+  width: min(520px, 100%);
+  height: 10px;
+  background: rgba(243,111,104,0.14);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0 auto 16px;
+  display: none;
+}
+
+.prt-progress {
+  width: 0%;
+  height: 100%;
+  background: #f36f68;
+}
+
+@media (max-width: 700px) {
+  .prt-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 </style>
 </head>
 
@@ -3908,6 +4203,7 @@ body.reset-revealing .slot {
       <button class="menu-picker-button" onclick="showMainAppView('picker')">Favorite Sprite Picker</button>
       <button class="menu-team-button" onclick="showMainAppView('teams')">Pokémon Themen Teams</button>
       <button class="menu-fav-pokemon-button" onclick="showMainAppView('favoritePokemon')">Favorite Pokémon Picker</button>
+      <button class="menu-random-teamer-button" onclick="showMainAppView('randomTeamer')">Pokémon Random Teamer</button>
     </div>
   </div>
 </div>
@@ -4008,6 +4304,13 @@ body.reset-revealing .slot {
   </div>
 
   <div class="status" id="status">Nicht geladen</div>
+
+
+  <div class="sprite-debug-panel" id="spriteDebugPanel">
+    <h3>🔎 Debug: fehlgeschlagene Pokémon-/Formen-Bilder</h3>
+    <div id="spriteDebugSummary">Noch keine Fehlbilder erkannt.</div>
+    <pre id="spriteDebugList"></pre>
+  </div>
 
   <div style="margin-top:25px;">
 
@@ -4202,7 +4505,24 @@ body.reset-revealing .slot {
 
 </div>
 
-<div id="fspApp">
+</div>
+
+<div id="favoriteSpritePickerView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+  <div id="fspStart">
+    <div class="fsp-title">Favorite Sprite Picker</div>
+    <div>
+      <button class="fsp-pokeballBtn" onclick="fspStartGen(1)" aria-label="Generation 1 starten"></button>
+      <button class="fsp-pokeballBtn" onclick="fspStartGen(2)" aria-label="Generation 2 starten"></button>
+    </div>
+    <div>
+      <span class="fsp-btnLabel">Gen 1</span>
+      <span class="fsp-btnLabel" style="margin-left:74px;">Gen 2</span>
+    </div>
+  </div>
+
+  <div id="fspApp">
     <div id="fspCounterBar"></div>
     <button id="fspBackBtn" onclick="fspBack()">← Zurück</button>
     <button id="fspResetBtn" onclick="fspResetAll()">Reset</button>
@@ -5587,6 +5907,7 @@ function repairGymLeaderArtwork() {
 }
 
 let loadedImages = [];
+let failedSpriteLoads = [];
 const spriteImageCache = {};
 let loadedCount = 0;
 let ready = false;
@@ -6127,11 +6448,24 @@ function img(id) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 }
 
+const spriteUrlOverrides = {};
+
+function fallbackSpriteUrl(id, shiny = false) {
+  const shinyPart = shiny ? "shiny/" : "";
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${shinyPart}${id}.png`;
+}
+
 function spriteKey(id, shiny = false) {
   return `${shiny ? "shiny" : "normal"}:${id}`;
 }
 
 function getSpriteUrl(id, shiny = false) {
+  const key = spriteKey(id, shiny);
+
+  if (spriteUrlOverrides[key]) {
+    return spriteUrlOverrides[key];
+  }
+
   if (isCustomMegaFormId(id)) {
     return getCustomMegaSpriteUrl(id, shiny);
   }
@@ -6583,11 +6917,77 @@ async function getBetterTradePool(currentStat, pool = loadedImages) {
   return betterPool;
 }
 
+
+function getDebugSpriteLabel(id) {
+  if (isCustomMegaFormId(id)) {
+    return customMegaFormMap[String(id)].name;
+  }
+
+  if (forms && forms[id] && forms[id].name) {
+    return forms[id].name;
+  }
+
+  if (pokemonCache[String(id)] && pokemonCache[String(id)].name) {
+    return pokemonCache[String(id)].name;
+  }
+
+  return String(id);
+}
+
+function renderSpriteDebugPanel() {
+  const panel = document.getElementById("spriteDebugPanel");
+  const summary = document.getElementById("spriteDebugSummary");
+  const list = document.getElementById("spriteDebugList");
+
+  if (!panel || !summary || !list) return;
+
+  if (!failedSpriteLoads.length) {
+    panel.classList.remove("show");
+    summary.textContent = "Noch keine Fehlbilder erkannt.";
+    list.textContent = "";
+    return;
+  }
+
+  panel.classList.add("show");
+  summary.textContent = `${failedSpriteLoads.length} Bild(er) konnten weder über die normale URL noch über den Fallback geladen werden:`;
+  list.textContent = failedSpriteLoads.map(item =>
+    `ID: ${item.id}\nName: ${item.name}\nNormal: ${item.primaryUrl}\nFallback: ${item.fallbackUrl}`
+  ).join("\n\n---\n\n");
+
+  console.warn("Fehlgeschlagene Pokémon-/Formen-Bilder:", failedSpriteLoads);
+}
+
+async function rememberFailedSpriteLoad(id, primaryUrl, fallbackUrl) {
+  let name = getDebugSpriteLabel(id);
+
+  if (/^\d+$/.test(String(id))) {
+    try {
+      const data = await getPokemonData(id);
+      if (data && data.name && data.name !== "Unbekannt") {
+        name = data.name;
+      }
+    } catch (error) {
+      // Debug darf den normalen Ladeprozess nicht blockieren.
+    }
+  }
+
+  failedSpriteLoads.push({
+    id: String(id),
+    name,
+    primaryUrl,
+    fallbackUrl
+  });
+
+  renderSpriteDebugPanel();
+}
+
 async function startLoad() {
 
   if (ready) return;
 
   loadedImages = [];
+  failedSpriteLoads = [];
+  renderSpriteDebugPanel();
   loadedCount = 0;
 
   registerCustomMegaFormsEverywhere();
@@ -6624,7 +7024,32 @@ async function startLoad() {
     };
 
     image.onerror = () => {
-      updateProgress(total);
+      const fallbackImage = new Image();
+      fallbackImage.decoding = "async";
+      fallbackImage.loading = "eager";
+
+      fallbackImage.onload = async () => {
+        spriteUrlOverrides[spriteKey(id, false)] = fallbackImage.src;
+        rememberSpriteImage(id, fallbackImage, false);
+
+        loadedImages.push(id);
+
+        await getPokemonData(id);
+
+        updateProgress(total);
+      };
+
+      fallbackImage.onerror = async () => {
+        await rememberFailedSpriteLoad(
+          id,
+          getSpriteUrl(id, false),
+          fallbackSpriteUrl(id, false)
+        );
+
+        updateProgress(total);
+      };
+
+      fallbackImage.src = fallbackSpriteUrl(id, false);
     };
 
     image.src = getSpriteUrl(id, false);
@@ -6649,7 +7074,11 @@ function updateProgress(total) {
     ready = true;
 
     document.getElementById("status").innerText =
-      `✔ ${loadedImages.length} Pokémon/Formen geladen`;
+      failedSpriteLoads.length
+        ? `✔ ${loadedImages.length} Pokémon/Formen geladen — ${failedSpriteLoads.length} Fehlbilder siehe Debug-Liste`
+        : `✔ ${loadedImages.length} Pokémon/Formen geladen`;
+
+    renderSpriteDebugPanel();
   }
 }
 
@@ -9890,13 +10319,15 @@ document.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('cat')">🐱 Katzen</button>
     <button onclick="ttSetCategory('monkey')">🐵 Affen</button>
     <button onclick="ttSetCategory('hoof')">🐴 Huftiere</button>
-    <button onclick="ttSetCategory('item')">🛠️ mit Gegenstand</button>
+    <button onclick="ttSetCategory('hat')">🎩 Mit Hut</button>
+    <button onclick="ttSetCategory('item')">🎒 Gegenstände</button>
 
     <button onclick="ttSetCategory('beard')">🧔 Mit Bart</button>
     <button onclick="ttSetCategory('blueShiny')">🔵 Blaue Shinys</button>
     <button onclick="ttSetCategory('yellowShiny')">🟡 Gelbe Shinys</button>
     <button onclick="ttSetCategory('blackShiny')">⚫ Schwarze Shinys</button>
     <button onclick="ttSetCategory('redShiny')">🔴 Rote Shinys</button>
+    <button onclick="ttSetCategory('greenShiny')">🟢 Grüne Shinys</button>
   </div>
 
   <div class="tt-team">
@@ -9930,6 +10361,31 @@ document.addEventListener("DOMContentLoaded", () => {
   <div id="fppPicker"></div>
 </div>
 
+
+<div id="pokemonRandomTeamerView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+
+  <main class="prt-app">
+    <h1>Pokémon Randomizer</h1>
+
+    <p>6 zufällige Pokémon — nach ca. 3 Sekunden bleibt das Team stehen.</p>
+
+    <div>
+      <button id="prtPreloadBtn" class="prt-button">Alle Artworks & Namen vorladen</button>
+      <button id="prtRollBtn" class="prt-button" disabled>Würfeln</button>
+      <button id="prtClearBtn" class="prt-button">Leeren</button>
+    </div>
+
+    <div class="prt-progress-wrap" id="prtProgressWrap">
+      <div class="prt-progress" id="prtProgress"></div>
+    </div>
+
+    <div class="prt-status" id="prtStatus">Erst vorladen, dann würfeln.</div>
+
+    <section class="prt-grid" id="prtGrid"></section>
+  </main>
+</div>
+
 <script>
 function showMainAppView(view) {
   const menu = document.getElementById("mainMenu");
@@ -9937,15 +10393,21 @@ function showMainAppView(view) {
   const picker = document.getElementById("favoriteSpritePickerView");
   const teams = document.getElementById("pokemonThemeTeamsView");
   const favoritePokemon = document.getElementById("favoritePokemonPickerView");
+  const randomTeamer = document.getElementById("pokemonRandomTeamerView");
 
   if (menu) menu.classList.toggle("hidden-view", view !== "menu");
   if (game) game.classList.toggle("hidden-view", view !== "game");
   if (picker) picker.classList.toggle("hidden-view", view !== "picker");
   if (teams) teams.classList.toggle("hidden-view", view !== "teams");
   if (favoritePokemon) favoritePokemon.classList.toggle("hidden-view", view !== "favoritePokemon");
+  if (randomTeamer) randomTeamer.classList.toggle("hidden-view", view !== "randomTeamer");
 
   if (view === "favoritePokemon" && typeof fppInitOnce === "function") {
     fppInitOnce();
+  }
+
+  if (view === "randomTeamer" && typeof window.prtInitOnce === "function") {
+    window.prtInitOnce();
   }
 
   document.body.style.overflow = "";
@@ -9955,6 +10417,297 @@ function showMainAppView(view) {
     fspClosePicker();
   }
 }
+
+
+/* ===== POKÉMON RANDOM TEAMER JS (komplett gekapselt) ===== */
+(function () {
+  const TOTAL_POKEMON = 1025;
+  const ROLL_DURATION_MS = 3000;
+  const STOP_DELAY_PER_SLOT_MS = 220;
+  const FRAME_MS = 70;
+
+  let preloadBtn;
+  let rollBtn;
+  let clearBtn;
+  let statusEl;
+  let grid;
+  let progressWrap;
+  let progress;
+
+  let loadedPokemon = [];
+  let isPreloaded = false;
+  let isRolling = false;
+  let initialized = false;
+  let activeIntervals = [];
+  let activeTimeouts = [];
+
+  function artworkUrl(id) {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+  }
+
+  function fallbackSpriteUrl(id) {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  }
+
+  function padId(id) {
+    return "#" + String(id).padStart(4, "0");
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;"
+    }[char]));
+  }
+
+  function setStatus(text) {
+    if (statusEl) statusEl.textContent = text;
+  }
+
+  function createSlots() {
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    for (let i = 0; i < 6; i++) {
+      const slot = document.createElement("article");
+      slot.className = "prt-slot";
+      slot.dataset.hasPokemon = "false";
+      slot.innerHTML = `<div class="prt-question">?</div>`;
+      slot.addEventListener("click", () => selectSlot(slot));
+      grid.appendChild(slot);
+    }
+  }
+
+  function randomPokemon() {
+    return loadedPokemon[Math.floor(Math.random() * loadedPokemon.length)];
+  }
+
+  function setSlot(slot, pkmn, pop = false, idle = false) {
+    slot.dataset.hasPokemon = "true";
+    slot.innerHTML = `
+      <div class="prt-id">${padId(pkmn.id)}</div>
+      <img
+        class="prt-pokemon-img ${pop ? "prt-pop-in" : ""} ${idle ? "prt-idle" : ""}"
+        src="${escapeHtml(pkmn.img)}"
+        alt="${escapeHtml(pkmn.name)}"
+      />
+      <div class="prt-name">${escapeHtml(pkmn.name)}</div>
+    `;
+  }
+
+  function selectSlot(slot) {
+    if (isRolling) return;
+    if (slot.dataset.hasPokemon !== "true") return;
+
+    document.querySelectorAll("#pokemonRandomTeamerView .prt-slot").forEach(otherSlot => {
+      otherSlot.classList.remove("prt-selected");
+    });
+
+    slot.classList.add("prt-selected");
+    setStatus("Pokémon ausgewählt.");
+  }
+
+  async function fetchGermanName(id) {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const german = data.names.find(entry => entry.language.name === "de");
+    return german ? german.name : null;
+  }
+
+  function preloadImage(pkmn) {
+    return new Promise(resolve => {
+      const img = new Image();
+
+      img.onload = () => resolve({ ...pkmn, img: pkmn.img });
+
+      img.onerror = () => {
+        const fallback = new Image();
+        fallback.onload = () => resolve({ ...pkmn, img: pkmn.fallback });
+        fallback.onerror = () => resolve(null);
+        fallback.src = pkmn.fallback;
+      };
+
+      img.src = pkmn.img;
+    });
+  }
+
+  async function preloadAll() {
+    if (isPreloaded || isRolling) return;
+
+    preloadBtn.disabled = true;
+    rollBtn.disabled = true;
+    progressWrap.style.display = "block";
+    progress.style.width = "0%";
+
+    try {
+      setStatus("Lade deutsche Namen & Artworks vor...");
+
+      const concurrency = 25;
+      let completed = 0;
+      let index = 1;
+      const loaded = [];
+
+      async function worker() {
+        while (index <= TOTAL_POKEMON) {
+          const id = index++;
+          let germanName = null;
+
+          try {
+            germanName = await fetchGermanName(id);
+          } catch (error) {
+            germanName = null;
+          }
+
+          const pkmn = {
+            id,
+            name: germanName || `Pokémon ${id}`,
+            img: artworkUrl(id),
+            fallback: fallbackSpriteUrl(id)
+          };
+
+          const result = await preloadImage(pkmn);
+          if (result) loaded.push(result);
+
+          completed++;
+          const percent = Math.round((completed / TOTAL_POKEMON) * 100);
+          progress.style.width = percent + "%";
+          setStatus(`Lade vor... ${completed} / ${TOTAL_POKEMON}`);
+        }
+      }
+
+      await Promise.all(Array.from({ length: concurrency }, worker));
+
+      loadedPokemon = loaded.sort((a, b) => a.id - b.id);
+      isPreloaded = loadedPokemon.length > 0;
+
+      if (!isPreloaded) {
+        throw new Error("Keine Pokémon konnten geladen werden.");
+      }
+
+      setStatus(`${loadedPokemon.length} Pokémon bereit. Jetzt würfeln!`);
+      rollBtn.disabled = false;
+    } catch (error) {
+      console.error(error);
+      setStatus("Fehler beim Laden. Prüfe deine Internetverbindung.");
+      preloadBtn.disabled = false;
+    }
+  }
+
+  function clearTimers() {
+    activeIntervals.forEach(clearInterval);
+    activeTimeouts.forEach(clearTimeout);
+    activeIntervals = [];
+    activeTimeouts = [];
+  }
+
+  function clearRolling() {
+    clearTimers();
+    document.querySelectorAll("#pokemonRandomTeamerView .prt-slot").forEach(slot => {
+      slot.classList.remove("prt-rolling");
+    });
+  }
+
+  function clearSlots() {
+    clearRolling();
+
+    document.querySelectorAll("#pokemonRandomTeamerView .prt-slot").forEach(slot => {
+      slot.classList.remove("prt-final", "prt-selected");
+      slot.dataset.hasPokemon = "false";
+      slot.innerHTML = `<div class="prt-question">?</div>`;
+    });
+
+    setStatus("Kästchen geleert.");
+    isRolling = false;
+
+    if (isPreloaded) rollBtn.disabled = false;
+  }
+
+  function stopSingleSlot(slot, interval, finalPokemon) {
+    clearInterval(interval);
+    slot.classList.remove("prt-rolling");
+    slot.classList.add("prt-final");
+    setSlot(slot, finalPokemon, true, true);
+
+    const removeFinalTimeout = setTimeout(() => {
+      slot.classList.remove("prt-final");
+    }, 520);
+
+    activeTimeouts.push(removeFinalTimeout);
+  }
+
+  function roll() {
+    if (!isPreloaded || isRolling || loadedPokemon.length === 0) return;
+
+    isRolling = true;
+    rollBtn.disabled = true;
+    clearRolling();
+
+    document.querySelectorAll("#pokemonRandomTeamerView .prt-slot").forEach(slot => {
+      slot.classList.remove("prt-selected");
+    });
+
+    setStatus("Würfelt...");
+
+    const slots = Array.from(document.querySelectorAll("#pokemonRandomTeamerView .prt-slot"));
+    let stoppedCount = 0;
+
+    slots.forEach((slot, slotIndex) => {
+      slot.classList.remove("prt-final");
+      slot.classList.add("prt-rolling");
+      slot.dataset.hasPokemon = "true";
+
+      const interval = setInterval(() => {
+        setSlot(slot, randomPokemon(), false, false);
+      }, FRAME_MS + slotIndex * 5);
+
+      activeIntervals.push(interval);
+
+      const stopTimeout = setTimeout(() => {
+        const finalPokemon = randomPokemon();
+        stopSingleSlot(slot, interval, finalPokemon);
+        stoppedCount++;
+
+        if (stoppedCount === slots.length) {
+          setStatus("Deine 6 Pokémon stehen fest!");
+          isRolling = false;
+          rollBtn.disabled = false;
+        }
+      }, ROLL_DURATION_MS + slotIndex * STOP_DELAY_PER_SLOT_MS);
+
+      activeTimeouts.push(stopTimeout);
+    });
+  }
+
+  window.prtInitOnce = function prtInitOnce() {
+    if (initialized) return;
+
+    preloadBtn = document.getElementById("prtPreloadBtn");
+    rollBtn = document.getElementById("prtRollBtn");
+    clearBtn = document.getElementById("prtClearBtn");
+    statusEl = document.getElementById("prtStatus");
+    grid = document.getElementById("prtGrid");
+    progressWrap = document.getElementById("prtProgressWrap");
+    progress = document.getElementById("prtProgress");
+
+    if (!preloadBtn || !rollBtn || !clearBtn || !statusEl || !grid || !progressWrap || !progress) {
+      return;
+    }
+
+    createSlots();
+    preloadBtn.addEventListener("click", preloadAll);
+    rollBtn.addEventListener("click", roll);
+    clearBtn.addEventListener("click", clearSlots);
+
+    initialized = true;
+  };
+})();
+
 
 /* ===== FAVORITE SPRITE PICKER JS ===== */
 let fspRange = [1,151], fspMode = 1;
@@ -10252,7 +11005,7 @@ let ttActiveSlot = null;
 let ttCurrentCategory = null;
 let ttFilteredPokemon = [];
 
-const ttShinyCategories = ["blueShiny","yellowShiny","blackShiny","redShiny"];
+const ttShinyCategories = ["blueShiny","yellowShiny","blackShiny","redShiny","greenShiny"];
 
 const ttTypeColors = {
   fire: "#ff6a00", water: "#2196f3", electric: "#ffd500", grass: "#4caf50",
@@ -10300,12 +11053,14 @@ const ttCategories = {
   cat: ["meowth","persian","glameow","purugly","purrloin","liepard","espurr","meowstic","meowstic-female","litten","torracat","incineroar","skitty","delcatty","sprigatito","floragato","meowscarada","perrserker","shinx","luxio","luxray","zangoose","absol","eevee","espeon","umbreon","raikou","litleo","pyroar","pyroar-female","solgaleo","zeraora"],
   monkey: ["mankey","primeape","annihilape","chimchar","monferno","infernape","pansage","simisage","pansear","simisear","panpour","simipour","grookey","thwackey","rillaboom","aipom","ambipom","oranguru","passimian","electivire","darumaka","darmanitan","darumaka-galar","darmanitan-galar-standard","shroodle","grafaiai"],
   hoof: ["ponyta","rapidash","ponyta-galar","rapidash-galar","glastrier","spectrier","keldeo","tauros","tauros-paldea-combat","tauros-paldea-blaze-breed","tauros-paldea-aqua-breed","miltank","stantler","wyrdeer","deerling","sawsbuck","cobalion","terrakion","virizion","zebstrika","bouffalant","mudbray","mudsdale","skiddo","gogoat","wooloo","dubwool","xerneas","arceus"],
-  item: ["tinkaton","rillaboom","sirfetchd","delphox","pangoro","conkeldurr","alakazam","marowak","marowak-alola","hypno","mr-rime"],
+  hat: ["weezing-galar","marowak","slowking-galar","smeargle","ludicolo","breloom","cacturne","mismagius","probopass","amoonguss","lampent","shiinotic","passimian","tapu-bulu","appletun","polteageist","mr-rime","crocalor","brute-bonnet"],
+  item: ["cofagrigus","garbodor","chandelure","cryogonal","vanilluxe","aegislash-shield","klefki","palossand","dhelmise","polteageist","alcremie","sinistcha"],
   beard: ["golem-alola","alakazam","swalot","tropius","walrein","kricketune","samurott-hisui","stoutland","mr-rime","kingambit","centiskorch","probopass"],
   blueShiny: ["nidoking","venomoth","cloyster","electrode","ditto","articuno-galar","mew","unown","mantine","miltank","sceptile","gardevoir","medicham","swalot","gliscor","reuniclus","tyrantrum","xerneas","lycanroc-midday","klawf"],
   yellowShiny: ["arcanine","lickitung","zapdos-galar","azumarill","steelix","gorebyss","luvdisc","deoxys","latias","luxray","drifblim","floatzel","mismagius","lucario","rhyperior","goodra","hoopa","volcanion","bewear","turtonator","deoxys"],
   blackShiny: ["charizard","camerupt","rayquaza","haxorus","braviary-hisui","greninja","furfrou","palossand","tapu-bulu","pincurchin","carbink","cetitan"],
-  redShiny: ["gyarados","moltres-galar","lugia","breloom","absol","rampardos","skuntank","genesect","heliolisk","solgaleo","clawitzer","dhelmise"]
+  redShiny: ["gyarados","moltres-galar","lugia","breloom","absol","rampardos","skuntank","genesect","heliolisk","solgaleo","clawitzer","dhelmise"],
+  greenShiny: ["poliwrath","machamp","dodrio","muk","kingler","hitmonlee","jolteon","kabutops","dragonite","espeon","scizor","ursaring","salamence","latios","groudon","tangrowth","eelektross","druddigon"]
 };
 
 ttSlots.forEach(slot => {
@@ -10939,91 +11694,63 @@ async function fppInitOnce(){
 
 
 /* =========================================================
-   FINALER RESPONSIVE-FIX: Gegner-Artwork stabil halten
+   FINALER FIX: Gegner-Artwork immer an der vorgesehenen Stelle
    ---------------------------------------------------------
-   Problem: Frühere Regeln setzen .leader-art.show während
-   .battle-stage.show auf position: relative. Dadurch wird das
-   Artwork Teil des Slot-Flex-Layouts und kann auf iPad/Desktop
-   in die Slotreihe rutschen.
-
-   Lösung: Das Artwork bleibt immer absolut positioniert und
-   bekommt auf Tablet/kleineren Desktopbreiten eine eigene sichere
-   Position oberhalb der Gegner-Slots, wie auf Handy.
+   Das Arenaleiter-/Gegner-Artwork bleibt dauerhaft absolut rechts
+   neben den Gegner-Slots. Keine Media-Query verschiebt es mehr
+   oberhalb der Slots.
    ========================================================= */
 #computerSlots {
   position: relative !important;
   overflow: visible !important;
+  margin-top: 10px !important;
 }
 
 body:has(.battle-stage.show) .leader-art.show,
 .leader-art,
 .leader-art.show {
   position: absolute !important;
-  flex: 0 0 auto !important;
-  pointer-events: none !important;
-}
-
-body:has(.battle-stage.show) .leader-art.show {
   right: -150px !important;
   left: auto !important;
   top: 0 !important;
-  z-index: 16 !important;
+  width: 140px !important;
+  min-height: 245px !important;
+  margin: 0 !important;
+  transform: none !important;
+  flex: 0 0 auto !important;
+  pointer-events: none !important;
+  z-index: 20 !important;
+}
+
+.leader-art.show {
+  animation: leaderSlideIn 0.65s cubic-bezier(0.2, 1.1, 0.25, 1) forwards !important;
+}
+
+.leader-art img {
+  max-width: 145px !important;
+  max-height: 225px !important;
+  object-fit: contain !important;
 }
 
 @media (max-width: 1250px) {
   #computerSlots {
-    margin-top: 235px !important;
+    margin-top: 10px !important;
   }
 
+  body:has(.battle-stage.show) .leader-art.show,
   .leader-art,
-  .leader-art.show,
-  body:has(.battle-stage.show) .leader-art.show {
-    left: 50% !important;
-    right: auto !important;
-    top: -225px !important;
-    width: 140px !important;
-    min-height: 210px !important;
-    margin: 0 !important;
-    transform: translateX(-50%) !important;
-  }
-
   .leader-art.show {
-    animation: leaderSlideInSafe 0.45s ease-out forwards !important;
-  }
-
-  .leader-art img {
-    max-width: 130px !important;
-    max-height: 195px !important;
-  }
-}
-
-@media (max-width: 760px) {
-  #computerSlots {
-    margin-top: 215px !important;
-  }
-
-  .leader-art,
-  .leader-art.show,
-  body:has(.battle-stage.show) .leader-art.show {
-    top: -205px !important;
+    right: -132px !important;
+    left: auto !important;
+    top: 8px !important;
     width: 120px !important;
-    min-height: 190px !important;
+    min-height: 210px !important;
+    transform: none !important;
   }
 
   .leader-art img {
-    max-width: 115px !important;
-    max-height: 175px !important;
-  }
-}
-
-@keyframes leaderSlideInSafe {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    max-width: 120px !important;
+    max-height: 190px !important;
   }
 }
 
