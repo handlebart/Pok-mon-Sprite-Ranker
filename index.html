@@ -10894,6 +10894,9 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('avengers')">🦸 Avengers</button>
     <button onclick="ttSetCategory('pirates')">🏴‍☠️ Piraten</button>
     <button onclick="ttSetCategory('germanFauna')">🇩🇪 Deutsche Fauna</button>
+    <button onclick="ttSetCategory('cities')">🏙️ Städte</button>
+    <button onclick="ttSetCategory('spongebob')">🧽 Spongebob</button>
+    <button onclick="ttSetCategory('overwatch')">🎮 Overwatch</button>
   </div>
 
   <div class="tt-team">
@@ -13531,7 +13534,18 @@ const ttCategories = {
   moon: ["umbreon","lunatone","lycanroc-midnight","lunala","clefable","cresselia"],
   avengers: ["ariados","genesect","zoroark","porygon-z","metagross","trevenant",{ id: "machamp", shiny: true },"decidueye","hoopa","alakazam"],
   pirates: ["squawkabilly-green-plumage","dhelmise","gholdengo","lapras","octillery","gimmighoul","exeggutor-alola","chandelure"],
-  germanFauna: ["obstagoon","piloswine","ninetales","lopunny","cinderace","shaymin-land","talonflame","pidgeot","sawsbuck"]
+  germanFauna: ["obstagoon","piloswine","ninetales","lopunny","cinderace","shaymin-land","talonflame","pidgeot","sawsbuck"],
+  cities: ["pidgeot","raticate","duraludon","conkeldurr","klefki","stakataka","revavroom"],
+  spongebob: ["crawdaunt","malamar","pachirisu","starmie","wailord","overqwil","rotom","goodra-hisui","mantine","golem"],
+  overwatch: [
+    { id: "morpeko", suffix: "Wrecking Ball" },
+    { id: "ditto", suffix: "Echo" },
+    { id: "inteleon", suffix: "Ashe" },
+    { id: "greninja", suffix: "Genji" },
+    { id: "rayquaza", suffix: "Hanzo" },
+    { id: "celebi", suffix: "Tracer" },
+    { id: "solgaleo", suffix: "Illari" }
+  ]
 };
 
 ttSlots.forEach(slot => {
@@ -13567,7 +13581,10 @@ async function ttSetCategory(cat) {
       const data = await res.json();
       const speciesRes = await fetch(data.species.url);
       const species = await speciesRes.json();
-      const german = species.names.find(n => n.language.name === "de")?.name || name;
+      let german = species.names.find(n => n.language.name === "de")?.name || name;
+      const suffix = typeof entry === "object" && entry.suffix ? entry.suffix : null;
+      if (name.includes("-hisui") && !german.toLowerCase().includes("hisui")) german = `${german} (Hisui)`;
+      if (suffix) german = `${german} (${suffix})`;
 
       const useShinySprite = forceShiny || ttShinyCategories.includes(cat);
       const sprite = useShinySprite
