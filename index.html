@@ -4608,6 +4608,158 @@ button,
   font-size: 12px;
 }
 
+
+#pokemonCustomShinyView #pcsg_showcasePanel {
+  margin: 22px auto;
+  padding: 18px;
+  width: min(980px, 95vw);
+  background: linear-gradient(135deg, #151827, #0b1020);
+  border: 3px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.26);
+  color: white;
+}
+
+#pokemonCustomShinyView #pcsg_showcasePanel h2 {
+  margin: 0 0 6px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-help {
+  margin: 0 auto 14px;
+  color: rgba(255,255,255,0.72);
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-toolbar select,
+#pokemonCustomShinyView .pcsg-showcase-toolbar button {
+  border-radius: 10px;
+  border: none;
+  padding: 9px 12px;
+  font-weight: 900;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-toolbar button {
+  background: #27324a;
+  color: white;
+}
+
+#pokemonCustomShinyView #pcsg_showcaseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0 auto;
+}
+
+#pokemonCustomShinyView #pcsg_showcaseGrid.layout-3 {
+  max-width: 760px;
+}
+
+#pokemonCustomShinyView #pcsg_showcaseGrid.layout-6 {
+  max-width: 860px;
+}
+
+#pokemonCustomShinyView #pcsg_showcaseGrid.layout-9 {
+  max-width: 980px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-card {
+  min-height: 240px;
+  background: #f8f4ea;
+  color: #222;
+  border-radius: 16px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-card.revealed {
+  box-shadow:
+    inset 0 0 0 3px gold,
+    0 0 22px rgba(255,215,0,0.45);
+}
+
+#pokemonCustomShinyView .pcsg-showcase-card img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  background: #f3efe6;
+  border-radius: 12px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-title {
+  font-weight: 900;
+  font-size: 15px;
+  text-transform: capitalize;
+  min-height: 18px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-subtitle {
+  font-size: 12px;
+  color: #555;
+  min-height: 16px;
+  margin-bottom: 5px;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-actions {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-actions button,
+#pokemonCustomShinyView .pcsg-add-showcase-btn {
+  padding: 7px 9px;
+  margin: 3px;
+  font-size: 12px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-actions button:first-child,
+#pokemonCustomShinyView .pcsg-add-showcase-btn {
+  background: #ffcb05;
+  color: #222;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-actions button:last-child {
+  background: #ef4444;
+  color: white;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-empty {
+  grid-column: 1 / -1;
+  padding: 34px;
+  border: 2px dashed rgba(255,255,255,0.28);
+  border-radius: 16px;
+  color: rgba(255,255,255,0.72);
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  #pokemonCustomShinyView #pcsg_showcaseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 #pokemonCustomShinyView #pcsg_pokemonName {
   font-size: 26px;
   margin-top: 15px;
@@ -11024,6 +11176,26 @@ window.addEventListener("DOMContentLoaded", () => {
   <div id="pcsg_savedCustoms">Noch kein Pokémon ausgewählt.</div>
 </div>
 
+
+<div id="pcsg_showcasePanel">
+  <h2>🎬 Showcase-Modus</h2>
+  <p class="pcsg-showcase-help">
+    Sammle gespeicherte Custom-PNGs für Videos. Im Showcase kannst du zwischen 3×1, 3×2 und 3×3 wechseln und jedes Custom einzeln ein- oder ausblenden.
+  </p>
+  <div class="pcsg-showcase-toolbar">
+    <label for="pcsg_showcaseLayout">Layout:</label>
+    <select id="pcsg_showcaseLayout">
+      <option value="3">3×1</option>
+      <option value="6" selected>3×2</option>
+      <option value="9">3×3</option>
+    </select>
+    <button id="pcsg_showAllBtn" type="button">✨ Alle Shinys zeigen</button>
+    <button id="pcsg_hideAllBtn" type="button">🙈 Alle ausblenden</button>
+    <button id="pcsg_clearShowcaseBtn" type="button">🗑 Showcase leeren</button>
+  </div>
+  <div id="pcsg_showcaseGrid" class="layout-6"></div>
+</div>
+
 <div id="pcsg_clusterArea">
   <h2>Farbgruppen bearbeiten</h2>
   <div id="pcsg_regionEditorLayout">
@@ -11111,6 +11283,11 @@ const rebuildRegionsBtn = document.getElementById("pcsg_rebuildRegionsBtn");
 const customNameInput = document.getElementById("pcsg_customNameInput");
 const saveCustomBtn = document.getElementById("pcsg_saveCustomBtn");
 const savedCustoms = document.getElementById("pcsg_savedCustoms");
+const showcaseLayout = document.getElementById("pcsg_showcaseLayout");
+const showcaseGrid = document.getElementById("pcsg_showcaseGrid");
+const showAllBtn = document.getElementById("pcsg_showAllBtn");
+const hideAllBtn = document.getElementById("pcsg_hideAllBtn");
+const clearShowcaseBtn = document.getElementById("pcsg_clearShowcaseBtn");
 
 const originalCanvas = document.getElementById("pcsg_originalCanvas");
 const officialShinyCanvas = document.getElementById("pcsg_officialShinyCanvas");
@@ -12600,6 +12777,177 @@ function saveCustomsToStorage(customs) {
   }
 }
 
+
+const SHOWCASE_STORAGE_KEY = "pcsgCustomShowcaseV1";
+const SHOWCASE_LAYOUT_KEY = "pcsgCustomShowcaseLayoutV1";
+
+function loadShowcaseRefs() {
+  try {
+    const refs = JSON.parse(localStorage.getItem(SHOWCASE_STORAGE_KEY)) || [];
+    return Array.isArray(refs) ? refs : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveShowcaseRefs(refs) {
+  localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(refs));
+}
+
+function loadCustomsForPokemonId(pokemonId) {
+  try {
+    return JSON.parse(localStorage.getItem(`customShiniesV3:${pokemonId}`)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function findCustomForShowcase(ref) {
+  const customs = loadCustomsForPokemonId(ref.pokemonId);
+  return customs.find(custom => custom.id === ref.customId) || null;
+}
+
+function addCustomToShowcase(custom) {
+  const refs = loadShowcaseRefs();
+  const pokemonId = custom.pokemonId ?? (currentPokemon ? currentPokemon.id : null);
+
+  if (pokemonId === null || pokemonId === undefined) {
+    statusText.textContent = "Dieses Custom konnte keinem Pokémon zugeordnet werden.";
+    return;
+  }
+
+  const exists = refs.some(ref =>
+    String(ref.pokemonId) === String(pokemonId) && ref.customId === custom.id
+  );
+
+  if (exists) {
+    statusText.textContent = `"${custom.name}" ist schon im Showcase.`;
+    renderShowcase();
+    return;
+  }
+
+  refs.push({
+    pokemonId,
+    customId: custom.id,
+    revealed: false
+  });
+
+  saveShowcaseRefs(refs);
+  renderShowcase();
+  statusText.textContent = `"${custom.name}" wurde zum Showcase hinzugefügt.`;
+}
+
+function removeCustomFromShowcase(index) {
+  const refs = loadShowcaseRefs();
+  refs.splice(index, 1);
+  saveShowcaseRefs(refs);
+  renderShowcase();
+}
+
+function setShowcaseReveal(index, revealed) {
+  const refs = loadShowcaseRefs();
+  if (!refs[index]) return;
+  refs[index].revealed = revealed;
+  saveShowcaseRefs(refs);
+  renderShowcase();
+}
+
+function setAllShowcaseReveal(revealed) {
+  const refs = loadShowcaseRefs().map(ref => ({ ...ref, revealed }));
+  saveShowcaseRefs(refs);
+  renderShowcase();
+}
+
+function clearShowcase() {
+  saveShowcaseRefs([]);
+  renderShowcase();
+  statusText.textContent = "Showcase wurde geleert.";
+}
+
+function getShowcaseLimit() {
+  return Number(showcaseLayout && showcaseLayout.value ? showcaseLayout.value : 6);
+}
+
+function renderShowcase() {
+  if (!showcaseGrid) return;
+
+  const limit = getShowcaseLimit();
+  const refs = loadShowcaseRefs();
+  const visibleRefs = refs.slice(0, limit);
+
+  showcaseGrid.innerHTML = "";
+  showcaseGrid.className = `layout-${limit}`;
+
+  if (!visibleRefs.length) {
+    const empty = document.createElement("div");
+    empty.className = "pcsg-showcase-empty";
+    empty.textContent = "Noch keine Customs im Showcase. Nutze bei gespeicherten Customs den Button „+ Showcase“.";
+    showcaseGrid.appendChild(empty);
+    return;
+  }
+
+  visibleRefs.forEach((ref, index) => {
+    const custom = findCustomForShowcase(ref);
+
+    if (!custom) {
+      const missing = document.createElement("div");
+      missing.className = "pcsg-showcase-card";
+      missing.innerHTML = `<div class="pcsg-showcase-title">Custom fehlt</div><div class="pcsg-showcase-subtitle">Wurde gelöscht oder gehört zu einer alten Speicherung.</div>`;
+      const actions = document.createElement("div");
+      actions.className = "pcsg-showcase-actions";
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Entfernen";
+      removeBtn.addEventListener("click", () => removeCustomFromShowcase(index));
+      actions.appendChild(removeBtn);
+      missing.appendChild(actions);
+      showcaseGrid.appendChild(missing);
+      return;
+    }
+
+    const card = document.createElement("div");
+    card.className = `pcsg-showcase-card${ref.revealed ? " revealed" : ""}`;
+
+    const title = document.createElement("div");
+    title.className = "pcsg-showcase-title";
+    title.textContent = custom.pokemonName || `Pokémon ${ref.pokemonId}`;
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "pcsg-showcase-subtitle";
+    subtitle.textContent = custom.name || "Custom Shiny";
+
+    const img = document.createElement("img");
+    img.alt = `${title.textContent} ${subtitle.textContent}`;
+    img.src = ref.revealed ? custom.image : artworkUrl(ref.pokemonId);
+
+    const actions = document.createElement("div");
+    actions.className = "pcsg-showcase-actions";
+
+    const revealBtn = document.createElement("button");
+    revealBtn.textContent = ref.revealed ? "🙈 Ausblenden" : "✨ Shiny zeigen";
+    revealBtn.addEventListener("click", () => setShowcaseReveal(index, !ref.revealed));
+
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Entfernen";
+    removeBtn.addEventListener("click", () => removeCustomFromShowcase(index));
+
+    actions.appendChild(revealBtn);
+    actions.appendChild(removeBtn);
+
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(img);
+    card.appendChild(actions);
+    showcaseGrid.appendChild(card);
+  });
+
+  if (refs.length > limit) {
+    const overflow = document.createElement("div");
+    overflow.className = "pcsg-showcase-empty";
+    overflow.textContent = `${refs.length - limit} weitere Custom(s) sind gespeichert. Wähle ein größeres Layout, um mehr anzuzeigen.`;
+    showcaseGrid.appendChild(overflow);
+  }
+}
+
 function encodeRleArray(arrayLike) {
   if (!arrayLike || !arrayLike.length) return [];
 
@@ -12733,6 +13081,7 @@ function saveCurrentCustom() {
 
   customNameInput.value = "";
   renderSavedCustoms();
+  renderShowcase();
 
   statusText.textContent = `"${name}" wurde für ${currentPokemon.name} gespeichert.`;
 }
@@ -12775,6 +13124,13 @@ function renderSavedCustoms() {
       loadSavedCustom(custom);
     });
 
+    const showcaseBtn = document.createElement("button");
+    showcaseBtn.className = "pcsg-add-showcase-btn";
+    showcaseBtn.textContent = "+ Showcase";
+    showcaseBtn.addEventListener("click", () => {
+      addCustomToShowcase(custom);
+    });
+
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Löschen";
     deleteBtn.addEventListener("click", () => {
@@ -12784,6 +13140,7 @@ function renderSavedCustoms() {
     card.appendChild(img);
     card.appendChild(name);
     card.appendChild(loadBtn);
+    card.appendChild(showcaseBtn);
     card.appendChild(deleteBtn);
 
     savedCustoms.appendChild(card);
@@ -12835,6 +13192,7 @@ function deleteSavedCustom(id) {
 
   saveCustomsToStorage(customs);
   renderSavedCustoms();
+  renderShowcase();
 
   statusText.textContent = "Custom wurde gelöscht.";
 }
@@ -12878,6 +13236,20 @@ toggleNewBtn.addEventListener("click", () => {
   );
 });
 
+if (showcaseLayout) {
+  const savedLayout = localStorage.getItem(SHOWCASE_LAYOUT_KEY);
+  if (["3", "6", "9"].includes(savedLayout)) showcaseLayout.value = savedLayout;
+
+  showcaseLayout.addEventListener("change", () => {
+    localStorage.setItem(SHOWCASE_LAYOUT_KEY, showcaseLayout.value);
+    renderShowcase();
+  });
+}
+
+if (showAllBtn) showAllBtn.addEventListener("click", () => setAllShowcaseReveal(true));
+if (hideAllBtn) hideAllBtn.addEventListener("click", () => setAllShowcaseReveal(false));
+if (clearShowcaseBtn) clearShowcaseBtn.addEventListener("click", clearShowcase);
+
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Enter") showSearchedPokemon();
 });
@@ -12886,6 +13258,7 @@ window.pcsgInitOnce = function() {
   if (pcsgStarted) return;
   pcsgStarted = true;
   if (typeof renderSavedCustoms === "function") renderSavedCustoms();
+  if (typeof renderShowcase === "function") renderShowcase();
 };
 })();
 
