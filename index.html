@@ -10890,6 +10890,8 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('blackShiny')">⚫ Schwarze Shinys</button>
     <button onclick="ttSetCategory('redShiny')">🔴 Rote Shinys</button>
     <button onclick="ttSetCategory('greenShiny')">🟢 Grüne Shinys</button>
+    <button onclick="ttSetCategory('pinkShiny')">🩷 Pinke Shinys</button>
+    <button onclick="ttSetCategory('purpleShiny')">🟣 Lila Shinys</button>
     <button onclick="ttSetCategory('moon')">🌙 Mond</button>
     <button onclick="ttSetCategory('avengers')">🦸 Avengers</button>
     <button onclick="ttSetCategory('pirates')">🏴‍☠️ Piraten</button>
@@ -13531,7 +13533,29 @@ const ttCategories = {
   blackShiny: ["charizard","camerupt","rayquaza","haxorus","braviary-hisui","greninja","furfrou","palossand","tapu-bulu","pincurchin","carbink","cetitan"],
   redShiny: ["gyarados","moltres-galar","lugia","breloom","absol","rampardos","skuntank","genesect","heliolisk","solgaleo","clawitzer","dhelmise"],
   greenShiny: ["poliwrath","machamp","dodrio","muk","kingler","hitmonlee","jolteon","kabutops","dragonite","espeon","scizor","ursaring","salamence","latios","groudon","tangrowth","eelektross","druddigon"],
-  moon: ["umbreon","lunatone","lycanroc-midnight","lunala","clefable","cresselia"],
+  pinkShiny: [
+    { id:"heracross", shiny:true },
+    { id:"celebi", shiny:true },
+    { id:"swampert", shiny:true },
+    { id:"kyogre", shiny:true },
+    { id:"honchkrow", shiny:true },
+    { id:"cubone", shiny:true },
+    { id:"skeledirge", shiny:true },
+    { id:"grumpig", shiny:true }
+  ],
+  purpleShiny: [
+    { id:"pinsir", shiny:true },
+    { id:"blastoise", shiny:true },
+    { id:"kingdra", shiny:true },
+    { id:"sharpedo", shiny:true },
+    { id:"wailord", shiny:true },
+    { id:"arboliva", shiny:true },
+    { id:"zoroark", shiny:true },
+    { id:"delphox", shiny:true },
+    { id:"garganacl", shiny:true },
+    { id:"palafin", shiny:true }
+  ],
+  moon: ["umbreon","lunatone","lycanroc-midnight","lunala","clefable","cresselia",{ id:"ursaluna-bloodmoon" }],
   avengers: ["ariados","genesect","zoroark","porygon-z","metagross","trevenant",{ id: "machamp", shiny: true },"decidueye","hoopa","alakazam"],
   pirates: ["squawkabilly-green-plumage","dhelmise","gholdengo","lapras","octillery","gimmighoul","exeggutor-alola","chandelure"],
   germanFauna: ["obstagoon","piloswine","ninetales","lopunny","cinderace","shaymin-land","talonflame","pidgeot","sawsbuck"],
