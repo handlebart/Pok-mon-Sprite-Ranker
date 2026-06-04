@@ -4746,34 +4746,54 @@ button,
 }
 
 #pokemonCustomShinyView .pcsg-showcase-pokemon-name {
-  min-height: 18px;
-  margin-bottom: 7px;
+  height: 22px;
+  line-height: 22px;
+  margin-top: 7px;
   font-size: 13px;
   font-weight: 900;
   color: #555;
   text-transform: capitalize;
+  visibility: visible;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-cell.show-placeholder .pcsg-showcase-pokemon-name {
+  visibility: hidden;
+}
+
+#pokemonCustomShinyView .pcsg-showcase-visual {
+  position: relative;
+  width: min(260px, 26vw);
+  height: min(260px, 26vw);
+  min-width: 140px;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 #pokemonCustomShinyView .pcsg-showcase-cell img {
-  width: min(260px, 26vw);
-  height: min(260px, 26vw);
-  min-width: 140px;
-  min-height: 140px;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
 #pokemonCustomShinyView .pcsg-showcase-cell .placeholder {
-  display: none;
-  width: min(260px, 26vw);
-  height: min(260px, 26vw);
-  min-width: 140px;
-  min-height: 140px;
+  position: absolute;
+  inset: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
   font-size: clamp(82px, 12vw, 120px);
   font-weight: 900;
   color: #000;
+  opacity: 0;
+  visibility: hidden;
   animation: questionPulseGlow 1.8s ease-in-out infinite;
   text-shadow:
     0 0 6px rgba(0, 0, 0, 0.85),
@@ -4782,11 +4802,13 @@ button,
 }
 
 #pokemonCustomShinyView .pcsg-showcase-cell.show-placeholder img {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
 }
 
 #pokemonCustomShinyView .pcsg-showcase-cell.show-placeholder .placeholder {
-  display: flex;
+  opacity: 1;
+  visibility: visible;
 }
 
 #pokemonCustomShinyView .pcsg-showcase-empty {
@@ -12940,10 +12962,28 @@ function removeCustomFromShowcase(index) {
 function setShowcaseCellVisible(rowIndex, kind, visible) {
   const refs = loadShowcaseRefs();
   if (!refs[rowIndex] || !SHOWCASE_KINDS.includes(kind)) return;
-  refs[rowIndex].visible = refs[rowIndex].visible || {};
+  refs[rowIndex] = normalizeShowcaseRef(refs[rowIndex]);
   refs[rowIndex].visible[kind] = visible;
   saveShowcaseRefs(refs);
-  renderShowcase();
+  updateShowcaseCellDom(rowIndex, kind, visible);
+  updateShowcaseControlDom(rowIndex, kind, visible, refs[rowIndex]);
+}
+
+function updateShowcaseCellDom(rowIndex, kind, visible) {
+  if (!showcaseGrid) return;
+  const cell = showcaseGrid.querySelector(`.pcsg-showcase-cell[data-row="${rowIndex}"][data-kind="${kind}"]`);
+  if (!cell) return;
+  cell.classList.toggle("show-placeholder", !visible);
+}
+
+function updateShowcaseControlDom(rowIndex, kind, visible, ref) {
+  if (!showcaseCellControls) return;
+  const btn = showcaseCellControls.querySelector(`button[data-row="${rowIndex}"][data-kind="${kind}"]`);
+  if (!btn) return;
+  btn.classList.toggle("active", visible);
+  const custom = findCustomForShowcase(ref || {});
+  const pokemonName = custom ? (custom.pokemonName || `Pokémon ${(ref || {}).pokemonId}`) : `Pokémon ${rowIndex + 1}`;
+  btn.title = `${pokemonName} – ${SHOWCASE_KIND_LABELS[kind]} ${visible ? "ausblenden" : "einblenden"}`;
 }
 
 function toggleShowcaseCell(rowIndex, kind) {
@@ -12999,6 +13039,8 @@ function renderShowcaseCellControls(visibleRefs) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = normalized.visible[kind] ? "active" : "";
+      btn.dataset.row = String(rowIndex);
+      btn.dataset.kind = kind;
       btn.textContent = `${SHOWCASE_KIND_LABELS[kind]} ${rowIndex + 1}`;
       btn.title = `${custom.pokemonName || `Pokémon ${ref.pokemonId}`} – ${SHOWCASE_KIND_LABELS[kind]} ${normalized.visible[kind] ? "ausblenden" : "einblenden"}`;
       btn.addEventListener("click", () => toggleShowcaseCell(rowIndex, kind));
@@ -13047,6 +13089,8 @@ function renderShowcase() {
     SHOWCASE_KINDS.forEach(kind => {
       const cell = document.createElement("div");
       cell.className = `pcsg-showcase-cell${ref.visible[kind] ? "" : " show-placeholder"}`;
+      cell.dataset.row = String(rowIndex);
+      cell.dataset.kind = kind;
 
       const heading = document.createElement("h3");
       heading.textContent = SHOWCASE_KIND_LABELS[kind];
@@ -13055,20 +13099,23 @@ function renderShowcase() {
       name.className = "pcsg-showcase-pokemon-name";
       name.textContent = custom.pokemonName || `Pokémon ${ref.pokemonId}`;
 
+      const visual = document.createElement("div");
+      visual.className = "pcsg-showcase-visual";
+      visual.addEventListener("click", () => toggleShowcaseCell(rowIndex, kind));
+
       const placeholder = document.createElement("div");
       placeholder.className = "placeholder";
       placeholder.textContent = "?";
-      placeholder.addEventListener("click", () => toggleShowcaseCell(rowIndex, kind));
 
       const img = document.createElement("img");
       img.alt = `${name.textContent} ${SHOWCASE_KIND_LABELS[kind]}`;
       img.src = getShowcaseImageSrc(ref, custom, kind);
-      img.addEventListener("click", () => toggleShowcaseCell(rowIndex, kind));
 
+      visual.appendChild(placeholder);
+      visual.appendChild(img);
       cell.appendChild(heading);
+      cell.appendChild(visual);
       cell.appendChild(name);
-      cell.appendChild(placeholder);
-      cell.appendChild(img);
       showcaseGrid.appendChild(cell);
     });
   });
@@ -14045,9 +14092,9 @@ const ttCategories = {
     { id:"swampert", shiny:true },
     { id:"kyogre", shiny:true },
     { id:"honchkrow", shiny:true },
-    { id:"cubone", shiny:true },
+    { id:"eiscue", shiny:true },
     { id:"skeledirge", shiny:true },
-    { id:"grumpig", shiny:true }
+    { id:"oinkologne", shiny:true }
   ],
   purpleShiny: [
     { id:"pinsir", shiny:true },
@@ -14055,10 +14102,10 @@ const ttCategories = {
     { id:"kingdra", shiny:true },
     { id:"sharpedo", shiny:true },
     { id:"wailord", shiny:true },
-    { id:"arboliva", shiny:true },
+    { id:"gigalith", shiny:true },
     { id:"zoroark", shiny:true },
     { id:"delphox", shiny:true },
-    { id:"garganacl", shiny:true },
+    { id:"orbeetle", shiny:true },
     { id:"palafin", shiny:true }
   ],
   moon: ["umbreon","lunatone","lycanroc-midnight","lunala","clefable","cresselia",{ id:"ursaluna-bloodmoon" }],
