@@ -11151,6 +11151,13 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('cities')">🏙️ Städte</button>
     <button onclick="ttSetCategory('spongebob')">🧽 Spongebob</button>
     <button onclick="ttSetCategory('overwatch')">🎮 Overwatch</button>
+    <button onclick="ttSetCategory('superMario')">🍄 Super Mario</button>
+    <button onclick="ttSetCategory('shinyMegas')">✨ Shiny Megas</button>
+    <button onclick="ttSetCategory('africa')">🦁 Afrika</button>
+    <button onclick="ttSetCategory('australia')">🦘 Australien</button>
+    <button onclick="ttSetCategory('rareTypeCombo')">🧬 Seltenste Typkombi</button>
+    <button onclick="ttSetCategory('uniqueTypeEvolution')">🔄 Einzigartige Typenreihe</button>
+    <button onclick="ttSetCategory('minecraft')">⛏️ Minecraft</button>
   </div>
 
   <div class="tt-team">
@@ -14139,7 +14146,59 @@ const ttCategories = {
     { id: "rayquaza", suffix: "Hanzo" },
     { id: "celebi", suffix: "Tracer" },
     { id: "solgaleo", suffix: "Illari" }
-  ]
+  ],
+  superMario: ["blastoise","turtonator","gardevoir","amoonguss",{ id:"dragonite", shiny:true },"rillaboom"],
+  shinyMegas: [
+    { id:"venusaur-mega", shiny:true },
+    { id:"charizard-mega-x", shiny:true },
+    { id:"charizard-mega-y", shiny:true },
+    { id:"blastoise-mega", shiny:true },
+    { id:"beedrill-mega", shiny:true },
+    { id:"pidgeot-mega", shiny:true },
+    { id:"alakazam-mega", shiny:true },
+    { id:"slowbro-mega", shiny:true },
+    { id:"gengar-mega", shiny:true },
+    { id:"kangaskhan-mega", shiny:true },
+    { id:"pinsir-mega", shiny:true },
+    { id:"gyarados-mega", shiny:true },
+    { id:"aerodactyl-mega", shiny:true },
+    { id:"mewtwo-mega-x", shiny:true },
+    { id:"mewtwo-mega-y", shiny:true },
+    { id:"ampharos-mega", shiny:true },
+    { id:"steelix-mega", shiny:true },
+    { id:"scizor-mega", shiny:true },
+    { id:"tyranitar-mega", shiny:true },
+    { id:"sceptile-mega", shiny:true },
+    { id:"blaziken-mega", shiny:true },
+    { id:"swampert-mega", shiny:true },
+    { id:"gardevoir-mega", shiny:true },
+    { id:"sableye-mega", shiny:true },
+    { id:"mawile-mega", shiny:true },
+    { id:"aggron-mega", shiny:true },
+    { id:"medicham-mega", shiny:true },
+    { id:"manectric-mega", shiny:true },
+    { id:"sharpedo-mega", shiny:true },
+    { id:"camerupt-mega", shiny:true },
+    { id:"altaria-mega", shiny:true },
+    { id:"banette-mega", shiny:true },
+    { id:"absol-mega", shiny:true },
+    { id:"glalie-mega", shiny:true },
+    { id:"salamence-mega", shiny:true },
+    { id:"metagross-mega", shiny:true },
+    { id:"latias-mega", shiny:true },
+    { id:"latios-mega", shiny:true },
+    { id:"rayquaza-mega", shiny:true },
+    { id:"garchomp-mega", shiny:true },
+    { id:"lucario-mega", shiny:true },
+    { id:"abomasnow-mega", shiny:true },
+    { id:"audino-mega", shiny:true },
+    { id:"diancie-mega", shiny:true }
+  ],
+  africa: ["pyroar","donphan","copperajah","great-tusk","bouffalant","rhyperior","liepard","farigiraf","zebstrika","hippowdon","grafaiai","rillaboom","skeledirge","krookodile"],
+  australia: ["kangaskhan","komala","golduck","espathra","dodrio","arbok","sandaconda","ariados","spidops","krookodile","feraligatr","heliolisk"],
+  rareTypeCombo: ["ninetales-alola","raichu-alola","tyranitar","shedinja","empoleon","bibarel","froslass","rotom","rotom-heat","heatran","crabominable","morpeko","lokix","great-tusk","iron-valiant"],
+  uniqueTypeEvolution: ["crobat","mamoswine","zoroark-hisui","kingambit","heliolisk","tyrantrum","grimmsnarl","grafaiai","revavroom"],
+  minecraft: ["registeel","zekrom","diancie",{ id:"rotom", shiny:true },"darkrai","rillaboom","dubwool","blaziken"]
 };
 
 ttSlots.forEach(slot => {
