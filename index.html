@@ -4939,6 +4939,122 @@ button,
   }
 }
 
+
+/* ===== Custom-Shiny Backup, Verwaltung & Zusammenfassen ===== */
+#pokemonCustomShinyView .pcsg-custom-tools {
+  margin: 10px auto 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#pokemonCustomShinyView .pcsg-custom-tools button,
+#pokemonCustomShinyView #pcsg_mergeSameColorsBtn {
+  border-radius: 10px;
+  border: none;
+  padding: 9px 12px;
+  font-weight: 900;
+}
+
+#pokemonCustomShinyView #pcsg_mergeSameColorsBtn {
+  margin-top: 10px;
+  background: #7c3aed;
+  color: white;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40000;
+  background: rgba(0,0,0,0.62);
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-modal.show {
+  display: flex;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-content {
+  width: min(1120px, 96vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: #fff;
+  color: #111;
+  border-radius: 22px;
+  border: 4px solid #ddd;
+  box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+  padding: 18px;
+  text-align: left;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-header h2 {
+  margin: 0;
+}
+
+#pokemonCustomShinyView #pcsg_customManagerSearch {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  margin: 14px 0;
+  font-size: 15px;
+}
+
+#pokemonCustomShinyView .pcsg-custom-manager-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 12px;
+}
+
+#pokemonCustomShinyView .pcsg-manager-card {
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  padding: 10px;
+  background: #fafafa;
+  text-align: center;
+}
+
+#pokemonCustomShinyView .pcsg-manager-card img {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  background: #f3efe6;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+#pokemonCustomShinyView .pcsg-manager-card strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+#pokemonCustomShinyView .pcsg-manager-meta {
+  font-size: 12px;
+  color: #555;
+  min-height: 18px;
+  margin-bottom: 6px;
+}
+
+#pokemonCustomShinyView .pcsg-manager-card button {
+  font-size: 12px;
+  padding: 7px 9px;
+  margin: 3px;
+}
+
 </style>
 </head>
 
@@ -11274,13 +11390,33 @@ window.addEventListener("DOMContentLoaded", () => {
   <button id="pcsg_rebuildRegionsBtn" disabled>
     Farbgruppen neu berechnen
   </button>
+  <button id="pcsg_mergeSameColorsBtn" disabled title="Farbgruppen mit identischer aktueller Farbe zu einer bearbeitbaren Gruppe zusammenlegen">
+    🎨 Gleiche Farben zusammenfassen
+  </button>
 </div>
 
 <div id="pcsg_customStorage">
   <h2>Custom-Shiny speichern</h2>
   <input id="pcsg_customNameInput" type="text" placeholder="Name für Custom..." disabled />
   <button id="pcsg_saveCustomBtn" disabled>Custom speichern</button>
+  <div class="pcsg-custom-tools">
+    <button id="pcsg_manageCustomsBtn" type="button">📁 Alle Customs verwalten</button>
+    <button id="pcsg_exportCustomsBtn" type="button">💾 Backup exportieren</button>
+    <button id="pcsg_importCustomsBtn" type="button">📥 Backup importieren</button>
+    <input id="pcsg_importCustomsInput" type="file" accept="application/json,.json" style="display:none" />
+  </div>
   <div id="pcsg_savedCustoms">Noch kein Pokémon ausgewählt.</div>
+</div>
+
+<div id="pcsg_customManagerModal" class="pcsg-custom-manager-modal" aria-hidden="true">
+  <div class="pcsg-custom-manager-content">
+    <div class="pcsg-custom-manager-header">
+      <h2>📁 Alle gespeicherten Custom Shinys</h2>
+      <button id="pcsg_closeCustomManagerBtn" type="button">Schließen</button>
+    </div>
+    <input id="pcsg_customManagerSearch" type="text" placeholder="Nach Pokémon oder Custom suchen..." />
+    <div id="pcsg_customManagerList" class="pcsg-custom-manager-list"></div>
+  </div>
 </div>
 
 
@@ -11397,6 +11533,15 @@ const showcaseCellControls = document.getElementById("pcsg_showcaseCellControls"
 const showAllBtn = document.getElementById("pcsg_showAllBtn");
 const hideAllBtn = document.getElementById("pcsg_hideAllBtn");
 const clearShowcaseBtn = document.getElementById("pcsg_clearShowcaseBtn");
+const mergeSameColorsBtn = document.getElementById("pcsg_mergeSameColorsBtn");
+const manageCustomsBtn = document.getElementById("pcsg_manageCustomsBtn");
+const exportCustomsBtn = document.getElementById("pcsg_exportCustomsBtn");
+const importCustomsBtn = document.getElementById("pcsg_importCustomsBtn");
+const importCustomsInput = document.getElementById("pcsg_importCustomsInput");
+const customManagerModal = document.getElementById("pcsg_customManagerModal");
+const closeCustomManagerBtn = document.getElementById("pcsg_closeCustomManagerBtn");
+const customManagerSearch = document.getElementById("pcsg_customManagerSearch");
+const customManagerList = document.getElementById("pcsg_customManagerList");
 
 const originalCanvas = document.getElementById("pcsg_originalCanvas");
 const officialShinyCanvas = document.getElementById("pcsg_officialShinyCanvas");
@@ -11788,6 +11933,7 @@ function drawPokemon(pokemon) {
 
   shinyBtn.disabled = false;
   rebuildRegionsBtn.disabled = true;
+  if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = true;
   saveCustomBtn.disabled = false;
   customNameInput.disabled = false;
 
@@ -12852,6 +12998,7 @@ function generateRandomShiny() {
   currentRegionLabels = groupResult.regionLabels;
 
   rebuildRegionsBtn.disabled = false;
+  if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = false;
   createRegionControls();
   renderWithRegions();
 
@@ -13286,9 +13433,332 @@ function saveCurrentCustom() {
   customNameInput.value = "";
   renderSavedCustoms();
   renderShowcase();
+  renderCustomManager();
 
   statusText.textContent = `"${name}" wurde für ${currentPokemon.name} gespeichert.`;
 }
+
+
+function getAllCustomStorageEntries() {
+  const entries = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith("customShiniesV3:")) continue;
+
+    let customs = [];
+    try {
+      customs = JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      customs = [];
+    }
+
+    if (!Array.isArray(customs)) continue;
+
+    const pokemonId = key.replace("customShiniesV3:", "");
+
+    customs.forEach(custom => {
+      if (!custom || typeof custom !== "object") return;
+      entries.push({
+        key,
+        pokemonId: custom.pokemonId ?? pokemonId,
+        custom
+      });
+    });
+  }
+
+  entries.sort((a, b) => {
+    const at = a.custom.createdAt || "";
+    const bt = b.custom.createdAt || "";
+    return bt.localeCompare(at);
+  });
+
+  return entries;
+}
+
+function renderCustomManager() {
+  if (!customManagerList) return;
+
+  const query = (customManagerSearch ? customManagerSearch.value : "").trim().toLowerCase();
+  const entries = getAllCustomStorageEntries().filter(entry => {
+    const c = entry.custom;
+    const hay = `${c.name || ""} ${c.pokemonName || ""} ${entry.pokemonId || ""}`.toLowerCase();
+    return !query || hay.includes(query);
+  });
+
+  customManagerList.innerHTML = "";
+
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.className = "pcsg-manager-empty";
+    empty.textContent = query
+      ? "Keine passenden Customs gefunden."
+      : "Keine gespeicherten Custom Shinys gefunden.";
+    customManagerList.appendChild(empty);
+    return;
+  }
+
+  for (const entry of entries) {
+    const custom = entry.custom;
+    const card = document.createElement("div");
+    card.className = "pcsg-manager-card";
+
+    const img = document.createElement("img");
+    img.src = custom.image || "";
+    img.alt = custom.name || "Custom Shiny";
+
+    const title = document.createElement("strong");
+    title.textContent = custom.name || "Unbenannt";
+
+    const meta = document.createElement("div");
+    meta.className = "pcsg-manager-meta";
+    meta.textContent = custom.pokemonName || `Pokémon ${entry.pokemonId}`;
+
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.textContent = "Laden";
+    loadBtn.addEventListener("click", async () => {
+      await loadManagedCustom(entry.key, custom.id);
+    });
+
+    const showcaseBtn = document.createElement("button");
+    showcaseBtn.type = "button";
+    showcaseBtn.textContent = "+ Showcase";
+    showcaseBtn.addEventListener("click", () => {
+      addCustomToShowcase({
+        ...custom,
+        pokemonId: custom.pokemonId ?? entry.pokemonId
+      });
+      renderCustomManager();
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Löschen";
+    deleteBtn.addEventListener("click", () => {
+      deleteManagedCustom(entry.key, custom.id, custom.name || "dieses Custom");
+    });
+
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(meta);
+    card.appendChild(loadBtn);
+    card.appendChild(showcaseBtn);
+    card.appendChild(deleteBtn);
+
+    customManagerList.appendChild(card);
+  }
+}
+
+async function loadManagedCustom(storageKey, customId) {
+  let customs = [];
+  try {
+    customs = JSON.parse(localStorage.getItem(storageKey)) || [];
+  } catch {
+    customs = [];
+  }
+
+  const custom = customs.find(item => item && item.id === customId);
+  if (!custom) {
+    statusText.textContent = "Custom wurde nicht gefunden.";
+    renderCustomManager();
+    return;
+  }
+
+  const pokemonId = custom.pokemonId ?? storageKey.replace("customShiniesV3:", "");
+  const pokemon = pokemonData.find(p => String(p.id) === String(pokemonId));
+
+  if (!pokemon) {
+    statusText.textContent =
+      "Dieses Pokémon ist noch nicht geladen. Bitte erst die Pokémon-Liste laden.";
+    return;
+  }
+
+  drawPokemon(pokemon);
+  await loadSavedCustom(custom);
+
+  if (customManagerModal) customManagerModal.classList.remove("show");
+}
+
+function deleteManagedCustom(storageKey, customId, customName) {
+  if (!confirm(`"${customName}" wirklich löschen?`)) return;
+
+  let customs = [];
+  try {
+    customs = JSON.parse(localStorage.getItem(storageKey)) || [];
+  } catch {
+    customs = [];
+  }
+
+  const next = customs.filter(custom => custom && custom.id !== customId);
+
+  if (next.length) {
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  } else {
+    localStorage.removeItem(storageKey);
+  }
+
+  renderCustomManager();
+  renderSavedCustoms();
+  renderShowcase();
+  renderCustomManager();
+
+  statusText.textContent = "Custom wurde gelöscht.";
+}
+
+function openCustomManager() {
+  if (!customManagerModal) return;
+  customManagerModal.classList.add("show");
+  renderCustomManager();
+}
+
+function closeCustomManager() {
+  if (!customManagerModal) return;
+  customManagerModal.classList.remove("show");
+}
+
+function exportCustomBackup() {
+  const backup = {
+    type: "pokemon-custom-shiny-backup",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: {}
+  };
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+
+    if (
+      key.startsWith("customShiniesV3:") ||
+      key === SHOWCASE_STORAGE_KEY ||
+      key === SHOWCASE_LAYOUT_KEY
+    ) {
+      backup.items[key] = localStorage.getItem(key);
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `pokemon-custom-shiny-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  statusText.textContent =
+    `Backup exportiert: ${Object.keys(backup.items).filter(k => k.startsWith("customShiniesV3:")).length} Pokémon-Speicher gefunden.`;
+}
+
+function importCustomBackupFile(file) {
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const backup = JSON.parse(String(reader.result || "{}"));
+      const items = backup.items && typeof backup.items === "object"
+        ? backup.items
+        : backup;
+
+      const keys = Object.keys(items).filter(key =>
+        key.startsWith("customShiniesV3:") ||
+        key === SHOWCASE_STORAGE_KEY ||
+        key === SHOWCASE_LAYOUT_KEY
+      );
+
+      if (!keys.length) {
+        alert("In dieser Datei wurden keine Custom-Shiny-Daten gefunden.");
+        return;
+      }
+
+      if (!confirm(`${keys.length} Speicher-Einträge importieren? Bestehende Einträge mit gleichem Schlüssel werden überschrieben.`)) {
+        return;
+      }
+
+      keys.forEach(key => {
+        if (typeof items[key] === "string") {
+          localStorage.setItem(key, items[key]);
+        } else {
+          localStorage.setItem(key, JSON.stringify(items[key]));
+        }
+      });
+
+      renderSavedCustoms();
+      renderShowcase();
+      renderCustomManager();
+
+      statusText.textContent = "Backup importiert.";
+    } catch (error) {
+      alert("Backup konnte nicht gelesen werden.");
+    } finally {
+      if (importCustomsInput) importCustomsInput.value = "";
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+function mergeSameColorRegions() {
+  if (!currentRegions.length || !currentRegionLabels) {
+    statusText.textContent = "Es gibt noch keine Farbgruppen zum Zusammenfassen.";
+    return;
+  }
+
+  const colorToNewIndex = new Map();
+  const oldToNewIndex = new Map();
+  const mergedRegions = [];
+
+  currentRegions.forEach((region, oldIndex) => {
+    const target = Array.isArray(region.target) ? region.target : [region.r, region.g, region.b];
+    const key = rgbToHex(target[0], target[1], target[2]).toLowerCase();
+
+    if (!colorToNewIndex.has(key)) {
+      const newIndex = mergedRegions.length;
+      colorToNewIndex.set(key, newIndex);
+      mergedRegions.push({
+        ...region,
+        id: newIndex,
+        name: region.name || `Farbgruppe ${newIndex + 1}`,
+        target: [...target],
+        r: region.r,
+        g: region.g,
+        b: region.b
+      });
+    }
+
+    oldToNewIndex.set(oldIndex, colorToNewIndex.get(key));
+  });
+
+  if (mergedRegions.length === currentRegions.length) {
+    statusText.textContent = "Keine identischen Farben gefunden.";
+    return;
+  }
+
+  const nextLabels = new Int32Array(currentRegionLabels.length);
+  for (let i = 0; i < currentRegionLabels.length; i++) {
+    const oldIndex = currentRegionLabels[i];
+    nextLabels[i] = oldIndex < 0 ? oldIndex : (oldToNewIndex.get(oldIndex) ?? oldIndex);
+  }
+
+  currentRegions = mergedRegions;
+  currentRegionLabels = nextLabels;
+  regionNameMemory = {};
+  currentRegions.forEach(region => {
+    regionNameMemory[region.id] = region.name;
+  });
+
+  createRegionControls();
+  renderWithRegions();
+
+  statusText.textContent =
+    `Farbgruppen zusammengefasst: ${oldToNewIndex.size} → ${currentRegions.length}.`;
+}
+
 
 function renderSavedCustoms() {
   savedCustoms.innerHTML = "";
@@ -13453,6 +13923,24 @@ if (showcaseLayout) {
 if (showAllBtn) showAllBtn.addEventListener("click", () => setAllShowcaseReveal(true));
 if (hideAllBtn) hideAllBtn.addEventListener("click", () => setAllShowcaseReveal(false));
 if (clearShowcaseBtn) clearShowcaseBtn.addEventListener("click", clearShowcase);
+
+if (mergeSameColorsBtn) mergeSameColorsBtn.addEventListener("click", mergeSameColorRegions);
+if (manageCustomsBtn) manageCustomsBtn.addEventListener("click", openCustomManager);
+if (closeCustomManagerBtn) closeCustomManagerBtn.addEventListener("click", closeCustomManager);
+if (customManagerModal) {
+  customManagerModal.addEventListener("click", event => {
+    if (event.target === customManagerModal) closeCustomManager();
+  });
+}
+if (customManagerSearch) customManagerSearch.addEventListener("input", renderCustomManager);
+if (exportCustomsBtn) exportCustomsBtn.addEventListener("click", exportCustomBackup);
+if (importCustomsBtn && importCustomsInput) {
+  importCustomsBtn.addEventListener("click", () => importCustomsInput.click());
+  importCustomsInput.addEventListener("change", () => {
+    const file = importCustomsInput.files && importCustomsInput.files[0];
+    if (file) importCustomBackupFile(file);
+  });
+}
 
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Enter") showSearchedPokemon();
