@@ -13401,6 +13401,7 @@ function applyPreset(preset) {
     createRegionControls();
     renderWithRegions();
     rebuildRegionsBtn.disabled = false;
+    if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = false;
     return true;
   }
 
