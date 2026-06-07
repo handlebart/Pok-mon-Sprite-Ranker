@@ -4609,6 +4609,79 @@ button,
 }
 
 
+
+
+#pokemonCustomShinyView #pcsg_allCustomsPanel {
+  display: none;
+  margin: 18px auto;
+  padding: 18px;
+  width: min(1040px, 95vw);
+  background: #181818;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.24);
+}
+
+#pokemonCustomShinyView #pcsg_allCustomsPanel.show {
+  display: block;
+}
+
+#pokemonCustomShinyView .pcsg-all-customs-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+#pokemonCustomShinyView .pcsg-all-customs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+#pokemonCustomShinyView .pcsg-all-custom-card {
+  background: #f8f4ea;
+  color: #222;
+  border-radius: 14px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+#pokemonCustomShinyView .pcsg-all-custom-card img {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+  background: #f3efe6;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#pokemonCustomShinyView .pcsg-all-custom-card strong,
+#pokemonCustomShinyView .pcsg-all-custom-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#pokemonCustomShinyView .pcsg-all-custom-card span {
+  color: #555;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+#pokemonCustomShinyView .pcsg-all-custom-card button {
+  padding: 7px 9px;
+  margin: 4px 2px;
+  font-size: 12px;
+}
+
 #pokemonCustomShinyView #pcsg_showcasePanel {
   margin: 22px auto;
   padding: 18px;
@@ -11274,13 +11347,27 @@ window.addEventListener("DOMContentLoaded", () => {
   <button id="pcsg_rebuildRegionsBtn" disabled>
     Farbgruppen neu berechnen
   </button>
+  <button id="pcsg_mergeSameColorsBtn" disabled>
+    🎨 Gleiche Farben zusammenfassen
+  </button>
 </div>
 
 <div id="pcsg_customStorage">
   <h2>Custom-Shiny speichern</h2>
   <input id="pcsg_customNameInput" type="text" placeholder="Name für Custom..." disabled />
   <button id="pcsg_saveCustomBtn" disabled>Custom speichern</button>
+  <button id="pcsg_openAllCustomsBtn" type="button">📁 Alle Customs verwalten</button>
   <div id="pcsg_savedCustoms">Noch kein Pokémon ausgewählt.</div>
+</div>
+
+<div id="pcsg_allCustomsPanel">
+  <h2>📁 Alle gespeicherten Custom-Shinys</h2>
+  <div class="pcsg-all-customs-toolbar">
+    <input id="pcsg_allCustomsSearch" type="text" placeholder="Custom oder Pokémon suchen..." />
+    <button id="pcsg_refreshAllCustomsBtn" type="button">Aktualisieren</button>
+    <button id="pcsg_closeAllCustomsBtn" type="button">Schließen</button>
+  </div>
+  <div id="pcsg_allCustomsGrid" class="pcsg-all-customs-grid"></div>
 </div>
 
 
@@ -11788,6 +11875,7 @@ function drawPokemon(pokemon) {
 
   shinyBtn.disabled = false;
   rebuildRegionsBtn.disabled = true;
+  mergeSameColorsBtn.disabled = true;
   saveCustomBtn.disabled = false;
   customNameInput.disabled = false;
 
@@ -12705,6 +12793,7 @@ function drawFloatingEditPreview() {
 
 function createRegionControls() {
   clusterControls.innerHTML = "";
+  if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = !currentRegions.length;
 
   currentRegions.forEach((region, index) => {
     const wrap = document.createElement("div");
@@ -12856,6 +12945,219 @@ function generateRandomShiny() {
   renderWithRegions();
 
   statusText.textContent = `${currentRegions.length} einfache Farbgruppen erzeugt.`;
+}
+
+
+function colorKeyFromTarget(target) {
+  if (!Array.isArray(target)) return "0,0,0";
+  return target.map(v => clamp255(v)).join(",");
+}
+
+function mergeSameColorRegions() {
+  if (!currentRegions.length || !currentRegionLabels) {
+    statusText.textContent = "Es gibt aktuell keine Farbgruppen zum Zusammenfassen.";
+    return;
+  }
+
+  const groups = new Map();
+  currentRegions.forEach((region, oldIndex) => {
+    const key = colorKeyFromTarget(region.target);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({ region, oldIndex });
+  });
+
+  if (groups.size === currentRegions.length) {
+    statusText.textContent = "Keine identischen Farben gefunden. Es wurde nichts zusammengefasst.";
+    return;
+  }
+
+  const oldToNew = new Map();
+  const newRegions = [];
+
+  Array.from(groups.entries()).forEach(([key, entries], newIndex) => {
+    const regions = entries.map(entry => entry.region);
+    const base = regions[0];
+    const target = key.split(",").map(Number);
+    const originalCount = regions.length;
+    const joinedNames = regions
+      .map(region => region.name)
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(" + ");
+
+    entries.forEach(entry => oldToNew.set(entry.oldIndex, newIndex));
+
+    newRegions.push({
+      id: newIndex,
+      name: originalCount > 1
+        ? `Farbe ${newIndex + 1} (${originalCount} Gruppen)`
+        : (base.name || `Farbe ${newIndex + 1}`),
+      pixels: [],
+      avgL: regions.reduce((sum, region) => sum + (region.avgL ?? 0.5), 0) / regions.length,
+      target,
+      r: base.r,
+      g: base.g,
+      b: base.b,
+      mergedFrom: joinedNames
+    });
+  });
+
+  const newLabels = new Int32Array(currentRegionLabels.length).fill(-1);
+  for (let i = 0; i < currentRegionLabels.length; i++) {
+    const oldIndex = currentRegionLabels[i];
+    newLabels[i] = oldIndex < 0 ? -1 : (oldToNew.get(oldIndex) ?? -1);
+  }
+
+  const before = currentRegions.length;
+  currentRegions = newRegions;
+  currentRegionLabels = newLabels;
+  regionNameMemory = {};
+  currentRegions.forEach(region => {
+    regionNameMemory[region.id] = region.name;
+  });
+
+  createRegionControls();
+  renderWithRegions();
+  statusText.textContent = `Farbgruppen zusammengefasst: ${before} → ${currentRegions.length}.`;
+}
+
+function getAllStoredCustoms() {
+  const all = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith("customShiniesV3:")) continue;
+
+    const pokemonId = Number(key.replace("customShiniesV3:", ""));
+
+    try {
+      const customs = JSON.parse(localStorage.getItem(key)) || [];
+      if (!Array.isArray(customs)) continue;
+
+      customs.forEach(custom => {
+        all.push({
+          ...custom,
+          pokemonId: custom.pokemonId ?? pokemonId,
+          storageKey: key
+        });
+      });
+    } catch {}
+  }
+
+  return all.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+}
+
+function findPokemonByIdForCustom(pokemonId) {
+  return pokemonData.find(pokemon => String(pokemon.id) === String(pokemonId)) || null;
+}
+
+async function loadCustomFromOverview(custom) {
+  if (!custom) return;
+
+  if (!pokemonData.length) {
+    statusText.textContent = "Bitte zuerst alle Pokémon vorladen, damit das Custom geladen werden kann.";
+    return;
+  }
+
+  const pokemon = findPokemonByIdForCustom(custom.pokemonId);
+  if (!pokemon) {
+    statusText.textContent = `Pokémon #${custom.pokemonId} wurde in den vorgeladenen Daten nicht gefunden.`;
+    return;
+  }
+
+  drawPokemon(pokemon);
+  await loadSavedCustom(custom);
+  if (allCustomsPanel) allCustomsPanel.classList.remove("show");
+}
+
+function deleteCustomFromOverview(custom) {
+  if (!custom || !custom.storageKey) return;
+  if (!confirm(`"${custom.name || "Custom"}" wirklich löschen?`)) return;
+
+  let customs = [];
+  try {
+    customs = JSON.parse(localStorage.getItem(custom.storageKey)) || [];
+  } catch {}
+
+  customs = customs.filter(item => item.id !== custom.id);
+  localStorage.setItem(custom.storageKey, JSON.stringify(customs));
+
+  if (currentPokemon && String(custom.pokemonId) === String(currentPokemon.id)) {
+    renderSavedCustoms();
+  }
+
+  renderAllCustomsOverview();
+  renderShowcase();
+  statusText.textContent = "Custom wurde gelöscht.";
+}
+
+function renderAllCustomsOverview() {
+  if (!allCustomsGrid) return;
+
+  const query = (allCustomsSearch && allCustomsSearch.value ? allCustomsSearch.value : "").trim().toLowerCase();
+  const customs = getAllStoredCustoms().filter(custom => {
+    const haystack = `${custom.name || ""} ${custom.pokemonName || ""} ${custom.pokemonId || ""}`.toLowerCase();
+    return !query || haystack.includes(query);
+  });
+
+  allCustomsGrid.innerHTML = "";
+
+  if (!customs.length) {
+    const empty = document.createElement("div");
+    empty.className = "pcsg-showcase-empty";
+    empty.textContent = query ? "Keine passenden Customs gefunden." : "Noch keine Custom-Shinys gespeichert.";
+    allCustomsGrid.appendChild(empty);
+    return;
+  }
+
+  customs.forEach(custom => {
+    const card = document.createElement("div");
+    card.className = "pcsg-all-custom-card";
+
+    const img = document.createElement("img");
+    img.src = custom.image;
+    img.alt = custom.name || "Custom Shiny";
+    img.addEventListener("click", () => loadCustomFromOverview(custom));
+
+    const title = document.createElement("strong");
+    title.textContent = custom.name || "Custom";
+
+    const subtitle = document.createElement("span");
+    subtitle.textContent = custom.pokemonName || `Pokémon #${custom.pokemonId}`;
+
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.textContent = "Laden";
+    loadBtn.addEventListener("click", () => loadCustomFromOverview(custom));
+
+    const showcaseBtn = document.createElement("button");
+    showcaseBtn.type = "button";
+    showcaseBtn.className = "pcsg-add-showcase-btn";
+    showcaseBtn.textContent = "+ Showcase";
+    showcaseBtn.addEventListener("click", () => addCustomToShowcase(custom));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Löschen";
+    deleteBtn.addEventListener("click", () => deleteCustomFromOverview(custom));
+
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(loadBtn);
+    card.appendChild(showcaseBtn);
+    card.appendChild(deleteBtn);
+    allCustomsGrid.appendChild(card);
+  });
+}
+
+function toggleAllCustomsOverview() {
+  if (!allCustomsPanel) return;
+  allCustomsPanel.classList.toggle("show");
+  if (allCustomsPanel.classList.contains("show")) {
+    renderAllCustomsOverview();
+    allCustomsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function customStorageKey() {
@@ -13286,6 +13588,9 @@ function saveCurrentCustom() {
   customNameInput.value = "";
   renderSavedCustoms();
   renderShowcase();
+  if (allCustomsPanel && allCustomsPanel.classList.contains("show")) {
+    renderAllCustomsOverview();
+  }
 
   statusText.textContent = `"${name}" wurde für ${currentPokemon.name} gespeichert.`;
 }
@@ -13397,6 +13702,9 @@ function deleteSavedCustom(id) {
   saveCustomsToStorage(customs);
   renderSavedCustoms();
   renderShowcase();
+  if (allCustomsPanel && allCustomsPanel.classList.contains("show")) {
+    renderAllCustomsOverview();
+  }
 
   statusText.textContent = "Custom wurde gelöscht.";
 }
@@ -13411,7 +13719,12 @@ regionSizeSlider.addEventListener("input", () => {
 });
 
 rebuildRegionsBtn.addEventListener("click", rebuildRegionsOnly);
+mergeSameColorsBtn.addEventListener("click", mergeSameColorRegions);
 saveCustomBtn.addEventListener("click", saveCurrentCustom);
+openAllCustomsBtn.addEventListener("click", toggleAllCustomsOverview);
+refreshAllCustomsBtn.addEventListener("click", renderAllCustomsOverview);
+closeAllCustomsBtn.addEventListener("click", () => allCustomsPanel.classList.remove("show"));
+allCustomsSearch.addEventListener("input", renderAllCustomsOverview);
 
 toggleOfficialBtn.addEventListener("click", () => {
   toggleSlot(
