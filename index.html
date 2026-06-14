@@ -11276,6 +11276,12 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('rareTypeCombo')">🧬 Seltenste Typkombi</button>
     <button onclick="ttSetCategory('uniqueTypeEvolution')">🔄 Einzigartige Typenreihe</button>
     <button onclick="ttSetCategory('minecraft')">⛏️ Minecraft</button>
+    <button onclick="ttSetCategory('music')">🎵 Musik</button>
+    <button onclick="ttSetCategory('variete')">🎪 Varieté</button>
+    <button onclick="ttSetCategory('harryPotter')">⚡ Harry Potter</button>
+    <button onclick="ttSetCategory('space')">🚀 Weltraum</button>
+    <button onclick="ttSetCategory('china')">🐉 China</button>
+    <button onclick="ttSetCategory('gigantamax')">🔥 Gigadynamax</button>
   </div>
 
   <div class="tt-team">
@@ -14698,6 +14704,132 @@ const ttCategories = {
   australia: ["kangaskhan","komala","golduck","espathra","dodrio","arbok","sandaconda","ariados","spidops","krookodile","feraligatr","heliolisk"],
   rareTypeCombo: ["ninetales-alola","raichu-alola","tyranitar","shedinja","empoleon","bibarel","froslass","rotom","rotom-heat","heatran","crabominable","morpeko","lokix","great-tusk","iron-valiant"],
   uniqueTypeEvolution: ["crobat","mamoswine","zoroark-hisui","kingambit","heliolisk","tyrantrum","grimmsnarl","grafaiai","revavroom"],
+  music: [
+    "meloetta-aria",
+    "primarina",
+    { id:"rillaboom-gmax", suffix:"Gigadynamax" },
+    "toxtricity-amped",
+    "exploud",
+    "kricketune",
+    "chatot",
+    "loudred"
+  ],
+  variete: [
+    "mr-mime",
+    { id:"hoopa", suffix:"Gebannt" },
+    { id:"hoopa-unbound", suffix:"Entfesselt" },
+    "cinderace",
+    "alakazam",
+    "hypno",
+    "blacephalon",
+    "quaquaval"
+  ],
+  harryPotter: [
+    { id:"mightyena", suffix:"Animagus Sirius" },
+    { id:"lycanroc-midday", suffix:"Lupin Normalform" },
+    { id:"lycanroc-midnight", suffix:"Lupin Nachtform" },
+    { id:"pyroar", suffix:"Gryffindor" },
+    { id:"obstagoon", suffix:"Hufflepuff" },
+    { id:"furret", suffix:"Weasley" },
+    { id:"noctowl", suffix:"Hedwig" },
+    { id:"delphox", suffix:"Hexen und Zauberer" }
+  ],
+  space: [
+    "minior-red-meteor",
+    "solrock",
+    "lunatone",
+    "naganadel",
+    "deoxys-normal",
+    "beheeyem",
+    "magnezone",
+    "jirachi",
+    "cosmoem"
+  ],
+  china: [
+    { id:"rapidash-galar", suffix:"Galar" },
+    "rayquaza",
+    "gyarados",
+    { id:"urshifu-rapid-strike", suffix:"Fließender Stil" },
+    "pangoro",
+    "mienshao",
+    "arcanine",
+    "drampa",
+    "emboar",
+    "infernape",
+    "ho-oh",
+    "lugia",
+    "chien-pao"
+  ],
+  gigantamax: [
+    { id:"venusaur-gmax", suffix:"Gigadynamax" },
+    { id:"venusaur-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"charizard-gmax", suffix:"Gigadynamax" },
+    { id:"charizard-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"blastoise-gmax", suffix:"Gigadynamax" },
+    { id:"blastoise-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"butterfree-gmax", suffix:"Gigadynamax" },
+    { id:"butterfree-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"pikachu-gmax", suffix:"Gigadynamax" },
+    { id:"pikachu-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"meowth-gmax", suffix:"Gigadynamax" },
+    { id:"meowth-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"machamp-gmax", suffix:"Gigadynamax" },
+    { id:"machamp-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"gengar-gmax", suffix:"Gigadynamax" },
+    { id:"gengar-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"kingler-gmax", suffix:"Gigadynamax" },
+    { id:"kingler-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"lapras-gmax", suffix:"Gigadynamax" },
+    { id:"lapras-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"eevee-gmax", suffix:"Gigadynamax" },
+    { id:"eevee-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"snorlax-gmax", suffix:"Gigadynamax" },
+    { id:"snorlax-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"garbodor-gmax", suffix:"Gigadynamax" },
+    { id:"garbodor-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"melmetal-gmax", suffix:"Gigadynamax" },
+    { id:"melmetal-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"rillaboom-gmax", suffix:"Gigadynamax" },
+    { id:"rillaboom-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"cinderace-gmax", suffix:"Gigadynamax" },
+    { id:"cinderace-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"inteleon-gmax", suffix:"Gigadynamax" },
+    { id:"inteleon-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"corviknight-gmax", suffix:"Gigadynamax" },
+    { id:"corviknight-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"orbeetle-gmax", suffix:"Gigadynamax" },
+    { id:"orbeetle-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"drednaw-gmax", suffix:"Gigadynamax" },
+    { id:"drednaw-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"coalossal-gmax", suffix:"Gigadynamax" },
+    { id:"coalossal-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"flapple-gmax", suffix:"Gigadynamax" },
+    { id:"flapple-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"appletun-gmax", suffix:"Gigadynamax" },
+    { id:"appletun-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"sandaconda-gmax", suffix:"Gigadynamax" },
+    { id:"sandaconda-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"toxtricity-amped-gmax", suffix:"Gigadynamax Hoch-Form" },
+    { id:"toxtricity-amped-gmax", shiny:true, suffix:"Gigadynamax Hoch-Form Shiny" },
+    { id:"toxtricity-low-key-gmax", suffix:"Gigadynamax Tief-Form" },
+    { id:"toxtricity-low-key-gmax", shiny:true, suffix:"Gigadynamax Tief-Form Shiny" },
+    { id:"centiskorch-gmax", suffix:"Gigadynamax" },
+    { id:"centiskorch-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"hatterene-gmax", suffix:"Gigadynamax" },
+    { id:"hatterene-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"grimmsnarl-gmax", suffix:"Gigadynamax" },
+    { id:"grimmsnarl-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"alcremie-gmax", suffix:"Gigadynamax" },
+    { id:"alcremie-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"copperajah-gmax", suffix:"Gigadynamax" },
+    { id:"copperajah-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"duraludon-gmax", suffix:"Gigadynamax" },
+    { id:"duraludon-gmax", shiny:true, suffix:"Gigadynamax Shiny" },
+    { id:"urshifu-single-strike-gmax", suffix:"Gigadynamax Fokussierter Stil" },
+    { id:"urshifu-single-strike-gmax", shiny:true, suffix:"Gigadynamax Fokussierter Stil Shiny" },
+    { id:"urshifu-rapid-strike-gmax", suffix:"Gigadynamax Fließender Stil" },
+    { id:"urshifu-rapid-strike-gmax", shiny:true, suffix:"Gigadynamax Fließender Stil Shiny" }
+  ],
   minecraft: ["registeel","zekrom","diancie",{ id:"rotom", shiny:true },"darkrai","rillaboom","dubwool","blaziken"]
 };
 
