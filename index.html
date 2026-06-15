@@ -11475,7 +11475,7 @@ window.addEventListener("DOMContentLoaded", () => {
 </div>
 
 <div>
-  <input id="pcsg_searchInput" list="pokemonList" placeholder="Pokémon suchen..." disabled />
+  <input id="pcsg_searchInput" list="pcsg_pokemonList" placeholder="Pokémon suchen..." disabled />
   <datalist id="pcsg_pokemonList"></datalist>
   <button id="pcsg_searchBtn" disabled>Pokémon anzeigen</button>
 </div>
@@ -11690,7 +11690,30 @@ function normalizeShowdownSlug(name) {
 }
 
 function showdownUrl(slug, shiny = false) {
-  return `https://play.pokemonshowdown.com/sprites/${shiny ? "ani-shiny" : "ani"}/${slug}.gif`;
+  // Raw GitHub liefert die Pokémon-Showdown-Sprites mit CORS-Headern.
+  // play.pokemonshowdown.com lädt im Browser oft als <img>, macht den Canvas aber
+  // beim Bearbeiten/getImageData unbrauchbar oder schlägt mit crossOrigin="anonymous" ganz fehl.
+  return `https://raw.githubusercontent.com/smogon/sprites/master/sprites/${shiny ? "ani-shiny" : "ani"}/${slug}.gif`;
+}
+
+function showdownUrlFallbacks(slug, shiny = false) {
+  const folder = shiny ? "ani-shiny" : "ani";
+  const compactSlug = String(slug || "").replace(/-/g, "");
+  const urls = [
+    `https://raw.githubusercontent.com/smogon/sprites/master/sprites/${folder}/${slug}.gif`
+  ];
+
+  if (compactSlug && compactSlug !== slug) {
+    urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/${folder}/${compactSlug}.gif`);
+  }
+
+  // Letzter Fallback: statische Showdown-Sprites, falls keine animierte Datei existiert.
+  urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/gen5${shiny ? "-shiny" : ""}/${slug}.png`);
+  if (compactSlug && compactSlug !== slug) {
+    urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/gen5${shiny ? "-shiny" : ""}/${compactSlug}.png`);
+  }
+
+  return [...new Set(urls)];
 }
 
 function sourceUrlForPokemon(pokemonOrId, shiny = false) {
@@ -11738,6 +11761,14 @@ function loadImage(src) {
     img.onerror = () => resolve(null);
     img.src = src;
   });
+}
+
+async function loadImageWithFallbacks(urls) {
+  for (const url of urls.filter(Boolean)) {
+    const img = await loadImage(url);
+    if (img) return img;
+  }
+  return null;
 }
 
 async function runLimited(ids, limit, worker) {
@@ -11808,9 +11839,16 @@ async function preloadOnePokemon(id, nameCache) {
   ]);
 
   const pokemonShell = { id, name, showdownSlug };
+  const normalUrls = pcsgImageMode === "showdown"
+    ? showdownUrlFallbacks(showdownSlug, false)
+    : [sourceUrlForPokemon(pokemonShell, false)];
+  const shinyUrls = pcsgImageMode === "showdown"
+    ? showdownUrlFallbacks(showdownSlug, true)
+    : [sourceUrlForPokemon(pokemonShell, true)];
+
   const [img, shinyImg] = await Promise.all([
-    loadImage(sourceUrlForPokemon(pokemonShell, false)),
-    loadImage(sourceUrlForPokemon(pokemonShell, true))
+    loadImageWithFallbacks(normalUrls),
+    loadImageWithFallbacks(shinyUrls)
   ]);
 
   if (!img) return null;
@@ -11842,10 +11880,14 @@ async function preloadAllPokemon() {
     pokemonList.appendChild(option);
   }
 
-  statusText.textContent = `Fertig! ${pokemonData.length} Pokémon geladen.`;
-  randomBtn.disabled = false;
-  searchBtn.disabled = false;
-  searchInput.disabled = false;
+  statusText.textContent = pokemonData.length
+    ? `Fertig! ${pokemonData.length} Pokémon geladen.`
+    : (pcsgImageMode === "showdown"
+      ? "Keine 3D/Showdown-Sprites geladen. Ursache meist: Sprite-Host/CORS oder blockierte raw.githubusercontent.com-Verbindung."
+      : "Keine Artworks geladen. Bitte Internetverbindung/Sprite-Host prüfen.");
+  randomBtn.disabled = pokemonData.length === 0;
+  searchBtn.disabled = pokemonData.length === 0;
+  searchInput.disabled = pokemonData.length === 0;
 }
 
 function clamp255(v) {
@@ -12119,10 +12161,15 @@ function showRandomPokemon() {
 function showSearchedPokemon() {
   const query = searchInput.value.trim().toLowerCase();
 
-  const found = pokemonData.find(p =>
-    p.name.toLowerCase() === query ||
-    p.name.toLowerCase().includes(query)
-  );
+  const found = pokemonData.find(p => {
+    const name = p.name.toLowerCase();
+    const slug = String(p.showdownSlug || "").toLowerCase();
+    return name === query ||
+      name.includes(query) ||
+      slug === query ||
+      slug.includes(query) ||
+      String(p.id) === query;
+  });
 
   if (found) {
     drawPokemon(found);
@@ -13628,7 +13675,7 @@ function getAllCustomStorageEntries() {
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!key || !(key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:"))) continue;
+    if (!key || !(((key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) || key.startsWith("customShiniesV4:")) || key.startsWith("customShiniesV4:"))) continue;
 
     let customs = [];
     try {
@@ -13639,7 +13686,7 @@ function getAllCustomStorageEntries() {
 
     if (!Array.isArray(customs)) continue;
 
-    const pokemonId = key.replace("customShiniesV3:", "").replace(/^customShiniesV4:[^:]+:/, "");
+    const pokemonId = key.replace("customShiniesV3:", "");
 
     customs.forEach(custom => {
       if (!custom || typeof custom !== "object") return;
@@ -13814,7 +13861,7 @@ function exportCustomBackup() {
     if (!key) continue;
 
     if (
-      (key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) ||
+      ((key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) || key.startsWith("customShiniesV4:")) ||
       key === SHOWCASE_STORAGE_KEY ||
       key === SHOWCASE_LAYOUT_KEY
     ) {
@@ -13836,7 +13883,7 @@ function exportCustomBackup() {
   URL.revokeObjectURL(url);
 
   statusText.textContent =
-    `Backup exportiert: ${Object.keys(backup.items).filter(k => k.startsWith("customShiniesV3:") || k.startsWith("customShiniesV4:")).length} Pokémon-Speicher gefunden.`;
+    `Backup exportiert: ${Object.keys(backup.items).filter(k => k.startsWith("customShiniesV3:")).length} Pokémon-Speicher gefunden.`;
 }
 
 function importCustomBackupFile(file) {
@@ -13850,7 +13897,7 @@ function importCustomBackupFile(file) {
         : backup;
 
       const keys = Object.keys(items).filter(key =>
-        (key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) ||
+        ((key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) || key.startsWith("customShiniesV4:")) ||
         key === SHOWCASE_STORAGE_KEY ||
         key === SHOWCASE_LAYOUT_KEY
       );
