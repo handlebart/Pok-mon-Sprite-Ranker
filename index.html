@@ -2008,12 +2008,12 @@ button:disabled {
 }
 
 #pokemonThemeTeamsView.tt-gen1-mode .tt-slot {
-  background: #f7f3d0;
+  background: var(--tt-type-bg, #f7f3d0);
   border: 3px solid #1f2937;
 }
 
 #pokemonThemeTeamsView.tt-gen1-mode .tt-slot::before {
-  display: none;
+  display: block;
 }
 
 #pokemonThemeTeamsView.tt-gen1-mode .tt-slot img,
@@ -2023,8 +2023,13 @@ button:disabled {
 }
 
 #pokemonThemeTeamsView.tt-gen1-mode .tt-slot img {
-  width: 68%;
-  height: 68%;
+  width: 88%;
+  height: 88%;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-pokemon img {
+  width: 64px;
+  height: 64px;
 }
 
 #pokemonThemeTeamsView.tt-gen1-mode #ttSelector {
