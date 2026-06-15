@@ -11628,6 +11628,9 @@ const KMEANS_ITERATIONS = 16;
 const SAMPLE_SIZE = 14000;
 const PRELOAD_CONCURRENCY = 24;
 const SPATIAL_WEIGHT = 0.012;
+const GIFUCT_CDN = "https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/dist/gifuct.min.js";
+const GIFJS_CDN = "https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.js";
+const GIFJS_WORKER_CDN = "https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.worker.js";
 
 let minRegionSize = 8;
 
@@ -11695,6 +11698,43 @@ let currentRegions = [];
 let currentRegionLabels = null;
 let regionNameMemory = {};
 let pcsgImageMode = localStorage.getItem("pcsgImageModeV1") || "artwork";
+let currentAnimatedCustomUrl = "";
+let animatedCustomBuildTimer = null;
+let animatedCustomBuildToken = 0;
+
+
+function loadExternalScriptOnce(src, globalName) {
+  return new Promise((resolve, reject) => {
+    if (globalName && window[globalName]) {
+      resolve(window[globalName]);
+      return;
+    }
+
+    const existing = document.querySelector(`script[data-pcsg-lib="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve(globalName ? window[globalName] : true), { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.dataset.pcsgLib = src;
+    script.onload = () => resolve(globalName ? window[globalName] : true);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureGifLibrariesLoaded() {
+  await loadExternalScriptOnce(GIFUCT_CDN, "gifuct");
+  await loadExternalScriptOnce(GIFJS_CDN, "GIF");
+  if (!window.gifuct && window.parseGIF && window.decompressFrames) {
+    window.gifuct = { parseGIF: window.parseGIF, decompressFrames: window.decompressFrames };
+  }
+  return Boolean(window.gifuct && window.gifuct.parseGIF && window.gifuct.decompressFrames && window.GIF);
+}
 
 function artworkUrl(id) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
@@ -11760,6 +11800,8 @@ function setPcsgImageMode(mode, resetLoaded = true) {
     saveCustomBtn.disabled = true;
     customNameInput.disabled = true;
     preloadBtn.disabled = false;
+    revokeAnimatedCustomUrl();
+    clearShowdownLiveImages();
   }
 }
 
@@ -12133,6 +12175,140 @@ function setShowdownLiveImage(card, src, altText) {
   live.src = src;
 }
 
+
+function revokeAnimatedCustomUrl() {
+  if (currentAnimatedCustomUrl && currentAnimatedCustomUrl.startsWith("blob:")) {
+    try { URL.revokeObjectURL(currentAnimatedCustomUrl); } catch {}
+  }
+  currentAnimatedCustomUrl = "";
+}
+
+function rgbDistanceSqToRegion(r, g, b, region) {
+  const dr = r - region.r;
+  const dg = g - region.g;
+  const db = b - region.b;
+  return dr * dr * 0.85 + dg * dg * 1.0 + db * db * 0.85;
+}
+
+function recolorGifPixelByRegions(r, g, b) {
+  if (!currentRegions || !currentRegions.length) return [r, g, b];
+
+  let best = currentRegions[0];
+  let bestDistance = rgbDistanceSqToRegion(r, g, b, best);
+
+  for (let i = 1; i < currentRegions.length; i++) {
+    const distance = rgbDistanceSqToRegion(r, g, b, currentRegions[i]);
+    if (distance < bestDistance) {
+      best = currentRegions[i];
+      bestDistance = distance;
+    }
+  }
+
+  const target = best.target || [best.r, best.g, best.b];
+  const originalLum = Math.max(1, luminance(best.r, best.g, best.b));
+  const pixelLum = Math.max(1, luminance(r, g, b));
+  const ratio = clamp01(pixelLum / originalLum);
+  const mix = 0.32 + ratio * 0.92;
+
+  return [
+    clamp255(target[0] * mix),
+    clamp255(target[1] * mix),
+    clamp255(target[2] * mix)
+  ];
+}
+
+async function buildAnimatedCustomGifForCurrentPokemon() {
+  if (pcsgImageMode !== "showdown" || !currentPokemon || !currentRegions.length) return "";
+  const token = ++animatedCustomBuildToken;
+
+  try {
+    await ensureGifLibrariesLoaded();
+    if (token !== animatedCustomBuildToken) return "";
+
+    const src = currentPokemon.normalSrc || showdownUrl(currentPokemon.id, false);
+    const response = await fetch(src, { cache: "force-cache" });
+    if (!response.ok) throw new Error("GIF konnte nicht geladen werden");
+    const buffer = await response.arrayBuffer();
+
+    const parsed = window.gifuct.parseGIF(buffer);
+    const frames = window.gifuct.decompressFrames(parsed, true);
+    if (!frames || !frames.length) throw new Error("Keine GIF-Frames gefunden");
+
+    const width = parsed.lsd.width;
+    const height = parsed.lsd.height;
+    const frameCanvas = document.createElement("canvas");
+    frameCanvas.width = width;
+    frameCanvas.height = height;
+    const frameCtx = frameCanvas.getContext("2d");
+
+    const patchCanvas = document.createElement("canvas");
+    patchCanvas.width = width;
+    patchCanvas.height = height;
+    const patchCtx = patchCanvas.getContext("2d");
+
+    const gif = new window.GIF({
+      workers: 2,
+      quality: 10,
+      width,
+      height,
+      workerScript: GIFJS_WORKER_CDN
+    });
+
+    for (const frame of frames) {
+      const dims = frame.dims || { left: 0, top: 0, width, height };
+      const imageData = patchCtx.createImageData(dims.width, dims.height);
+      imageData.data.set(frame.patch);
+
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 10) continue;
+        const [nr, ng, nb] = recolorGifPixelByRegions(data[i], data[i + 1], data[i + 2]);
+        data[i] = nr;
+        data[i + 1] = ng;
+        data[i + 2] = nb;
+      }
+
+      patchCtx.clearRect(0, 0, width, height);
+      patchCtx.putImageData(imageData, dims.left, dims.top);
+      frameCtx.drawImage(patchCanvas, 0, 0);
+      gif.addFrame(frameCtx, {
+        copy: true,
+        delay: Math.max(20, (frame.delay || 10) * 10)
+      });
+
+      if (frame.disposalType === 2) {
+        frameCtx.clearRect(dims.left, dims.top, dims.width, dims.height);
+      }
+    }
+
+    const blob = await new Promise((resolve, reject) => {
+      gif.on("finished", resolve);
+      gif.on("abort", () => reject(new Error("GIF-Erstellung abgebrochen")));
+      gif.render();
+    });
+
+    if (token !== animatedCustomBuildToken) return "";
+    revokeAnimatedCustomUrl();
+    currentAnimatedCustomUrl = URL.createObjectURL(blob);
+    setShowdownLiveImage(customCard, currentAnimatedCustomUrl, `${currentPokemon.name} animiertes Custom Showdown`);
+    return currentAnimatedCustomUrl;
+  } catch (error) {
+    console.warn("Animiertes Custom-GIF konnte nicht erzeugt werden:", error);
+    statusText.textContent = "Animiertes Custom konnte nicht erzeugt werden – statische Vorschau bleibt aktiv.";
+    return "";
+  }
+}
+
+function scheduleAnimatedCustomGifBuild() {
+  if (pcsgImageMode !== "showdown" || !currentPokemon || !currentRegions.length) return;
+  clearTimeout(animatedCustomBuildTimer);
+  animatedCustomBuildTimer = setTimeout(async () => {
+    statusText.textContent = "Erzeuge animiertes 3D-Custom-GIF...";
+    const url = await buildAnimatedCustomGifForCurrentPokemon();
+    if (url) statusText.textContent = "Animiertes 3D-Custom ist fertig.";
+  }, 450);
+}
+
 function syncEditPreview() {
   editPreviewCtx.clearRect(0, 0, 475, 475);
   editPreviewCtx.drawImage(customCanvas, 0, 0, 475, 475);
@@ -12166,6 +12342,7 @@ function drawPokemon(pokemon) {
   currentRegionLabels = null;
   regionNameMemory = {};
 
+  revokeAnimatedCustomUrl();
   clearShowdownLiveImages();
 
   originalCtx.clearRect(0, 0, 475, 475);
@@ -13067,6 +13244,7 @@ function renderWithRegions() {
 
   customCtx.putImageData(output, 0, 0);
   syncEditPreview();
+  scheduleAnimatedCustomGifBuild();
 }
 
 function rememberRegionNames() {
@@ -13479,7 +13657,7 @@ function getShowcaseRowLimit() {
 }
 
 function getShowcaseImageSrc(ref, custom, kind) {
-  if (kind === "new") return custom && custom.image ? custom.image : "";
+  if (kind === "new") return custom && (custom.animatedImage || custom.image) ? (custom.animatedImage || custom.image) : "";
 
   const mode = (custom && custom.imageMode) || ref.imageMode || "artwork";
   if (mode === "showdown") {
@@ -13701,7 +13879,7 @@ function applyPreset(preset) {
   return false;
 }
 
-function saveCurrentCustom() {
+async function saveCurrentCustom() {
   if (!currentPokemon) return;
 
   const customs = loadCustomsFromStorage();
@@ -13711,6 +13889,22 @@ function saveCurrentCustom() {
 
   const image = customCanvas.toDataURL("image/png");
   const preset = getCurrentPreset();
+  let animatedImage = currentAnimatedCustomUrl;
+
+  if (pcsgImageMode === "showdown" && preset) {
+    saveCustomBtn.disabled = true;
+    statusText.textContent = "Speichere animiertes 3D-Custom...";
+    const gifUrl = await buildAnimatedCustomGifForCurrentPokemon();
+    if (gifUrl) {
+      const blob = await fetch(gifUrl).then(res => res.blob());
+      animatedImage = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+    saveCustomBtn.disabled = false;
+  }
 
   customs.unshift({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -13720,6 +13914,7 @@ function saveCurrentCustom() {
     showdownSlug: currentPokemon.showdownSlug,
     name,
     image,
+    animatedImage: pcsgImageMode === "showdown" ? animatedImage : "",
     preset,
     createdAt: new Date().toISOString()
   });
@@ -13800,7 +13995,7 @@ function renderCustomManager() {
     card.className = "pcsg-manager-card";
 
     const img = document.createElement("img");
-    img.src = custom.image || "";
+    img.src = custom.animatedImage || custom.image || "";
     img.alt = custom.name || "Custom Shiny";
 
     const title = document.createElement("strong");
@@ -14078,7 +14273,7 @@ function renderSavedCustoms() {
     card.className = "saved-custom-card";
 
     const img = document.createElement("img");
-    img.src = custom.image;
+    img.src = custom.animatedImage || custom.image;
     img.title = custom.name;
 
     img.addEventListener("click", () => {
@@ -14129,7 +14324,7 @@ function drawSavedImageFallback(custom) {
     };
 
     img.onerror = () => resolve(false);
-    img.src = custom.image;
+    img.src = custom.animatedImage || custom.image;
   });
 }
 
@@ -14276,7 +14471,41 @@ window.pcsgInitOnce = function() {
   let activeIntervals = [];
   let activeTimeouts = [];
 
-  function artworkUrl(id) {
+  
+function loadExternalScriptOnce(src, globalName) {
+  return new Promise((resolve, reject) => {
+    if (globalName && window[globalName]) {
+      resolve(window[globalName]);
+      return;
+    }
+
+    const existing = document.querySelector(`script[data-pcsg-lib="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve(globalName ? window[globalName] : true), { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.dataset.pcsgLib = src;
+    script.onload = () => resolve(globalName ? window[globalName] : true);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureGifLibrariesLoaded() {
+  await loadExternalScriptOnce(GIFUCT_CDN, "gifuct");
+  await loadExternalScriptOnce(GIFJS_CDN, "GIF");
+  if (!window.gifuct && window.parseGIF && window.decompressFrames) {
+    window.gifuct = { parseGIF: window.parseGIF, decompressFrames: window.decompressFrames };
+  }
+  return Boolean(window.gifuct && window.gifuct.parseGIF && window.gifuct.decompressFrames && window.GIF);
+}
+
+function artworkUrl(id) {
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
   }
 
