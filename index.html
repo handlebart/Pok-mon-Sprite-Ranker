@@ -4451,6 +4451,25 @@ button,
   cursor: not-allowed;
 }
 
+#pokemonCustomShinyView .pcsg-modebar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px auto 8px;
+}
+
+#pokemonCustomShinyView .pcsg-mode-btn {
+  background: #2b2f42;
+  color: white;
+}
+
+#pokemonCustomShinyView .pcsg-mode-btn.active {
+  background: #ffcb05;
+  color: #222;
+  box-shadow: 0 0 18px rgba(255,203,5,0.45);
+}
+
 #pokemonCustomShinyView input[type="text"] {
   width: 260px;
 }
@@ -11421,6 +11440,11 @@ window.addEventListener("DOMContentLoaded", () => {
 <button id="pcsg_randomBtn" disabled>Zufälliges Pokémon</button>
 <button id="pcsg_shinyBtn" disabled>Custom-Shiny generieren</button>
 
+<div class="pcsg-modebar" aria-label="Bildquelle wählen">
+  <button id="pcsg_modeArtworkBtn" class="pcsg-mode-btn active" type="button">🎨 Artworks bearbeiten</button>
+  <button id="pcsg_modeShowdownBtn" class="pcsg-mode-btn" type="button">🧊 3D/Showdown bearbeiten</button>
+</div>
+
 <br>
 
 <button id="pcsg_toggleOfficialBtn" disabled>Official ausblenden</button>
@@ -11432,7 +11456,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 <div id="pcsg_artworkGrid">
   <div class="artCard show-placeholder" id="pcsg_originalCard">
-    <h3>Official</h3>
+    <h3>Original</h3>
     <div class="placeholder">?</div>
     <canvas id="pcsg_originalCanvas" width="475" height="475"></canvas>
   </div>
@@ -11588,6 +11612,8 @@ let minRegionSize = 8;
 const preloadBtn = document.getElementById("pcsg_preloadBtn");
 const randomBtn = document.getElementById("pcsg_randomBtn");
 const shinyBtn = document.getElementById("pcsg_shinyBtn");
+const modeArtworkBtn = document.getElementById("pcsg_modeArtworkBtn");
+const modeShowdownBtn = document.getElementById("pcsg_modeShowdownBtn");
 
 const toggleOfficialBtn = document.getElementById("pcsg_toggleOfficialBtn");
 const toggleShinyBtn = document.getElementById("pcsg_toggleShinyBtn");
@@ -11646,6 +11672,7 @@ let currentClusterLabels = null;
 let currentRegions = [];
 let currentRegionLabels = null;
 let regionNameMemory = {};
+let pcsgImageMode = localStorage.getItem("pcsgImageModeV1") || "artwork";
 
 function artworkUrl(id) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
@@ -11653,6 +11680,54 @@ function artworkUrl(id) {
 
 function shinyArtworkUrl(id) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
+}
+
+function normalizeShowdownSlug(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function showdownUrl(slug, shiny = false) {
+  return `https://play.pokemonshowdown.com/sprites/${shiny ? "ani-shiny" : "ani"}/${slug}.gif`;
+}
+
+function sourceUrlForPokemon(pokemonOrId, shiny = false) {
+  const id = typeof pokemonOrId === "object" ? pokemonOrId.id : pokemonOrId;
+  const slug = typeof pokemonOrId === "object" ? pokemonOrId.showdownSlug : "";
+
+  if (pcsgImageMode === "showdown" && slug) {
+    return showdownUrl(slug, shiny);
+  }
+
+  return shiny ? shinyArtworkUrl(id) : artworkUrl(id);
+}
+
+function setPcsgImageMode(mode, resetLoaded = true) {
+  pcsgImageMode = mode === "showdown" ? "showdown" : "artwork";
+  localStorage.setItem("pcsgImageModeV1", pcsgImageMode);
+
+  if (modeArtworkBtn) modeArtworkBtn.classList.toggle("active", pcsgImageMode === "artwork");
+  if (modeShowdownBtn) modeShowdownBtn.classList.toggle("active", pcsgImageMode === "showdown");
+
+  if (resetLoaded) {
+    pokemonData = [];
+    currentPokemon = null;
+    pokemonList.innerHTML = "";
+    pokemonName.textContent = "---";
+    statusText.textContent = pcsgImageMode === "showdown"
+      ? "3D/Showdown-Modus aktiv. Bitte Pokémon erneut vorladen."
+      : "Artwork-Modus aktiv. Bitte Pokémon erneut vorladen.";
+    randomBtn.disabled = true;
+    searchBtn.disabled = true;
+    searchInput.disabled = true;
+    shinyBtn.disabled = true;
+    rebuildRegionsBtn.disabled = true;
+    saveCustomBtn.disabled = true;
+    customNameInput.disabled = true;
+    preloadBtn.disabled = false;
+  }
 }
 
 function loadImage(src) {
@@ -11716,21 +11791,36 @@ async function fetchGermanName(id, cache) {
   }
 }
 
+async function fetchShowdownSlug(id) {
+  try {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const data = await res.json();
+    return normalizeShowdownSlug(data.name || id);
+  } catch {
+    return String(id);
+  }
+}
+
 async function preloadOnePokemon(id, nameCache) {
-  const [img, shinyImg, name] = await Promise.all([
-    loadImage(artworkUrl(id)),
-    loadImage(shinyArtworkUrl(id)),
-    fetchGermanName(id, nameCache)
+  const [name, showdownSlug] = await Promise.all([
+    fetchGermanName(id, nameCache),
+    pcsgImageMode === "showdown" ? fetchShowdownSlug(id) : Promise.resolve(String(id))
+  ]);
+
+  const pokemonShell = { id, name, showdownSlug };
+  const [img, shinyImg] = await Promise.all([
+    loadImage(sourceUrlForPokemon(pokemonShell, false)),
+    loadImage(sourceUrlForPokemon(pokemonShell, true))
   ]);
 
   if (!img) return null;
 
-  return { id, name, img, shinyImg };
+  return { id, name, showdownSlug, imageMode: pcsgImageMode, img, shinyImg };
 }
 
 async function preloadAllPokemon() {
   preloadBtn.disabled = true;
-  statusText.textContent = "Lade Pokémon parallel...";
+  statusText.textContent = pcsgImageMode === "showdown" ? "Lade 3D/Showdown-Modelle parallel..." : "Lade Pokémon-Artworks parallel...";
 
   const ids = Array.from({ length: TOTAL_POKEMON }, (_, i) => i + 1);
   const nameCache = getCachedGermanNames();
@@ -11996,7 +12086,7 @@ function drawPokemon(pokemon) {
     officialShinyCtx.fillStyle = "#777";
     officialShinyCtx.font = "24px system-ui";
     officialShinyCtx.textAlign = "center";
-    officialShinyCtx.fillText("Kein Shiny-Artwork", 237, 237);
+    officialShinyCtx.fillText(pcsgImageMode === "showdown" ? "Kein Shiny-3D-Modell" : "Kein Shiny-Artwork", 237, 237);
   }
 
   showCard(originalCard, toggleOfficialBtn, "Official ausblenden");
@@ -13087,7 +13177,7 @@ function generateRandomShiny() {
 
 function customStorageKey() {
   if (!currentPokemon) return null;
-  return `customShiniesV3:${currentPokemon.id}`;
+  return `customShiniesV4:${pcsgImageMode}:${currentPokemon.id}`;
 }
 
 function loadCustomsFromStorage() {
@@ -13156,16 +13246,20 @@ function saveShowcaseRefs(refs) {
   localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(refs.map(normalizeShowcaseRef)));
 }
 
-function loadCustomsForPokemonId(pokemonId) {
+function loadCustomsForPokemonId(pokemonId, preferredMode = pcsgImageMode) {
   try {
-    return JSON.parse(localStorage.getItem(`customShiniesV3:${pokemonId}`)) || [];
+    const primary = JSON.parse(localStorage.getItem(`customShiniesV4:${preferredMode}:${pokemonId}`)) || [];
+    const otherMode = preferredMode === "showdown" ? "artwork" : "showdown";
+    const secondary = JSON.parse(localStorage.getItem(`customShiniesV4:${otherMode}:${pokemonId}`)) || [];
+    const legacy = JSON.parse(localStorage.getItem(`customShiniesV3:${pokemonId}`)) || [];
+    return primary.concat(secondary, legacy);
   } catch {
     return [];
   }
 }
 
 function findCustomForShowcase(ref) {
-  const customs = loadCustomsForPokemonId(ref.pokemonId);
+  const customs = loadCustomsForPokemonId(ref.pokemonId, ref.imageMode || pcsgImageMode);
   return customs.find(custom => custom.id === ref.customId) || null;
 }
 
@@ -13191,6 +13285,7 @@ function addCustomToShowcase(custom) {
   refs.push({
     pokemonId,
     customId: custom.id,
+    imageMode: custom.imageMode || pcsgImageMode,
     visible: {
       official: false,
       shiny: false,
@@ -13272,9 +13367,15 @@ function getShowcaseRowLimit() {
 }
 
 function getShowcaseImageSrc(ref, custom, kind) {
-  if (kind === "official") return artworkUrl(ref.pokemonId);
-  if (kind === "shiny") return shinyArtworkUrl(ref.pokemonId);
-  return custom && custom.image ? custom.image : "";
+  if (kind === "new") return custom && custom.image ? custom.image : "";
+
+  const mode = (custom && custom.imageMode) || ref.imageMode || "artwork";
+  if (mode === "showdown") {
+    const slug = (custom && custom.showdownSlug) || ref.showdownSlug || "";
+    if (slug) return showdownUrl(slug, kind === "shiny");
+  }
+
+  return kind === "shiny" ? shinyArtworkUrl(ref.pokemonId) : artworkUrl(ref.pokemonId);
 }
 
 function renderShowcaseCellControls(visibleRefs) {
@@ -13503,6 +13604,8 @@ function saveCurrentCustom() {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     pokemonId: currentPokemon.id,
     pokemonName: currentPokemon.name,
+    imageMode: pcsgImageMode,
+    showdownSlug: currentPokemon.showdownSlug,
     name,
     image,
     preset,
@@ -13525,7 +13628,7 @@ function getAllCustomStorageEntries() {
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!key || !key.startsWith("customShiniesV3:")) continue;
+    if (!key || !(key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:"))) continue;
 
     let customs = [];
     try {
@@ -13536,7 +13639,7 @@ function getAllCustomStorageEntries() {
 
     if (!Array.isArray(customs)) continue;
 
-    const pokemonId = key.replace("customShiniesV3:", "");
+    const pokemonId = key.replace("customShiniesV3:", "").replace(/^customShiniesV4:[^:]+:/, "");
 
     customs.forEach(custom => {
       if (!custom || typeof custom !== "object") return;
@@ -13646,7 +13749,7 @@ async function loadManagedCustom(storageKey, customId) {
     return;
   }
 
-  const pokemonId = custom.pokemonId ?? storageKey.replace("customShiniesV3:", "");
+  const pokemonId = custom.pokemonId ?? storageKey.replace("customShiniesV3:", "").replace(/^customShiniesV4:[^:]+:/, "");
   const pokemon = pokemonData.find(p => String(p.id) === String(pokemonId));
 
   if (!pokemon) {
@@ -13711,7 +13814,7 @@ function exportCustomBackup() {
     if (!key) continue;
 
     if (
-      key.startsWith("customShiniesV3:") ||
+      (key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) ||
       key === SHOWCASE_STORAGE_KEY ||
       key === SHOWCASE_LAYOUT_KEY
     ) {
@@ -13733,7 +13836,7 @@ function exportCustomBackup() {
   URL.revokeObjectURL(url);
 
   statusText.textContent =
-    `Backup exportiert: ${Object.keys(backup.items).filter(k => k.startsWith("customShiniesV3:")).length} Pokémon-Speicher gefunden.`;
+    `Backup exportiert: ${Object.keys(backup.items).filter(k => k.startsWith("customShiniesV3:") || k.startsWith("customShiniesV4:")).length} Pokémon-Speicher gefunden.`;
 }
 
 function importCustomBackupFile(file) {
@@ -13747,7 +13850,7 @@ function importCustomBackupFile(file) {
         : backup;
 
       const keys = Object.keys(items).filter(key =>
-        key.startsWith("customShiniesV3:") ||
+        (key.startsWith("customShiniesV3:") || key.startsWith("customShiniesV4:")) ||
         key === SHOWCASE_STORAGE_KEY ||
         key === SHOWCASE_LAYOUT_KEY
       );
@@ -13951,6 +14054,10 @@ function deleteSavedCustom(id) {
 
   statusText.textContent = "Custom wurde gelöscht.";
 }
+
+if (modeArtworkBtn) modeArtworkBtn.addEventListener("click", () => setPcsgImageMode("artwork"));
+if (modeShowdownBtn) modeShowdownBtn.addEventListener("click", () => setPcsgImageMode("showdown"));
+setPcsgImageMode(pcsgImageMode, false);
 
 preloadBtn.addEventListener("click", preloadAllPokemon);
 randomBtn.addEventListener("click", showRandomPokemon);
