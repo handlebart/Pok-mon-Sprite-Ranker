@@ -14668,19 +14668,61 @@ const ttGen1SpriteEntries = Array.from({ length: 151 }, (_, i) => ({
   gen1Sprite: true
 }));
 
+function ttBuildGen1SpriteUrls(data) {
+  const id = data?.id;
+  const directRedBlue = id
+    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/${id}.png`
+    : null;
+  const directYellow = id
+    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/transparent/${id}.png`
+    : null;
+
+  return [
+    directRedBlue,
+    data.sprites?.versions?.["generation-i"]?.["red-blue"]?.front_default,
+    directYellow,
+    data.sprites?.versions?.["generation-i"]?.yellow?.front_default,
+    data.sprites?.front_default,
+    data.sprites?.other?.["official-artwork"]?.front_default
+  ].filter(Boolean);
+}
+
 function ttGetSpriteFromData(data, options = {}) {
   if (options.gen1Sprite) {
-    return (
-      data.sprites?.versions?.["generation-i"]?.["red-blue"]?.front_default ||
-      data.sprites?.versions?.["generation-i"]?.yellow?.front_default ||
-      data.sprites?.front_default ||
-      data.sprites?.other?.["official-artwork"]?.front_default
-    );
+    return ttBuildGen1SpriteUrls(data)[0] || "";
   }
 
   return options.shiny
     ? (data.sprites.other["official-artwork"].front_shiny || data.sprites.front_shiny)
     : (data.sprites.other["official-artwork"].front_default || data.sprites.front_default);
+}
+
+function ttApplySpriteFallback(img) {
+  if (!img) return;
+
+  img.onerror = () => {
+    const fallbacks = (img.dataset.fallbacks || "")
+      .split("||")
+      .filter(Boolean);
+    const next = fallbacks.shift();
+
+    if (next) {
+      img.dataset.fallbacks = fallbacks.join("||");
+      img.src = next;
+    } else {
+      img.onerror = null;
+      img.alt = "Sprite konnte nicht geladen werden";
+      img.style.display = "none";
+    }
+  };
+}
+
+function ttSpriteImgHtml(p) {
+  const fallbacks = (p.spriteFallbacks || []).filter(src => src && src !== p.sprite);
+  const fallbackAttr = fallbacks.join("||").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const src = String(p.sprite || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const alt = String(p.name || "Pokémon").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return `<img src="${src}" alt="${alt}" data-fallbacks="${fallbackAttr}" onerror="ttApplySpriteFallback(this); this.onerror();">`;
 }
 
 const ttCategories = {
@@ -14964,14 +15006,19 @@ async function ttSetCategory(cat) {
       if (suffix) german = `${german} (${suffix})`;
 
       const useShinySprite = forceShiny || ttShinyCategories.includes(cat);
-      const sprite = ttGetSpriteFromData(data, {
-        shiny: useShinySprite,
-        gen1Sprite: forceGen1Sprite || cat === "gen1Sprites"
-      });
+      const useGen1Sprite = forceGen1Sprite || cat === "gen1Sprites";
+      const spriteFallbacks = useGen1Sprite ? ttBuildGen1SpriteUrls(data) : [];
+      const sprite = useGen1Sprite
+        ? (spriteFallbacks[0] || ttGetSpriteFromData(data, { shiny: useShinySprite }))
+        : ttGetSpriteFromData(data, {
+            shiny: useShinySprite,
+            gen1Sprite: false
+          });
 
       ttFilteredPokemon.push({
         name: german,
         sprite: sprite,
+        spriteFallbacks: spriteFallbacks,
         types: data.types.map(t => t.type.name)
       });
 
@@ -14986,12 +15033,12 @@ function ttRenderList(arr) {
   arr.forEach(p => {
     const div = document.createElement("div");
     div.className = "tt-pokemon";
-    div.innerHTML = `<img src="${p.sprite}"><span>${p.name}</span>`;
+    div.innerHTML = `${ttSpriteImgHtml(p)}<span>${p.name}</span>`;
 
     div.onclick = () => {
       if (!ttActiveSlot) return;
 
-      ttActiveSlot.innerHTML = `<img src="${p.sprite}">`;
+      ttActiveSlot.innerHTML = ttSpriteImgHtml(p);
       ttActiveSlot.classList.remove("empty");
 
       const t1 = p.types[0];
