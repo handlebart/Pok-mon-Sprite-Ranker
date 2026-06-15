@@ -14725,6 +14725,57 @@ function ttSpriteImgHtml(p) {
   return `<img src="${src}" alt="${alt}" data-fallbacks="${fallbackAttr}" onerror="ttApplySpriteFallback(this); this.onerror();">`;
 }
 
+
+const ttGen1StaticPokemon = [
+  [1,"Bisasam",["grass","poison"]],[2,"Bisaknosp",["grass","poison"]],[3,"Bisaflor",["grass","poison"]],
+  [4,"Glumanda",["fire"]],[5,"Glutexo",["fire"]],[6,"Glurak",["fire","flying"]],
+  [7,"Schiggy",["water"]],[8,"Schillok",["water"]],[9,"Turtok",["water"]],
+  [10,"Raupy",["bug"]],[11,"Safcon",["bug"]],[12,"Smettbo",["bug","flying"]],
+  [13,"Hornliu",["bug","poison"]],[14,"Kokuna",["bug","poison"]],[15,"Bibor",["bug","poison"]],
+  [16,"Taubsi",["normal","flying"]],[17,"Tauboga",["normal","flying"]],[18,"Tauboss",["normal","flying"]],
+  [19,"Rattfratz",["normal"]],[20,"Rattikarl",["normal"]],[21,"Habitak",["normal","flying"]],[22,"Ibitak",["normal","flying"]],
+  [23,"Rettan",["poison"]],[24,"Arbok",["poison"]],[25,"Pikachu",["electric"]],[26,"Raichu",["electric"]],
+  [27,"Sandan",["ground"]],[28,"Sandamer",["ground"]],[29,"Nidoran♀",["poison"]],[30,"Nidorina",["poison"]],[31,"Nidoqueen",["poison","ground"]],
+  [32,"Nidoran♂",["poison"]],[33,"Nidorino",["poison"]],[34,"Nidoking",["poison","ground"]],
+  [35,"Piepi",["fairy"]],[36,"Pixi",["fairy"]],[37,"Vulpix",["fire"]],[38,"Vulnona",["fire"]],
+  [39,"Pummeluff",["normal","fairy"]],[40,"Knuddeluff",["normal","fairy"]],[41,"Zubat",["poison","flying"]],[42,"Golbat",["poison","flying"]],
+  [43,"Myrapla",["grass","poison"]],[44,"Duflor",["grass","poison"]],[45,"Giflor",["grass","poison"]],
+  [46,"Paras",["bug","grass"]],[47,"Parasek",["bug","grass"]],[48,"Bluzuk",["bug","poison"]],[49,"Omot",["bug","poison"]],
+  [50,"Digda",["ground"]],[51,"Digdri",["ground"]],[52,"Mauzi",["normal"]],[53,"Snobilikat",["normal"]],
+  [54,"Enton",["water"]],[55,"Entoron",["water"]],[56,"Menki",["fighting"]],[57,"Rasaff",["fighting"]],
+  [58,"Fukano",["fire"]],[59,"Arkani",["fire"]],[60,"Quapsel",["water"]],[61,"Quaputzi",["water"]],[62,"Quappo",["water","fighting"]],
+  [63,"Abra",["psychic"]],[64,"Kadabra",["psychic"]],[65,"Simsala",["psychic"]],[66,"Machollo",["fighting"]],[67,"Maschock",["fighting"]],[68,"Machomei",["fighting"]],
+  [69,"Knofensa",["grass","poison"]],[70,"Ultrigaria",["grass","poison"]],[71,"Sarzenia",["grass","poison"]],
+  [72,"Tentacha",["water","poison"]],[73,"Tentoxa",["water","poison"]],[74,"Kleinstein",["rock","ground"]],[75,"Georok",["rock","ground"]],[76,"Geowaz",["rock","ground"]],
+  [77,"Ponita",["fire"]],[78,"Gallopa",["fire"]],[79,"Flegmon",["water","psychic"]],[80,"Lahmus",["water","psychic"]],
+  [81,"Magnetilo",["electric","steel"]],[82,"Magneton",["electric","steel"]],[83,"Porenta",["normal","flying"]],[84,"Dodu",["normal","flying"]],[85,"Dodri",["normal","flying"]],
+  [86,"Jurob",["water"]],[87,"Jugong",["water","ice"]],[88,"Sleima",["poison"]],[89,"Sleimok",["poison"]],
+  [90,"Muschas",["water"]],[91,"Austos",["water","ice"]],[92,"Nebulak",["ghost","poison"]],[93,"Alpollo",["ghost","poison"]],[94,"Gengar",["ghost","poison"]],
+  [95,"Onix",["rock","ground"]],[96,"Traumato",["psychic"]],[97,"Hypno",["psychic"]],[98,"Krabby",["water"]],[99,"Kingler",["water"]],
+  [100,"Voltobal",["electric"]],[101,"Lektrobal",["electric"]],[102,"Owei",["grass","psychic"]],[103,"Kokowei",["grass","psychic"]],
+  [104,"Tragosso",["ground"]],[105,"Knogga",["ground"]],[106,"Kicklee",["fighting"]],[107,"Nockchan",["fighting"]],[108,"Schlurp",["normal"]],
+  [109,"Smogon",["poison"]],[110,"Smogmog",["poison"]],[111,"Rihorn",["ground","rock"]],[112,"Rizeros",["ground","rock"]],
+  [113,"Chaneira",["normal"]],[114,"Tangela",["grass"]],[115,"Kangama",["normal"]],[116,"Seeper",["water"]],[117,"Seemon",["water"]],
+  [118,"Goldini",["water"]],[119,"Golking",["water"]],[120,"Sterndu",["water"]],[121,"Starmie",["water","psychic"]],
+  [122,"Pantimos",["psychic","fairy"]],[123,"Sichlor",["bug","flying"]],[124,"Rossana",["ice","psychic"]],[125,"Elektek",["electric"]],[126,"Magmar",["fire"]],
+  [127,"Pinsir",["bug"]],[128,"Tauros",["normal"]],[129,"Karpador",["water"]],[130,"Garados",["water","flying"]],
+  [131,"Lapras",["water","ice"]],[132,"Ditto",["normal"]],[133,"Evoli",["normal"]],[134,"Aquana",["water"]],[135,"Blitza",["electric"]],[136,"Flamara",["fire"]],
+  [137,"Porygon",["normal"]],[138,"Amonitas",["rock","water"]],[139,"Amoroso",["rock","water"]],[140,"Kabuto",["rock","water"]],[141,"Kabutops",["rock","water"]],
+  [142,"Aerodactyl",["rock","flying"]],[143,"Relaxo",["normal"]],[144,"Arktos",["ice","flying"]],[145,"Zapdos",["electric","flying"]],[146,"Lavados",["fire","flying"]],
+  [147,"Dratini",["dragon"]],[148,"Dragonir",["dragon"]],[149,"Dragoran",["dragon","flying"]],[150,"Mewtu",["psychic"]],[151,"Mew",["psychic"]]
+].map(([id, name, types]) => ({
+  id,
+  name,
+  types,
+  sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/${id}.png`,
+  spriteFallbacks: [
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/${id}.png`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/${id}.png`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/transparent/${id}.png`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
+  ]
+}));
+
 const ttCategories = {
   gen1Sprites: ttGen1SpriteEntries,
   dog: ["growlithe","arcanine","houndour","houndoom","poochyena","mightyena","lillipup","herdier","stoutland","rockruff","lycanroc-midday","lycanroc-midnight","lycanroc-dusk","yamper","boltund","fidough","dachsbun","maschiff","mabosstiff","greavard","houndstone","entei","suicune","electrike","manectric","riolu","lucario","snubbull","granbull","furfrou","zacian-crowned","zamazenta-crowned","smeargle","shaymin-sky","zygarde-10"],
@@ -14986,6 +15037,14 @@ async function ttSetCategory(cat) {
   ttResetSlots();
   document.getElementById("pokemonThemeTeamsView")?.classList.toggle("tt-gen1-mode", cat === "gen1Sprites");
   ttFilteredPokemon = [];
+  if (ttSearchInput) ttSearchInput.value = "";
+
+  if (cat === "gen1Sprites") {
+    ttFilteredPokemon = ttGen1StaticPokemon;
+    ttRenderList(ttFilteredPokemon);
+    return;
+  }
+
   ttList.innerHTML = "Lade...";
 
   for (let entry of ttCategories[cat]) {
