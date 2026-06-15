@@ -11689,39 +11689,27 @@ function normalizeShowdownSlug(name) {
     .replace(/^-+|-+$/g, "");
 }
 
-function showdownUrl(slug, shiny = false) {
-  // Raw GitHub liefert die Pokémon-Showdown-Sprites mit CORS-Headern.
-  // play.pokemonshowdown.com lädt im Browser oft als <img>, macht den Canvas aber
-  // beim Bearbeiten/getImageData unbrauchbar oder schlägt mit crossOrigin="anonymous" ganz fehl.
-  return `https://raw.githubusercontent.com/smogon/sprites/master/sprites/${shiny ? "ani-shiny" : "ani"}/${slug}.gif`;
+function showdownUrl(id, shiny = false) {
+  // Pokémon Showdown-Sprites aus dem PokeAPI-Sprite-Repository.
+  // Wichtig: nach ID statt nach Namen laden. Die Smogon-Namenspfade sind nicht stabil
+  // genug für alle Formen/Namen und waren die Ursache für leere 3D-Listen.
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${shiny ? "shiny/" : ""}${id}.gif`;
 }
 
-function showdownUrlFallbacks(slug, shiny = false) {
-  const folder = shiny ? "ani-shiny" : "ani";
-  const compactSlug = String(slug || "").replace(/-/g, "");
-  const urls = [
-    `https://raw.githubusercontent.com/smogon/sprites/master/sprites/${folder}/${slug}.gif`
+function showdownUrlFallbacks(id, shiny = false) {
+  const cleanId = String(id || "").trim();
+  return [
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${shiny ? "shiny/" : ""}${cleanId}.gif`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${shiny ? "shiny/" : ""}${cleanId}.png`
   ];
-
-  if (compactSlug && compactSlug !== slug) {
-    urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/${folder}/${compactSlug}.gif`);
-  }
-
-  // Letzter Fallback: statische Showdown-Sprites, falls keine animierte Datei existiert.
-  urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/gen5${shiny ? "-shiny" : ""}/${slug}.png`);
-  if (compactSlug && compactSlug !== slug) {
-    urls.push(`https://raw.githubusercontent.com/smogon/sprites/master/sprites/gen5${shiny ? "-shiny" : ""}/${compactSlug}.png`);
-  }
-
-  return [...new Set(urls)];
 }
 
 function sourceUrlForPokemon(pokemonOrId, shiny = false) {
   const id = typeof pokemonOrId === "object" ? pokemonOrId.id : pokemonOrId;
-  const slug = typeof pokemonOrId === "object" ? pokemonOrId.showdownSlug : "";
 
-  if (pcsgImageMode === "showdown" && slug) {
-    return showdownUrl(slug, shiny);
+
+  if (pcsgImageMode === "showdown" && id) {
+    return showdownUrl(id, shiny);
   }
 
   return shiny ? shinyArtworkUrl(id) : artworkUrl(id);
@@ -11833,17 +11821,15 @@ async function fetchShowdownSlug(id) {
 }
 
 async function preloadOnePokemon(id, nameCache) {
-  const [name, showdownSlug] = await Promise.all([
-    fetchGermanName(id, nameCache),
-    pcsgImageMode === "showdown" ? fetchShowdownSlug(id) : Promise.resolve(String(id))
-  ]);
+  const name = await fetchGermanName(id, nameCache);
+  const showdownSlug = String(id);
 
   const pokemonShell = { id, name, showdownSlug };
   const normalUrls = pcsgImageMode === "showdown"
-    ? showdownUrlFallbacks(showdownSlug, false)
+    ? showdownUrlFallbacks(id, false)
     : [sourceUrlForPokemon(pokemonShell, false)];
   const shinyUrls = pcsgImageMode === "showdown"
-    ? showdownUrlFallbacks(showdownSlug, true)
+    ? showdownUrlFallbacks(id, true)
     : [sourceUrlForPokemon(pokemonShell, true)];
 
   const [img, shinyImg] = await Promise.all([
@@ -11883,7 +11869,7 @@ async function preloadAllPokemon() {
   statusText.textContent = pokemonData.length
     ? `Fertig! ${pokemonData.length} Pokémon geladen.`
     : (pcsgImageMode === "showdown"
-      ? "Keine 3D/Showdown-Sprites geladen. Ursache meist: Sprite-Host/CORS oder blockierte raw.githubusercontent.com-Verbindung."
+      ? "Keine 3D/Showdown-Sprites geladen. Bitte Verbindung zu raw.githubusercontent.com prüfen."
       : "Keine Artworks geladen. Bitte Internetverbindung/Sprite-Host prüfen.");
   randomBtn.disabled = pokemonData.length === 0;
   searchBtn.disabled = pokemonData.length === 0;
