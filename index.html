@@ -1978,6 +1978,72 @@ button:disabled {
   100% { background-position: 0 0, 0% 50%; }
 }
 
+
+/* ===== THEMEN TEAMS: Gen 1 Sprites Spezial-Look ===== */
+#pokemonThemeTeamsView.tt-gen1-mode {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.035) 50%, transparent 50%),
+    linear-gradient(rgba(0,0,0,0.035) 50%, transparent 50%),
+    #e8f0d8;
+  background-size: 18px 18px;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode h1 {
+  font-family: monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #1f2937;
+  text-shadow: 3px 3px 0 #b7c59b;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-team {
+  border: 18px solid #1f2937;
+  border-radius: 10px;
+  background:
+    linear-gradient(#f7f3d0, #f7f3d0) padding-box,
+    repeating-linear-gradient(45deg, #1f2937 0 12px, #6b7280 12px 24px) border-box;
+  animation: none;
+  box-shadow: 0 12px 0 #9aa67f, 0 18px 28px rgba(0,0,0,0.18);
+  image-rendering: pixelated;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-slot {
+  background: #f7f3d0;
+  border: 3px solid #1f2937;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-slot::before {
+  display: none;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-slot img,
+#pokemonThemeTeamsView.tt-gen1-mode .tt-pokemon img {
+  image-rendering: pixelated;
+  filter: drop-shadow(4px 4px 0 rgba(31,41,55,0.22));
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-slot img {
+  width: 68%;
+  height: 68%;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode #ttSelector {
+  background: #1f2937;
+  border-color: #9aa67f;
+  border-radius: 10px;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-pokemon {
+  background: #f7f3d0;
+  color: #1f2937;
+  border: 2px solid #9aa67f;
+  font-family: monospace;
+}
+
+#pokemonThemeTeamsView.tt-gen1-mode .tt-pokemon:hover {
+  background: #dfe8bf;
+}
+
 .tt-slot-wrapper {
   display: contents;
 }
@@ -11282,6 +11348,7 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('space')">🚀 Weltraum</button>
     <button onclick="ttSetCategory('china')">🐉 China</button>
     <button onclick="ttSetCategory('gigantamax')">🔥 Gigadynamax</button>
+    <button onclick="ttSetCategory('gen1Sprites')">🎮 Gen 1 Sprites</button>
   </div>
 
   <div class="tt-team">
@@ -14567,6 +14634,7 @@ function ttHexToRGBA(hex, alpha) {
 }
 
 function ttResetSlots() {
+  document.getElementById("pokemonThemeTeamsView")?.classList.remove("tt-gen1-mode");
   ttSlots.forEach(slot => {
     slot.innerHTML = '<div class="reel"><span class="tt-qmark question">?</span></div>';
     slot.classList.add("empty");
@@ -14594,7 +14662,29 @@ function ttActivateNextSlot(current) {
   }
 }
 
+
+const ttGen1SpriteEntries = Array.from({ length: 151 }, (_, i) => ({
+  id: i + 1,
+  gen1Sprite: true
+}));
+
+function ttGetSpriteFromData(data, options = {}) {
+  if (options.gen1Sprite) {
+    return (
+      data.sprites?.versions?.["generation-i"]?.["red-blue"]?.front_default ||
+      data.sprites?.versions?.["generation-i"]?.yellow?.front_default ||
+      data.sprites?.front_default ||
+      data.sprites?.other?.["official-artwork"]?.front_default
+    );
+  }
+
+  return options.shiny
+    ? (data.sprites.other["official-artwork"].front_shiny || data.sprites.front_shiny)
+    : (data.sprites.other["official-artwork"].front_default || data.sprites.front_default);
+}
+
 const ttCategories = {
+  gen1Sprites: ttGen1SpriteEntries,
   dog: ["growlithe","arcanine","houndour","houndoom","poochyena","mightyena","lillipup","herdier","stoutland","rockruff","lycanroc-midday","lycanroc-midnight","lycanroc-dusk","yamper","boltund","fidough","dachsbun","maschiff","mabosstiff","greavard","houndstone","entei","suicune","electrike","manectric","riolu","lucario","snubbull","granbull","furfrou","zacian-crowned","zamazenta-crowned","smeargle","shaymin-sky","zygarde-10"],
   cat: ["meowth","persian","glameow","purugly","purrloin","liepard","espurr","meowstic","meowstic-female","litten","torracat","incineroar","skitty","delcatty","sprigatito","floragato","meowscarada","perrserker","shinx","luxio","luxray","zangoose","absol","eevee","espeon","umbreon","raikou","litleo","pyroar","pyroar-female","solgaleo","zeraora"],
   monkey: ["mankey","primeape","annihilape","chimchar","monferno","infernape","pansage","simisage","pansear","simisear","panpour","simipour","grookey","thwackey","rillaboom","aipom","ambipom","oranguru","passimian","electivire","darumaka","darmanitan","darumaka-galar","darmanitan-galar-standard","shroodle","grafaiai"],
@@ -14852,12 +14942,14 @@ ttSlots.forEach(slot => {
 async function ttSetCategory(cat) {
   ttCurrentCategory = cat;
   ttResetSlots();
+  document.getElementById("pokemonThemeTeamsView")?.classList.toggle("tt-gen1-mode", cat === "gen1Sprites");
   ttFilteredPokemon = [];
   ttList.innerHTML = "Lade...";
 
   for (let entry of ttCategories[cat]) {
     const name = typeof entry === "string" ? entry : entry.id;
     const forceShiny = typeof entry === "object" && entry.shiny === true;
+    const forceGen1Sprite = typeof entry === "object" && entry.gen1Sprite === true;
 
     try {
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
@@ -14872,9 +14964,10 @@ async function ttSetCategory(cat) {
       if (suffix) german = `${german} (${suffix})`;
 
       const useShinySprite = forceShiny || ttShinyCategories.includes(cat);
-      const sprite = useShinySprite
-        ? (data.sprites.other["official-artwork"].front_shiny || data.sprites.front_shiny)
-        : (data.sprites.other["official-artwork"].front_default || data.sprites.front_default);
+      const sprite = ttGetSpriteFromData(data, {
+        shiny: useShinySprite,
+        gen1Sprite: forceGen1Sprite || cat === "gen1Sprites"
+      });
 
       ttFilteredPokemon.push({
         name: german,
