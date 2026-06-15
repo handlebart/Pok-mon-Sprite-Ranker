@@ -11525,6 +11525,8 @@ window.addEventListener("DOMContentLoaded", () => {
   <h2>Custom-Shiny speichern</h2>
   <input id="pcsg_customNameInput" type="text" placeholder="Name für Custom..." disabled />
   <button id="pcsg_saveCustomBtn" disabled>Custom speichern</button>
+  <button id="pcsg_buildAnimatedGifBtn" disabled title="Optional: erzeugt aus der aktuellen 3D-Bearbeitung ein echtes animiertes GIF. Dauert länger, wird aber nicht mehr automatisch gemacht.">🎞️ Animiertes GIF final erzeugen</button>
+  <div id="pcsg_hybridGifStatus" style="font-size:12px;color:#475569;margin:6px 0 0;">3D-Hybrid: Vorschau animiert sofort; echtes GIF nur optional/final.</div>
   <div class="pcsg-custom-tools">
     <button id="pcsg_manageCustomsBtn" type="button">📁 Alle Customs verwalten</button>
     <button id="pcsg_exportCustomsBtn" type="button">💾 Backup exportieren</button>
@@ -11657,6 +11659,8 @@ const rebuildRegionsBtn = document.getElementById("pcsg_rebuildRegionsBtn");
 
 const customNameInput = document.getElementById("pcsg_customNameInput");
 const saveCustomBtn = document.getElementById("pcsg_saveCustomBtn");
+const buildAnimatedGifBtn = document.getElementById("pcsg_buildAnimatedGifBtn");
+const hybridGifStatus = document.getElementById("pcsg_hybridGifStatus");
 const savedCustoms = document.getElementById("pcsg_savedCustoms");
 const showcaseLayout = document.getElementById("pcsg_showcaseLayout");
 const showcaseGrid = document.getElementById("pcsg_showcaseGrid");
@@ -11730,10 +11734,7 @@ function loadExternalScriptOnce(src, globalName) {
 async function ensureGifLibrariesLoaded() {
   await loadExternalScriptOnce(GIFUCT_CDN, "gifuct");
   await loadExternalScriptOnce(GIFJS_CDN, "GIF");
-  if (!window.gifuct && window.parseGIF && window.decompressFrames) {
-    window.gifuct = { parseGIF: window.parseGIF, decompressFrames: window.decompressFrames };
-  }
-  return Boolean(window.gifuct && window.gifuct.parseGIF && window.gifuct.decompressFrames && window.GIF);
+  return Boolean(window.gifuct && window.GIF);
 }
 
 function artworkUrl(id) {
@@ -11798,6 +11799,7 @@ function setPcsgImageMode(mode, resetLoaded = true) {
     shinyBtn.disabled = true;
     rebuildRegionsBtn.disabled = true;
     saveCustomBtn.disabled = true;
+    if (buildAnimatedGifBtn) buildAnimatedGifBtn.disabled = true;
     customNameInput.disabled = true;
     preloadBtn.disabled = false;
     revokeAnimatedCustomUrl();
@@ -12175,6 +12177,51 @@ function setShowdownLiveImage(card, src, altText) {
   live.src = src;
 }
 
+function getCustomLiveImage() {
+  return customCard ? customCard.querySelector(".pcsg-showdown-live") : null;
+}
+
+function getLiveFilterFromRegions() {
+  if (!currentRegions || !currentRegions.length) return "none";
+
+  let totalWeight = 0;
+  let hueShift = 0;
+  let satRatio = 0;
+  let lumRatio = 0;
+
+  for (const region of currentRegions) {
+    const target = region.target || [region.r, region.g, region.b];
+    const [oh, os, ol] = rgbToHsl(region.r, region.g, region.b);
+    const [th, ts, tl] = rgbToHsl(target[0], target[1], target[2]);
+    const weight = Math.max(1, region.pixels ? region.pixels.length : 1);
+    let diff = th - oh;
+    if (diff > 0.5) diff -= 1;
+    if (diff < -0.5) diff += 1;
+    hueShift += diff * 360 * weight;
+    satRatio += (ts / Math.max(0.08, os)) * weight;
+    lumRatio += (tl / Math.max(0.08, ol)) * weight;
+    totalWeight += weight;
+  }
+
+  if (!totalWeight) return "none";
+  const hue = Math.max(-180, Math.min(180, hueShift / totalWeight));
+  const sat = Math.max(0.35, Math.min(2.4, satRatio / totalWeight));
+  const bri = Math.max(0.55, Math.min(1.8, lumRatio / totalWeight));
+  return `hue-rotate(${hue.toFixed(1)}deg) saturate(${sat.toFixed(2)}) brightness(${bri.toFixed(2)})`;
+}
+
+function updateHybridShowdownPreview() {
+  if (pcsgImageMode !== "showdown" || !currentPokemon) return;
+  const live = getCustomLiveImage();
+  if (!live) return;
+  live.style.filter = getLiveFilterFromRegions();
+  if (hybridGifStatus) {
+    hybridGifStatus.textContent = currentRegions && currentRegions.length
+      ? "3D-Hybrid aktiv: animierte Live-Vorschau sofort. Echtes GIF nur über 🎞️ final erzeugen."
+      : "3D-Hybrid: Vorschau animiert sofort; echtes GIF nur optional/final.";
+  }
+}
+
 
 function revokeAnimatedCustomUrl() {
   if (currentAnimatedCustomUrl && currentAnimatedCustomUrl.startsWith("blob:")) {
@@ -12251,6 +12298,7 @@ async function buildAnimatedCustomGifForCurrentPokemon() {
       quality: 10,
       width,
       height,
+      transparent: 0x000000,
       workerScript: GIFJS_WORKER_CDN
     });
 
@@ -12270,15 +12318,12 @@ async function buildAnimatedCustomGifForCurrentPokemon() {
 
       patchCtx.clearRect(0, 0, width, height);
       patchCtx.putImageData(imageData, dims.left, dims.top);
+      frameCtx.clearRect(0, 0, width, height);
       frameCtx.drawImage(patchCanvas, 0, 0);
       gif.addFrame(frameCtx, {
         copy: true,
         delay: Math.max(20, (frame.delay || 10) * 10)
       });
-
-      if (frame.disposalType === 2) {
-        frameCtx.clearRect(dims.left, dims.top, dims.width, dims.height);
-      }
     }
 
     const blob = await new Promise((resolve, reject) => {
@@ -12300,13 +12345,9 @@ async function buildAnimatedCustomGifForCurrentPokemon() {
 }
 
 function scheduleAnimatedCustomGifBuild() {
-  if (pcsgImageMode !== "showdown" || !currentPokemon || !currentRegions.length) return;
-  clearTimeout(animatedCustomBuildTimer);
-  animatedCustomBuildTimer = setTimeout(async () => {
-    statusText.textContent = "Erzeuge animiertes 3D-Custom-GIF...";
-    const url = await buildAnimatedCustomGifForCurrentPokemon();
-    if (url) statusText.textContent = "Animiertes 3D-Custom ist fertig.";
-  }, 450);
+  // Hybrid-System: Beim Bearbeiten wird kein schweres GIF mehr automatisch gebaut.
+  // Stattdessen läuft die Showdown-Animation sofort weiter und bekommt einen Live-Filter.
+  updateHybridShowdownPreview();
 }
 
 function syncEditPreview() {
@@ -12355,6 +12396,8 @@ function drawPokemon(pokemon) {
 
   if (pcsgImageMode === "showdown") {
     setShowdownLiveImage(originalCard, pokemon.normalSrc || pokemon.img.src, `${pokemon.name} Original Showdown`);
+    setShowdownLiveImage(customCard, pokemon.normalSrc || pokemon.img.src, `${pokemon.name} Custom Showdown Live-Vorschau`);
+    updateHybridShowdownPreview();
   }
 
   syncEditPreview();
@@ -12389,6 +12432,7 @@ function drawPokemon(pokemon) {
   rebuildRegionsBtn.disabled = true;
   if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = true;
   saveCustomBtn.disabled = false;
+  if (buildAnimatedGifBtn) buildAnimatedGifBtn.disabled = pcsgImageMode !== "showdown";
   customNameInput.disabled = false;
 
   clusterControls.textContent = "Noch keine Farbgruppen erzeugt.";
@@ -13890,21 +13934,10 @@ async function saveCurrentCustom() {
   const image = customCanvas.toDataURL("image/png");
   const preset = getCurrentPreset();
   let animatedImage = currentAnimatedCustomUrl;
+  let liveFilter = pcsgImageMode === "showdown" ? getLiveFilterFromRegions() : "";
 
-  if (pcsgImageMode === "showdown" && preset) {
-    saveCustomBtn.disabled = true;
-    statusText.textContent = "Speichere animiertes 3D-Custom...";
-    const gifUrl = await buildAnimatedCustomGifForCurrentPokemon();
-    if (gifUrl) {
-      const blob = await fetch(gifUrl).then(res => res.blob());
-      animatedImage = await new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-    }
-    saveCustomBtn.disabled = false;
-  }
+  // Hybrid-System: Normales Speichern bleibt sofort. Ein echtes animiertes GIF wird
+  // nicht mehr automatisch erzeugt, sondern nur wenn vorher der 🎞️-Button genutzt wurde.
 
   customs.unshift({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -13915,6 +13948,8 @@ async function saveCurrentCustom() {
     name,
     image,
     animatedImage: pcsgImageMode === "showdown" ? animatedImage : "",
+    liveFilter,
+    liveSrc: pcsgImageMode === "showdown" ? (currentPokemon.normalSrc || currentPokemon.img.src) : "",
     preset,
     createdAt: new Date().toISOString()
   });
@@ -14338,6 +14373,11 @@ async function loadSavedCustom(custom) {
 
   const presetApplied = applyPreset(custom.preset);
   const loadedImage = await drawSavedImageFallback(custom);
+  if (pcsgImageMode === "showdown") {
+    setShowdownLiveImage(customCard, custom.animatedImage || custom.liveSrc || (currentPokemon && (currentPokemon.normalSrc || currentPokemon.img.src)), `${custom.name} 3D-Custom`);
+    const live = getCustomLiveImage();
+    if (live) live.style.filter = custom.animatedImage ? "none" : (custom.liveFilter || getLiveFilterFromRegions());
+  }
 
   if (!loadedImage) {
     statusText.textContent = "Custom konnte nicht geladen werden.";
@@ -14375,8 +14415,26 @@ regionSizeSlider.addEventListener("input", () => {
   regionSizeValue.textContent = regionSizeSlider.value;
 });
 
+async function buildFinalAnimatedGifOnly() {
+  if (pcsgImageMode !== "showdown" || !currentPokemon || !currentRegions.length) return;
+  if (buildAnimatedGifBtn) buildAnimatedGifBtn.disabled = true;
+  if (saveCustomBtn) saveCustomBtn.disabled = true;
+  statusText.textContent = "Erzeuge finales animiertes 3D-GIF... Das kann je nach Pokémon etwas dauern.";
+  if (hybridGifStatus) hybridGifStatus.textContent = "Finales GIF wird jetzt einmalig berechnet…";
+  const url = await buildAnimatedCustomGifForCurrentPokemon();
+  if (url) {
+    const live = getCustomLiveImage();
+    if (live) live.style.filter = "none";
+    statusText.textContent = "Finales animiertes 3D-GIF ist fertig. Jetzt kannst du normal speichern.";
+    if (hybridGifStatus) hybridGifStatus.textContent = "Finales GIF fertig und wird beim nächsten Speichern mitgespeichert.";
+  }
+  if (buildAnimatedGifBtn) buildAnimatedGifBtn.disabled = false;
+  if (saveCustomBtn) saveCustomBtn.disabled = false;
+}
+
 rebuildRegionsBtn.addEventListener("click", rebuildRegionsOnly);
 saveCustomBtn.addEventListener("click", saveCurrentCustom);
+if (buildAnimatedGifBtn) buildAnimatedGifBtn.addEventListener("click", buildFinalAnimatedGifOnly);
 
 toggleOfficialBtn.addEventListener("click", () => {
   toggleSlot(
@@ -14499,10 +14557,7 @@ function loadExternalScriptOnce(src, globalName) {
 async function ensureGifLibrariesLoaded() {
   await loadExternalScriptOnce(GIFUCT_CDN, "gifuct");
   await loadExternalScriptOnce(GIFJS_CDN, "GIF");
-  if (!window.gifuct && window.parseGIF && window.decompressFrames) {
-    window.gifuct = { parseGIF: window.parseGIF, decompressFrames: window.decompressFrames };
-  }
-  return Boolean(window.gifuct && window.gifuct.parseGIF && window.gifuct.decompressFrames && window.GIF);
+  return Boolean(window.gifuct && window.GIF);
 }
 
 function artworkUrl(id) {
