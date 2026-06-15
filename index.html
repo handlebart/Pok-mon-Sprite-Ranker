@@ -4573,6 +4573,28 @@ button,
   display: block;
 }
 
+/* 3D/Showdown: animierte GIFs sichtbar anzeigen, Canvas bleibt intern für Bearbeitung. */
+#pokemonCustomShinyView .pcsg-showdown-live {
+  width: 260px;
+  height: 260px;
+  object-fit: contain;
+  display: none;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.22));
+}
+
+#pokemonCustomShinyView .artCard.pcsg-live-showdown canvas {
+  display: none;
+}
+
+#pokemonCustomShinyView .artCard.pcsg-live-showdown .pcsg-showdown-live {
+  display: block;
+}
+
+#pokemonCustomShinyView .artCard.show-placeholder .pcsg-showdown-live {
+  display: none !important;
+}
+
 #pokemonCustomShinyView .placeholder {
   display: none;
   width: 260px;
@@ -11839,7 +11861,16 @@ async function preloadOnePokemon(id, nameCache) {
 
   if (!img) return null;
 
-  return { id, name, showdownSlug, imageMode: pcsgImageMode, img, shinyImg };
+  return {
+    id,
+    name,
+    showdownSlug,
+    imageMode: pcsgImageMode,
+    img,
+    shinyImg,
+    normalSrc: img ? img.src : "",
+    shinySrc: shinyImg ? shinyImg.src : ""
+  };
 }
 
 async function preloadAllPokemon() {
@@ -12065,6 +12096,43 @@ function featureDistance(a, b) {
   );
 }
 
+function drawImageContained(ctx, img, canvasSize = 475, fillRatio = 0.90) {
+  ctx.clearRect(0, 0, canvasSize, canvasSize);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  const iw = img.naturalWidth || img.width || canvasSize;
+  const ih = img.naturalHeight || img.height || canvasSize;
+  const maxSize = canvasSize * fillRatio;
+  const scale = Math.min(maxSize / iw, maxSize / ih);
+  const w = Math.max(1, iw * scale);
+  const h = Math.max(1, ih * scale);
+  const x = (canvasSize - w) / 2;
+  const y = (canvasSize - h) / 2;
+  ctx.drawImage(img, x, y, w, h);
+}
+
+function clearShowdownLiveImages() {
+  [originalCard, officialShinyCard, customCard].forEach(card => {
+    if (!card) return;
+    card.classList.remove("pcsg-live-showdown");
+    card.querySelectorAll(".pcsg-showdown-live").forEach(img => img.remove());
+  });
+}
+
+function setShowdownLiveImage(card, src, altText) {
+  if (!card || !src || pcsgImageMode !== "showdown") return;
+  card.classList.add("pcsg-live-showdown");
+  let live = card.querySelector(".pcsg-showdown-live");
+  if (!live) {
+    live = document.createElement("img");
+    live.className = "pcsg-showdown-live";
+    card.appendChild(live);
+  }
+  live.alt = altText || "3D/Showdown-Modell";
+  live.src = src;
+}
+
 function syncEditPreview() {
   editPreviewCtx.clearRect(0, 0, 475, 475);
   editPreviewCtx.drawImage(customCanvas, 0, 0, 475, 475);
@@ -12098,16 +12166,27 @@ function drawPokemon(pokemon) {
   currentRegionLabels = null;
   regionNameMemory = {};
 
+  clearShowdownLiveImages();
+
   originalCtx.clearRect(0, 0, 475, 475);
   officialShinyCtx.clearRect(0, 0, 475, 475);
   customCtx.clearRect(0, 0, 475, 475);
 
-  originalCtx.drawImage(pokemon.img, 0, 0, 475, 475);
-  customCtx.drawImage(pokemon.img, 0, 0, 475, 475);
+  const fillRatio = pcsgImageMode === "showdown" ? 0.86 : 0.96;
+  drawImageContained(originalCtx, pokemon.img, 475, fillRatio);
+  drawImageContained(customCtx, pokemon.img, 475, fillRatio);
+
+  if (pcsgImageMode === "showdown") {
+    setShowdownLiveImage(originalCard, pokemon.normalSrc || pokemon.img.src, `${pokemon.name} Original Showdown`);
+  }
+
   syncEditPreview();
 
   if (pokemon.shinyImg) {
-    officialShinyCtx.drawImage(pokemon.shinyImg, 0, 0, 475, 475);
+    drawImageContained(officialShinyCtx, pokemon.shinyImg, 475, fillRatio);
+    if (pcsgImageMode === "showdown") {
+      setShowdownLiveImage(officialShinyCard, pokemon.shinySrc || pokemon.shinyImg.src, `${pokemon.name} Shiny Showdown`);
+    }
   } else {
     officialShinyCtx.fillStyle = "#f8f4ea";
     officialShinyCtx.fillRect(0, 0, 475, 475);
