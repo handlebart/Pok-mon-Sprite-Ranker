@@ -11391,6 +11391,10 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('music')">🎵 Musik</button>
     <button onclick="ttSetCategory('variete')">🎪 Varieté</button>
     <button onclick="ttSetCategory('harryPotter')">⚡ Harry Potter</button>
+    <button onclick="ttSetCategory('wm2026')">⚽ WM 2026</button>
+    <button onclick="ttSetCategory('bears')">🐻 Bären</button>
+    <button onclick="ttSetCategory('birds')">🦅 Vögel</button>
+    <button onclick="ttSetCategory('turtles')">🐢 Schildkröten</button>
     <button onclick="ttSetCategory('space')">🚀 Weltraum</button>
     <button onclick="ttSetCategory('china')">🐉 China</button>
     <button onclick="ttSetCategory('gigantamax')">🔥 Gigadynamax</button>
@@ -15420,10 +15424,28 @@ const ttCategories = {
     { id:"lycanroc-midday", suffix:"Lupin Normalform" },
     { id:"lycanroc-midnight", suffix:"Lupin Nachtform" },
     { id:"pyroar", suffix:"Gryffindor" },
+    { id:"pyroar", suffix:"Gryffindor (Männlich)" },
     { id:"obstagoon", suffix:"Hufflepuff" },
     { id:"furret", suffix:"Weasley" },
     { id:"noctowl", suffix:"Hedwig" },
     { id:"delphox", suffix:"Hexen und Zauberer" }
+  ],
+  wm2026: [
+    "braviary","ludicolo","bibarel","cinderace",{ id:"unown-w", suffix:"W" },"victini"
+  ],
+  bears: [
+    "pangoro","snorlax","spinda","ursaluna","beartic","bewear",{ id:"urshifu-single-strike", suffix:"Fokussiert" }
+  ],
+  birds: [
+    "pidgeot","fearow","articuno","articuno-galar","zapdos","zapdos-galar","moltres","moltres-galar","ho-oh","noctowl","xatu","pelipper","staraptor","unfezant","swanna","braviary","braviary-hisui",
+    { id:"tornadus-therian", suffix:"Tiergeistform" },
+    "talonflame","hawlucha","decidueye","toucannon","corviknight","cramorant","kilowattrel","bombirdier","fezandipiti"
+  ],
+  turtles: [
+    "blastoise",
+    { id:"terapagos-terastal", suffix:"Terakristall-Form" },
+    "torterra","drednaw","torkoal","turtonator","carracosta",
+    { id:"enamorus-therian", suffix:"Tiergeistform" }
   ],
   space: [
     "minior-red-meteor",
