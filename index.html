@@ -15438,8 +15438,15 @@ const ttCategories = {
     { id:"mightyena", suffix:"Animagus Sirius" },
     { id:"lycanroc-midday", suffix:"Lupin Normalform" },
     { id:"lycanroc-midnight", suffix:"Lupin Nachtform" },
-    { id:"pyroar", suffix:"Gryffindor (Männlich)" },
-    { id:"pyroar", suffix:"Gryffindor (Weiblich)" },
+    {
+      id:"pyroar",
+      fetchId:"pyroar",
+      suffix:"Gryffindor (Männlich)",
+      manualName:"Pyroleo",
+      manualTypes:["fire","normal"],
+      sprite:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/668.png",
+      spriteFallbacks:["https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/668.png"]
+    },
     { id:"obstagoon", suffix:"Hufflepuff" },
     { id:"furret", suffix:"Weasley" },
     { id:"noctowl", suffix:"Hedwig" },
@@ -15610,16 +15617,18 @@ async function ttSetCategory(cat) {
     const forceGen1Sprite = typeof entry === "object" && entry.gen1Sprite === true;
     const customSprite = typeof entry === "object" && entry.sprite ? entry.sprite : null;
     const customSpriteFallbacks = typeof entry === "object" && Array.isArray(entry.spriteFallbacks) ? entry.spriteFallbacks : [];
+    const suffix = typeof entry === "object" && entry.suffix ? entry.suffix : null;
+    const manualName = typeof entry === "object" && entry.manualName ? entry.manualName : null;
+    const manualTypes = typeof entry === "object" && Array.isArray(entry.manualTypes) ? entry.manualTypes : null;
 
     try {
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${fetchName}`);
-      if (!res.ok) continue;
+      if (!res.ok) throw new Error(`Pokémon nicht gefunden: ${fetchName}`);
 
       const data = await res.json();
       const speciesRes = await fetch(data.species.url);
       const species = await speciesRes.json();
       let german = species.names.find(n => n.language.name === "de")?.name || name;
-      const suffix = typeof entry === "object" && entry.suffix ? entry.suffix : null;
       if (name.includes("-hisui") && !german.toLowerCase().includes("hisui")) german = `${german} (Hisui)`;
       if (suffix) german = `${german} (${suffix})`;
 
@@ -15643,7 +15652,21 @@ async function ttSetCategory(cat) {
       });
 
       ttRenderList(ttFilteredPokemon);
-    } catch {}
+    } catch {
+      if (manualTypes && customSprite) {
+        let german = manualName || name;
+        if (suffix) german = `${german} (${suffix})`;
+
+        ttFilteredPokemon.push({
+          name: german,
+          sprite: customSprite,
+          spriteFallbacks: customSpriteFallbacks,
+          types: manualTypes
+        });
+
+        ttRenderList(ttFilteredPokemon);
+      }
+    }
   }
 }
 
