@@ -15431,7 +15431,22 @@ const ttCategories = {
     { id:"delphox", suffix:"Hexen und Zauberer" }
   ],
   wm2026: [
-    "braviary","ludicolo","bibarel","cinderace",{ id:"unown-w", suffix:"W" },"victini"
+    "braviary",
+    "ludicolo",
+    "bibarel",
+    "cinderace",
+    {
+      id:"unown-w",
+      fetchId:"unown",
+      suffix:"W",
+      sprite:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/unown-w.gif",
+      spriteFallbacks:[
+        "https://play.pokemonshowdown.com/sprites/ani/unown-w.gif",
+        "https://play.pokemonshowdown.com/sprites/gen5/unown-w.png",
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201.png"
+      ]
+    },
+    "victini"
   ],
   bears: [
     "pangoro","snorlax","spinda","ursaluna","beartic","bewear",{ id:"urshifu-single-strike", suffix:"Fokussiert" }
@@ -15579,11 +15594,14 @@ async function ttSetCategory(cat) {
 
   for (let entry of ttCategories[cat]) {
     const name = typeof entry === "string" ? entry : entry.id;
+    const fetchName = typeof entry === "object" && entry.fetchId ? entry.fetchId : name;
     const forceShiny = typeof entry === "object" && entry.shiny === true;
     const forceGen1Sprite = typeof entry === "object" && entry.gen1Sprite === true;
+    const customSprite = typeof entry === "object" && entry.sprite ? entry.sprite : null;
+    const customSpriteFallbacks = typeof entry === "object" && Array.isArray(entry.spriteFallbacks) ? entry.spriteFallbacks : [];
 
     try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${fetchName}`);
       if (!res.ok) continue;
 
       const data = await res.json();
@@ -15596,13 +15614,15 @@ async function ttSetCategory(cat) {
 
       const useShinySprite = forceShiny || ttShinyCategories.includes(cat);
       const useGen1Sprite = forceGen1Sprite || cat === "gen1Sprites";
-      const spriteFallbacks = useGen1Sprite ? ttBuildGen1SpriteUrls(data) : [];
-      const sprite = useGen1Sprite
+      const spriteFallbacks = customSpriteFallbacks.length
+        ? customSpriteFallbacks
+        : (useGen1Sprite ? ttBuildGen1SpriteUrls(data) : []);
+      const sprite = customSprite || (useGen1Sprite
         ? (spriteFallbacks[0] || ttGetSpriteFromData(data, { shiny: useShinySprite }))
         : ttGetSpriteFromData(data, {
             shiny: useShinySprite,
             gen1Sprite: false
-          });
+          }));
 
       ttFilteredPokemon.push({
         name: german,
