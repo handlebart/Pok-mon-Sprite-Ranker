@@ -11465,6 +11465,7 @@ window.addEventListener("DOMContentLoaded", () => {
 <button id="pcsg_preloadBtn">Alle Pokémon + Shinys + deutsche Namen vorladen</button>
 <button id="pcsg_randomBtn" disabled>Zufälliges Pokémon</button>
 <button id="pcsg_shinyBtn" disabled>Custom-Shiny generieren</button>
+<button id="pcsg_shinyFromShinyBtn" disabled title="Erzeugt ein Custom-Shiny, dessen Farbgruppen aus dem offiziellen Shiny statt aus dem Original berechnet werden.">Custom-Shiny aus Shiny-Farbgruppen</button>
 
 <div class="pcsg-modebar" aria-label="Bildquelle wählen">
   <button id="pcsg_modeArtworkBtn" class="pcsg-mode-btn active" type="button">🎨 Artworks bearbeiten</button>
@@ -11643,6 +11644,7 @@ let minRegionSize = 8;
 const preloadBtn = document.getElementById("pcsg_preloadBtn");
 const randomBtn = document.getElementById("pcsg_randomBtn");
 const shinyBtn = document.getElementById("pcsg_shinyBtn");
+const shinyFromShinyBtn = document.getElementById("pcsg_shinyFromShinyBtn");
 const modeArtworkBtn = document.getElementById("pcsg_modeArtworkBtn");
 const modeShowdownBtn = document.getElementById("pcsg_modeShowdownBtn");
 
@@ -11699,6 +11701,7 @@ const editPreviewCtx = editPreviewCanvas.getContext("2d");
 let pokemonData = [];
 let currentPokemon = null;
 let currentOriginalImageData = null;
+let currentShinyImageData = null;
 let currentContourMask = null;
 let currentClusters = [];
 let currentClusterLabels = null;
@@ -11801,6 +11804,7 @@ function setPcsgImageMode(mode, resetLoaded = true) {
     searchBtn.disabled = true;
     searchInput.disabled = true;
     shinyBtn.disabled = true;
+    if (shinyFromShinyBtn) shinyFromShinyBtn.disabled = true;
     rebuildRegionsBtn.disabled = true;
     saveCustomBtn.disabled = true;
     if (buildAnimatedGifBtn) buildAnimatedGifBtn.disabled = true;
@@ -12390,6 +12394,7 @@ function drawPokemon(pokemon) {
   currentPokemon = pokemon;
   currentClusters = [];
   currentClusterLabels = null;
+  currentShinyImageData = null;
   currentRegions = [];
   currentRegionLabels = null;
   regionNameMemory = {};
@@ -12423,10 +12428,12 @@ function drawPokemon(pokemon) {
     } else {
       drawArtworkExact(officialShinyCtx, pokemon.shinyImg, 475);
     }
+    currentShinyImageData = officialShinyCtx.getImageData(0, 0, 475, 475);
     if (pcsgImageMode === "showdown") {
       setShowdownLiveImage(officialShinyCard, pokemon.shinySrc || pokemon.shinyImg.src, `${pokemon.name} Shiny Showdown`);
     }
   } else {
+    currentShinyImageData = null;
     officialShinyCtx.fillStyle = "#f8f4ea";
     officialShinyCtx.fillRect(0, 0, 475, 475);
     officialShinyCtx.fillStyle = "#777";
@@ -12448,6 +12455,7 @@ function drawPokemon(pokemon) {
   pokemonName.textContent = pokemon.name;
 
   shinyBtn.disabled = false;
+  if (shinyFromShinyBtn) shinyFromShinyBtn.disabled = !currentShinyImageData;
   rebuildRegionsBtn.disabled = true;
   if (mergeSameColorsBtn) mergeSameColorsBtn.disabled = true;
   saveCustomBtn.disabled = false;
@@ -13493,26 +13501,30 @@ function rebuildRegionsOnly() {
     `${currentRegions.length} einfache Farbgruppen erzeugt.`;
 }
 
-function generateRandomShiny() {
-  if (!currentOriginalImageData) return;
+function generateRandomShinyFromImageData(baseImageData, sourceLabel) {
+  if (!currentOriginalImageData || !baseImageData) return;
 
-  statusText.textContent = "Analysiere Farbgruppen...";
+  statusText.textContent = `Analysiere Farbgruppen (${sourceLabel})...`;
 
   regionNameMemory = {};
   colorGroupCount = Number(regionSizeSlider.value);
   minRegionSize = colorGroupCount;
   regionSizeValue.textContent = colorGroupCount;
 
-  currentContourMask = buildContourMask(currentOriginalImageData);
-  currentClusters = runKMeans(currentOriginalImageData);
+  // Wichtig: Die Farbgruppen/Labels werden aus der gewählten Basis berechnet.
+  // Gerendert wird weiterhin auf dem Original-Artwork, damit das Ergebnis ein echtes
+  // Custom-Shiny des normalen Pokémon bleibt. Bei deckungsgleichen Official-Artworks
+  // profitieren wir so von besser differenzierten Shiny-Farbflächen.
+  currentContourMask = buildContourMask(baseImageData);
+  currentClusters = runKMeans(baseImageData);
   randomizeClusterTargets(currentClusters);
   currentClusterLabels = buildSpatialClusterLabels(
-    currentOriginalImageData,
+    baseImageData,
     currentClusters
   );
 
   const groupResult = buildDirectColorGroups(
-    currentOriginalImageData,
+    baseImageData,
     currentClusterLabels,
     currentClusters
   );
@@ -13525,7 +13537,20 @@ function generateRandomShiny() {
   createRegionControls();
   renderWithRegions();
 
-  statusText.textContent = `${currentRegions.length} einfache Farbgruppen erzeugt.`;
+  statusText.textContent = `${currentRegions.length} einfache Farbgruppen erzeugt (${sourceLabel}).`;
+}
+
+function generateRandomShiny() {
+  generateRandomShinyFromImageData(currentOriginalImageData, "Original als Basis");
+}
+
+function generateRandomShinyUsingOfficialShinyGroups() {
+  if (!currentShinyImageData) {
+    statusText.textContent = "Für dieses Pokémon wurde kein offizielles Shiny-Bild geladen.";
+    return;
+  }
+
+  generateRandomShinyFromImageData(currentShinyImageData, "Shiny als Basis");
 }
 
 function customStorageKey() {
@@ -14428,6 +14453,7 @@ setPcsgImageMode(pcsgImageMode, false);
 preloadBtn.addEventListener("click", preloadAllPokemon);
 randomBtn.addEventListener("click", showRandomPokemon);
 shinyBtn.addEventListener("click", generateRandomShiny);
+if (shinyFromShinyBtn) shinyFromShinyBtn.addEventListener("click", generateRandomShinyUsingOfficialShinyGroups);
 searchBtn.addEventListener("click", showSearchedPokemon);
 
 regionSizeSlider.addEventListener("input", () => {
