@@ -5239,6 +5239,31 @@ button,
   margin: 3px;
 }
 
+
+.menu-pokequiz-button {
+  background: linear-gradient(135deg, #00b7ff, #7c3aed, #ef4444);
+}
+
+#pokeQuizTeamChallengeView {
+  min-height: 100vh;
+  width: 100%;
+  background: #101010;
+  box-sizing: border-box;
+  padding-top: 58px;
+}
+
+#pokeQuizTeamChallengeView.hidden-view {
+  display: none !important;
+}
+
+.pqt-frame {
+  width: 100%;
+  min-height: calc(100vh - 58px);
+  border: 0;
+  display: block;
+  background: #101010;
+}
+
 </style>
 </head>
 
@@ -5257,6 +5282,7 @@ button,
       <button class="menu-fav-pokemon-button" onclick="showMainAppView('favoritePokemon')">Favorite Pokémon Picker</button>
       <button class="menu-custom-shiny-button" onclick="showMainAppView('customShiny')">Pokémon Custom Shiny's</button>
       <button class="menu-random-teamer-button" onclick="showMainAppView('randomTeamer')">Pokémon Random Teamer</button>
+      <button class="menu-pokequiz-button" onclick="showMainAppView('pokeQuizTeamChallenge')">PokeQuiz - Team Challenge</button>
     </div>
   </div>
 </div>
@@ -11539,6 +11565,1152 @@ window.addEventListener("DOMContentLoaded", () => {
   </main>
 </div>
 
+
+<div id="pokeQuizTeamChallengeView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+  <iframe class="pqt-frame" title="PokeQuiz - Team Challenge" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;de&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot; /&gt;
+&lt;title&gt;Kannst du dieses Team bauen?&lt;/title&gt;
+
+&lt;style&gt;
+  body {
+    margin: 0;
+    padding: 28px;
+    font-family: Arial, sans-serif;
+    background: #101010;
+    color: white;
+    text-align: center;
+  }
+
+  button {
+    background: #00b7ff;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    margin: 6px;
+  }
+
+  #status {
+    margin: 14px;
+    color: #ccc;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 170px);
+    grid-template-rows: repeat(2, 170px);
+    justify-content: center;
+    gap: 0;
+    margin: 24px auto 0;
+    width: max-content;
+    padding: 7px;
+    overflow: hidden;
+    border: 2px solid #2a2826;
+    border-radius: 22px;
+    background: #2a2826;
+  }
+
+  .box {
+    width: 170px;
+    height: 170px;
+    box-sizing: border-box;
+    border: 0;
+    border-right: 1px solid #111;
+    border-bottom: 1px solid #111;
+    background: #f4f0e8;
+    color: #111;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .box:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .box:nth-child(n+4) {
+    border-bottom: 0;
+  }
+
+  .box:nth-child(1) { border-top-left-radius: 14px; }
+  .box:nth-child(3) { border-top-right-radius: 14px; }
+  .box:nth-child(4) { border-bottom-left-radius: 14px; }
+  .box:nth-child(6) { border-bottom-right-radius: 14px; }
+
+  .box:hover,
+  .box.active {
+    background: #ebe5d8;
+    z-index: 2;
+  }
+
+  .question {
+    font-size: 60px;
+    font-weight: 900;
+    color: #111;
+    text-shadow: 0 0 7px rgba(0,0,0,.45), 0 0 14px rgba(0,0,0,.25);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: .35; }
+    50% { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(1); opacity: .35; }
+  }
+
+  .conditionText {
+    color: #111;
+    font-weight: bold;
+    font-size: 17px;
+    padding: 6px;
+    line-height: 1.15;
+  }
+
+  .referenceArt {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+  }
+
+  .chosenOnlyArt {
+    width: 126px;
+    height: 126px;
+    object-fit: contain;
+    margin-bottom: 18px;
+  }
+
+  .fieldHint {
+    color: rgba(17,17,17,.65);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 4px 0 0;
+    pointer-events: none;
+  }
+
+  .referenceRow {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .box.wrongAnswer {
+    background: #ffd9d9;
+  }
+
+  .wrongX {
+    color: #d60000;
+    font-size: 108px;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 0 8px rgba(214,0,0,.35);
+  }
+
+  #wrongButton {
+    margin-top: 16px;
+    background: #d60000;
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0;
+  }
+
+
+  #categorySettings {
+    margin: 28px auto 0;
+    max-width: 760px;
+    background: #181818;
+    border-radius: 18px;
+    padding: 18px;
+    text-align: left;
+  }
+
+  #categorySettings h2 {
+    margin: 0 0 8px;
+    color: #f4f0e8;
+    font-size: 20px;
+    text-align: center;
+  }
+
+  #categorySettingsIntro {
+    color: #bbb;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .category-toggle-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 14px;
+  }
+
+  .categoryToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #242424;
+    border-radius: 10px;
+    padding: 9px 10px;
+    font-size: 13px;
+    color: #eee;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .categoryToggle input {
+    width: 16px;
+    height: 16px;
+    accent-color: #00b7ff;
+  }
+
+  .categoryActions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .categoryActions button {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: 9px;
+    background: #333;
+  }
+
+  #pokemonArea {
+    display: none;
+    margin-top: 28px;
+    background: #181818;
+    border-radius: 18px;
+    padding: 20px;
+  }
+
+  #pokemonTitle {
+    color: #00d9ff;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  #conditionDetails {
+    display: none;
+    margin: 0 auto 16px;
+    color: #ddd;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .pokemon-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    max-height: 470px;
+    overflow-y: auto;
+  }
+
+  .pokemon {
+    background: #333;
+    border-radius: 12px;
+    width: 120px;
+    padding: 9px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .pokemon:hover {
+    background: #444;
+    transform: scale(1.05);
+  }
+
+  .pokemon img {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+  }
+
+  .info {
+    color: #bbb;
+    font-size: 11px;
+    margin-top: 3px;
+  }
+&lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;h1&gt;Kannst du dieses Team bauen?&lt;/h1&gt;
+
+&lt;button onclick=&quot;loadPokemon()&quot;&gt;Alle Pokémon vorladen&lt;/button&gt;
+&lt;button onclick=&quot;generateChallenge()&quot;&gt;Neue Challenge&lt;/button&gt;
+
+&lt;div id=&quot;status&quot;&gt;Noch keine Pokémon geladen.&lt;/div&gt;
+
+&lt;div class=&quot;grid&quot; id=&quot;challengeGrid&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;pokemonArea&quot;&gt;
+  &lt;div id=&quot;pokemonTitle&quot;&gt;&lt;/div&gt;
+  &lt;div id=&quot;conditionDetails&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;pokemon-list&quot; id=&quot;pokemonList&quot;&gt;&lt;/div&gt;
+  &lt;button id=&quot;wrongButton&quot; onclick=&quot;markWrong()&quot;&gt;X&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;categorySettings&quot;&gt;
+  &lt;h2&gt;Kategorien für die nächste Challenge&lt;/h2&gt;
+  &lt;div id=&quot;categorySettingsIntro&quot;&gt;Haken entfernen = Kategorie kommt in der nächsten Challenge nicht vor.&lt;/div&gt;
+  &lt;div class=&quot;category-toggle-list&quot; id=&quot;categoryToggleList&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;categoryActions&quot;&gt;
+    &lt;button onclick=&quot;setAllCategories(true)&quot;&gt;Alle aktivieren&lt;/button&gt;
+    &lt;button onclick=&quot;setAllCategories(false)&quot;&gt;Alle deaktivieren&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+let allPokemon = [];
+let currentChallenge = [];
+let activeBoxIndex = null;
+
+const categoryOptions = [
+  { id: &quot;height&quot;, label: &quot;Größenbereich&quot;, creator: createHeightCategory, enabled: true },
+  { id: &quot;weight&quot;, label: &quot;Gewichtsbereich&quot;, creator: createWeightCategory, enabled: true },
+  { id: &quot;primaryType&quot;, label: &quot;Primärtyp&quot;, creator: createPrimaryTypeCategory, enabled: true },
+  { id: &quot;secondaryType&quot;, label: &quot;Sekundärtyp&quot;, creator: createSecondaryTypeCategory, enabled: true },
+  { id: &quot;color&quot;, label: &quot;Hauptfarbe&quot;, creator: createColorCategory, enabled: true },
+  { id: &quot;formCount&quot;, label: &quot;Mindestens X Formen&quot;, creator: createFormCountCategory, enabled: true },
+  { id: &quot;typeEffect&quot;, label: &quot;Typen-Effektivität&quot;, creator: createTypeEffectCategory, enabled: true },
+  { id: &quot;bst&quot;, label: &quot;Basiswert-Bereich&quot;, creator: createBSTCategory, enabled: true },
+  { id: &quot;dualType&quot;, label: &quot;Doppeltyp-Kombination&quot;, creator: createDualTypeCategory, enabled: true },
+  { id: &quot;pokedexRange&quot;, label: &quot;Pokédexnummer-Bereich&quot;, creator: createPokedexRangeCategory, enabled: true },
+  { id: &quot;compareHeight&quot;, label: &quot;Größer/kleiner als Pokémon&quot;, creator: createCompareHeightCategory, enabled: true },
+  { id: &quot;compareWeight&quot;, label: &quot;Schwerer/leichter als Pokémon&quot;, creator: createCompareWeightCategory, enabled: true },
+  { id: &quot;sameType&quot;, label: &quot;Selber Typ wie Pokémon&quot;, creator: createSameTypeCategory, enabled: true },
+  { id: &quot;compareStat&quot;, label: &quot;Mehr Statuswert als Pokémon&quot;, creator: createCompareStatCategory, enabled: true }
+];
+
+const MAX_ID = 1025;
+
+const generations = [
+  { name: &quot;Gen 1&quot;, min: 1, max: 151 },
+  { name: &quot;Gen 2&quot;, min: 152, max: 251 },
+  { name: &quot;Gen 3&quot;, min: 252, max: 386 },
+  { name: &quot;Gen 4&quot;, min: 387, max: 493 },
+  { name: &quot;Gen 5&quot;, min: 494, max: 649 },
+  { name: &quot;Gen 6&quot;, min: 650, max: 721 },
+  { name: &quot;Gen 7&quot;, min: 722, max: 809 },
+  { name: &quot;Gen 8&quot;, min: 810, max: 905 },
+  { name: &quot;Gen 9&quot;, min: 906, max: 1025 }
+];
+
+const typeDE = {
+  normal: &quot;Normal&quot;,
+  fire: &quot;Feuer&quot;,
+  water: &quot;Wasser&quot;,
+  electric: &quot;Elektro&quot;,
+  grass: &quot;Pflanze&quot;,
+  ice: &quot;Eis&quot;,
+  fighting: &quot;Kampf&quot;,
+  poison: &quot;Gift&quot;,
+  ground: &quot;Boden&quot;,
+  flying: &quot;Flug&quot;,
+  psychic: &quot;Psycho&quot;,
+  bug: &quot;Käfer&quot;,
+  rock: &quot;Gestein&quot;,
+  ghost: &quot;Geist&quot;,
+  dragon: &quot;Drache&quot;,
+  dark: &quot;Unlicht&quot;,
+  steel: &quot;Stahl&quot;,
+  fairy: &quot;Fee&quot;
+};
+
+const allTypes = Object.keys(typeDE);
+
+const colorDE = {
+  black: &quot;Schwarz&quot;,
+  blue: &quot;Blau&quot;,
+  brown: &quot;Braun&quot;,
+  gray: &quot;Grau&quot;,
+  green: &quot;Grün&quot;,
+  pink: &quot;Rosa&quot;,
+  purple: &quot;Lila&quot;,
+  red: &quot;Rot&quot;,
+  white: &quot;Weiß&quot;,
+  yellow: &quot;Gelb&quot;
+};
+
+const typeChart = {
+  normal:   { fighting: 2, ghost: 0 },
+  fire:     { water: 2, ground: 2, rock: 2, fire: .5, grass: .5, ice: .5, bug: .5, steel: .5, fairy: .5 },
+  water:    { electric: 2, grass: 2, fire: .5, water: .5, ice: .5, steel: .5 },
+  electric: { ground: 2, electric: .5, flying: .5, steel: .5 },
+  grass:    { fire: 2, ice: 2, poison: 2, flying: 2, bug: 2, water: .5, electric: .5, grass: .5, ground: .5 },
+  ice:      { fire: 2, fighting: 2, rock: 2, steel: 2, ice: .5 },
+  fighting: { flying: 2, psychic: 2, fairy: 2, bug: .5, rock: .5, dark: .5 },
+  poison:   { ground: 2, psychic: 2, grass: .5, fighting: .5, poison: .5, bug: .5, fairy: .5 },
+  ground:   { water: 2, grass: 2, ice: 2, poison: .5, rock: .5, electric: 0 },
+  flying:   { electric: 2, ice: 2, rock: 2, grass: .5, fighting: .5, bug: .5, ground: 0 },
+  psychic:  { bug: 2, ghost: 2, dark: 2, fighting: .5, psychic: .5 },
+  bug:      { fire: 2, flying: 2, rock: 2, grass: .5, fighting: .5, ground: .5 },
+  rock:     { water: 2, grass: 2, fighting: 2, ground: 2, steel: 2, normal: .5, fire: .5, poison: .5, flying: .5 },
+  ghost:    { ghost: 2, dark: 2, poison: .5, bug: .5, normal: 0, fighting: 0 },
+  dragon:   { ice: 2, dragon: 2, fairy: 2, fire: .5, water: .5, electric: .5, grass: .5 },
+  dark:     { fighting: 2, bug: 2, fairy: 2, ghost: .5, dark: .5, psychic: 0 },
+  steel:    { fire: 2, fighting: 2, ground: 2, normal: .5, grass: .5, ice: .5, flying: .5, psychic: .5, bug: .5, rock: .5, dragon: .5, steel: .5, fairy: .5, poison: 0 },
+  fairy:    { poison: 2, steel: 2, fighting: .5, bug: .5, dark: .5, dragon: 0 }
+};
+
+
+const typeAttackChart = {
+  normal:   { rock: .5, ghost: 0, steel: .5 },
+  fire:     { fire: .5, water: .5, grass: 2, ice: 2, bug: 2, rock: .5, dragon: .5, steel: 2 },
+  water:    { fire: 2, water: .5, grass: .5, ground: 2, rock: 2, dragon: .5 },
+  electric: { water: 2, electric: .5, grass: .5, ground: 0, flying: 2, dragon: .5 },
+  grass:    { fire: .5, water: 2, grass: .5, poison: .5, ground: 2, flying: .5, bug: .5, rock: 2, dragon: .5, steel: .5 },
+  ice:      { fire: .5, water: .5, grass: 2, ice: .5, ground: 2, flying: 2, dragon: 2, steel: .5 },
+  fighting: { normal: 2, ice: 2, poison: .5, flying: .5, psychic: .5, bug: .5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: .5 },
+  poison:   { grass: 2, poison: .5, ground: .5, rock: .5, ghost: .5, steel: 0, fairy: 2 },
+  ground:   { fire: 2, electric: 2, grass: .5, poison: 2, flying: 0, bug: .5, rock: 2, steel: 2 },
+  flying:   { electric: .5, grass: 2, fighting: 2, bug: 2, rock: .5, steel: .5 },
+  psychic:  { fighting: 2, poison: 2, psychic: .5, dark: 0, steel: .5 },
+  bug:      { fire: .5, grass: 2, fighting: .5, poison: .5, flying: .5, psychic: 2, ghost: .5, dark: 2, steel: .5, fairy: .5 },
+  rock:     { fire: 2, ice: 2, fighting: .5, ground: .5, flying: 2, bug: 2, steel: .5 },
+  ghost:    { normal: 0, psychic: 2, ghost: 2, dark: .5 },
+  dragon:   { dragon: 2, steel: .5, fairy: 0 },
+  dark:     { fighting: .5, psychic: 2, ghost: 2, dark: .5, fairy: .5 },
+  steel:    { fire: .5, water: .5, electric: .5, ice: 2, rock: 2, steel: .5, fairy: 2 },
+  fairy:    { fire: .5, fighting: 2, poison: .5, dragon: 2, dark: 2, steel: .5 }
+};
+
+function getGeneration(id) {
+  return generations.find(g =&gt; id &gt;= g.min &amp;&amp; id &lt;= g.max)?.name || &quot;Unbekannt&quot;;
+}
+
+async function loadPokemon() {
+  const status = document.getElementById(&quot;status&quot;);
+  allPokemon = [];
+  status.textContent = &quot;Lade Pokémon...&quot;;
+
+  const speciesListRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species?limit=${MAX_ID}`);
+  const speciesList = await speciesListRes.json();
+
+  const speciesMap = {};
+  const evolutionUrls = new Set();
+
+  for (const item of speciesList.results) {
+    const id = Number(item.url.split(&quot;/&quot;).filter(Boolean).pop());
+
+    try {
+      const speciesRes = await fetch(item.url);
+      const species = await speciesRes.json();
+
+      const deName = species.names.find(n =&gt; n.language.name === &quot;de&quot;)?.name || species.name;
+
+      speciesMap[id] = {
+        deName,
+        color: species.color?.name || &quot;unknown&quot;,
+        isLegendary: species.is_legendary,
+        isMythical: species.is_mythical,
+        evolvesFrom: species.evolves_from_species?.name || null,
+        evolutionUrl: species.evolution_chain?.url || null,
+        varieties: species.varieties || [],
+        formCount: 1,
+        formNames: []
+      };
+
+      if (species.evolution_chain?.url) evolutionUrls.add(species.evolution_chain.url);
+    } catch {
+      speciesMap[id] = {
+        deName: item.name,
+        color: &quot;unknown&quot;,
+        isLegendary: false,
+        isMythical: false,
+        evolvesFrom: null,
+        evolutionUrl: null,
+        varieties: [],
+        formCount: 1,
+        formNames: []
+      };
+    }
+
+    status.textContent = `Lade Species-Daten... ${id}/${MAX_ID}`;
+  }
+
+  const evoInfoByName = {};
+  let evoCount = 0;
+
+  for (const url of evolutionUrls) {
+    try {
+      const res = await fetch(url);
+      const chainData = await res.json();
+      parseEvolutionChain(chainData.chain, 0, evoInfoByName);
+    } catch {}
+
+    evoCount++;
+    status.textContent = `Lade Entwicklungsdaten... ${evoCount}/${evolutionUrls.size}`;
+  }
+
+  let formLoadCount = 0;
+
+  for (const id of Object.keys(speciesMap)) {
+    const speciesInfo = speciesMap[id];
+    const formNames = new Set();
+
+    try {
+      for (const variety of speciesInfo.varieties || []) {
+        const pokemonName = variety.pokemon?.name;
+        if (!pokemonName) continue;
+
+        formNames.add(pokemonName);
+
+        try {
+          const pokemonRes = await fetch(variety.pokemon.url);
+          const pokemonData = await pokemonRes.json();
+
+          (pokemonData.forms || []).forEach(form =&gt; {
+            if (form?.name) formNames.add(form.name);
+          });
+        } catch {}
+      }
+    } catch {}
+
+    const defaultVarietyName = speciesInfo.varieties?.find(v =&gt; v.is_default)?.pokemon?.name
+      || speciesInfo.varieties?.[0]?.pokemon?.name
+      || &quot;&quot;;
+
+    const technicalFormSpecies = [&quot;koraidon&quot;, &quot;miraidon&quot;, &quot;arceus&quot;, &quot;silvally&quot;, &quot;genesect&quot;];
+
+    if (technicalFormSpecies.includes(defaultVarietyName)) {
+      formNames.clear();
+      formNames.add(defaultVarietyName);
+    } else {
+      [...formNames].forEach(formName =&gt; {
+        if (formName.includes(&quot;-gmax&quot;)) {
+          formNames.delete(formName);
+        }
+      });
+    }
+
+    speciesInfo.formNames = [...formNames];
+    speciesInfo.formCount = Math.max(1, formNames.size);
+
+    formLoadCount++;
+    status.textContent = `Lade Form-Daten... ${formLoadCount}/${Object.keys(speciesMap).length}`;
+  }
+
+  for (let id = 1; id &lt;= MAX_ID; id++) {
+    try {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const data = await res.json();
+
+      const speciesName = data.species.name;
+      const evo = evoInfoByName[speciesName] || {};
+
+      const stats = {};
+      data.stats.forEach(s =&gt; stats[s.stat.name] = s.base_stat);
+
+      allPokemon.push({
+        id: data.id,
+        apiName: data.name,
+        speciesName,
+        name: speciesMap[id]?.deName || capitalize(data.name),
+        height: data.height / 10,
+        weight: data.weight / 10,
+        types: data.types.map(t =&gt; t.type.name),
+        generation: getGeneration(data.id),
+        color: speciesMap[id]?.color || &quot;unknown&quot;,
+        isLegendary: speciesMap[id]?.isLegendary || false,
+        isMythical: speciesMap[id]?.isMythical || false,
+        stage: evo.stage ?? 0,
+        canEvolve: evo.canEvolve ?? false,
+        evolutionMethods: evo.methods || [],
+        formCount: speciesMap[id]?.formCount || 1,
+        formNames: speciesMap[id]?.formNames || [],
+        stats,
+        bst: data.stats.reduce((sum, s) =&gt; sum + s.base_stat, 0),
+        sprite: data.sprites.other[&quot;official-artwork&quot;].front_default || data.sprites.front_default
+      });
+
+      status.textContent = `Lade Pokémon-Daten... ${id}/${MAX_ID}`;
+    } catch {
+      console.log(&quot;Fehler bei Pokémon ID:&quot;, id);
+    }
+  }
+
+  status.textContent = `Fertig! ${allPokemon.length} Pokémon geladen.`;
+}
+
+function parseEvolutionChain(node, stage, map, incomingMethods = []) {
+  const name = node.species.name;
+
+  map[name] = {
+    stage,
+    canEvolve: node.evolves_to.length &gt; 0,
+    methods: incomingMethods
+  };
+
+  node.evolves_to.forEach(child =&gt; {
+    const methods = [];
+
+    child.evolution_details.forEach(detail =&gt; {
+      if (detail.trigger?.name === &quot;trade&quot;) methods.push(&quot;trade&quot;);
+      if (detail.trigger?.name === &quot;level-up&quot;) methods.push(&quot;level&quot;);
+      if (detail.item) methods.push(&quot;item&quot;);
+      if (detail.min_happiness || detail.min_affection || detail.min_beauty) methods.push(&quot;friendship&quot;);
+    });
+
+    parseEvolutionChain(child, stage + 1, map, methods);
+  });
+}
+
+function generateChallenge() {
+  if (allPokemon.length === 0) {
+    alert(&quot;Bitte zuerst alle Pokémon vorladen.&quot;);
+    return;
+  }
+
+  const creators = categoryOptions
+    .filter(category =&gt; category.enabled)
+    .map(category =&gt; category.creator);
+
+  if (creators.length &lt; 6) {
+    alert(&quot;Bitte mindestens 6 Kategorien aktivieren.&quot;);
+    return;
+  }
+
+  const usedGroups = new Set();
+  const challenge = [];
+
+  let attempts = 0;
+
+  while (challenge.length &lt; 6 &amp;&amp; attempts &lt; 600) {
+    attempts++;
+
+    const creator = random(creators);
+    const c = creator();
+
+    if (!c || usedGroups.has(c.group)) continue;
+
+    const matches = allPokemon.filter(c.filter);
+    if (matches.length &lt; 3 || matches.length &gt; 450) continue;
+
+    usedGroups.add(c.group);
+
+    challenge.push({
+      ...c,
+      revealed: false,
+      chosen: null,
+      wrong: false,
+      matches
+    });
+  }
+
+  currentChallenge = challenge;
+  activeBoxIndex = null;
+
+  document.getElementById(&quot;pokemonArea&quot;).style.display = &quot;none&quot;;
+  document.getElementById(&quot;conditionDetails&quot;).style.display = &quot;none&quot;;
+  renderBoxes();
+}
+
+function renderBoxes() {
+  const grid = document.getElementById(&quot;challengeGrid&quot;);
+  grid.innerHTML = &quot;&quot;;
+
+  currentChallenge.forEach((c, index) =&gt; {
+    const box = document.createElement(&quot;div&quot;);
+    box.className = &quot;box&quot;;
+    if (index === activeBoxIndex) box.classList.add(&quot;active&quot;);
+
+    box.onclick = () =&gt; revealBox(index);
+
+    if (c.wrong) {
+      box.classList.add(&quot;wrongAnswer&quot;);
+      box.innerHTML = `&lt;div class=&quot;wrongX&quot;&gt;×&lt;/div&gt;`;
+    } else if (!c.revealed) {
+      box.innerHTML = `&lt;div class=&quot;question&quot;&gt;?&lt;/div&gt;`;
+    } else if (c.chosen) {
+      box.innerHTML = `
+        &lt;img class=&quot;chosenOnlyArt&quot; src=&quot;${c.chosen.sprite}&quot; alt=&quot;${c.chosen.name}&quot;&gt;
+      `;
+    } else {
+      const references = c.references || (c.reference ? [c.reference] : []);
+      box.innerHTML = `
+        &lt;div&gt;
+          &lt;div class=&quot;conditionText&quot;&gt;${c.text}&lt;/div&gt;
+          ${references.length ? `
+            &lt;div class=&quot;referenceRow&quot;&gt;
+              ${references.map(ref =&gt; `&lt;img class=&quot;referenceArt&quot; src=&quot;${ref.sprite}&quot; title=&quot;${ref.name}&quot;&gt;`).join(&quot;&quot;)}
+            &lt;/div&gt;
+          ` : &quot;&quot;}
+          ${c.fieldHint ? `&lt;div class=&quot;fieldHint&quot;&gt;${c.fieldHint}&lt;/div&gt;` : &quot;&quot;}
+        &lt;/div&gt;
+      `;
+    }
+
+    grid.appendChild(box);
+  });
+}
+
+function revealBox(index) {
+  currentChallenge[index].revealed = true;
+  activeBoxIndex = index;
+  renderBoxes();
+  showPokemonList(currentChallenge[index]);
+}
+
+function showPokemonList(condition) {
+  const area = document.getElementById(&quot;pokemonArea&quot;);
+  const title = document.getElementById(&quot;pokemonTitle&quot;);
+  const list = document.getElementById(&quot;pokemonList&quot;);
+  const details = document.getElementById(&quot;conditionDetails&quot;);
+
+  area.style.display = &quot;block&quot;;
+  title.textContent = `${condition.text} — ${condition.matches.length} Pokémon`;
+
+  if (condition.details) {
+    details.style.display = &quot;block&quot;;
+    details.innerHTML = condition.details;
+  } else {
+    details.style.display = &quot;none&quot;;
+    details.innerHTML = &quot;&quot;;
+  }
+
+  list.innerHTML = condition.matches.map(p =&gt; `
+    &lt;div class=&quot;pokemon&quot; onclick=&quot;choosePokemon(${p.id})&quot;&gt;
+      &lt;img src=&quot;${p.sprite}&quot;&gt;
+      &lt;strong&gt;${p.name}&lt;/strong&gt;
+      &lt;div class=&quot;info&quot;&gt;#${p.id}&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;${p.height.toFixed(1)} m&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;${p.weight.toFixed(1)} kg&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;${translateTypes(p.types).join(&quot; / &quot;)}&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;${p.generation}&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;Basiswert ${p.bst}&lt;/div&gt;
+      &lt;div class=&quot;info&quot;&gt;${p.formCount} Form${p.formCount === 1 ? &quot;&quot; : &quot;en&quot;}&lt;/div&gt;
+    &lt;/div&gt;
+  `).join(&quot;&quot;);
+}
+
+function choosePokemon(id) {
+  if (activeBoxIndex === null) return;
+  const chosen = allPokemon.find(p =&gt; p.id === id);
+  currentChallenge[activeBoxIndex].chosen = chosen;
+  currentChallenge[activeBoxIndex].wrong = false;
+  goToNextBox();
+}
+
+function markWrong() {
+  if (activeBoxIndex === null) return;
+  currentChallenge[activeBoxIndex].chosen = null;
+  currentChallenge[activeBoxIndex].wrong = true;
+  currentChallenge[activeBoxIndex].revealed = true;
+  goToNextBox();
+}
+
+function goToNextBox() {
+  const nextIndex = activeBoxIndex + 1;
+
+  if (nextIndex &lt; currentChallenge.length) {
+    currentChallenge[nextIndex].revealed = true;
+    activeBoxIndex = nextIndex;
+    renderBoxes();
+    showPokemonList(currentChallenge[nextIndex]);
+    return;
+  }
+
+  activeBoxIndex = null;
+  document.getElementById(&quot;pokemonArea&quot;).style.display = &quot;none&quot;;
+  document.getElementById(&quot;conditionDetails&quot;).style.display = &quot;none&quot;;
+  renderBoxes();
+}
+
+function renderCategoryControls() {
+  const list = document.getElementById(&quot;categoryToggleList&quot;);
+  if (!list) return;
+
+  list.innerHTML = categoryOptions.map(category =&gt; `
+    &lt;label class=&quot;categoryToggle&quot;&gt;
+      &lt;input
+        type=&quot;checkbox&quot;
+        ${category.enabled ? &quot;checked&quot; : &quot;&quot;}
+        onchange=&quot;toggleCategory(&#x27;${category.id}&#x27;, this.checked)&quot;
+      &gt;
+      &lt;span&gt;${category.label}&lt;/span&gt;
+    &lt;/label&gt;
+  `).join(&quot;&quot;);
+}
+
+function toggleCategory(id, enabled) {
+  const category = categoryOptions.find(c =&gt; c.id === id);
+  if (!category) return;
+  category.enabled = enabled;
+}
+
+function setAllCategories(enabled) {
+  categoryOptions.forEach(category =&gt; category.enabled = enabled);
+  renderCategoryControls();
+}
+
+renderCategoryControls();
+
+/* ---------- Kategorien ---------- */
+
+function createHeightCategory() {
+  const range = createNumericRange(allPokemon.map(p =&gt; p.height), 0.5, 1.2, 0.1);
+  if (!range) return null;
+
+  return {
+    group: &quot;height&quot;,
+    text: `${formatM(range.min)} bis ${formatM(range.max)} groß`,
+    details: `Erlaubte Größe: ${formatM(range.min)} bis ${formatM(range.max)}`,
+    filter: p =&gt; p.height &gt;= range.min &amp;&amp; p.height &lt;= range.max
+  };
+}
+
+function createWeightCategory() {
+  const range = createNumericRange(allPokemon.map(p =&gt; p.weight), 10, 80, 1);
+  if (!range) return null;
+
+  return {
+    group: &quot;weight&quot;,
+    text: `${formatKg(range.min)} bis ${formatKg(range.max)} schwer`,
+    details: `Erlaubtes Gewicht: ${formatKg(range.min)} bis ${formatKg(range.max)}`,
+    filter: p =&gt; p.weight &gt;= range.min &amp;&amp; p.weight &lt;= range.max
+  };
+}
+
+function createTypeCategory() {
+  return null;
+}
+
+function createPrimaryTypeCategory() {
+  const type = random(allTypes);
+
+  return {
+    group: &quot;primaryType&quot;,
+    text: `Primärtyp ${typeDE[type]}`,
+    filter: p =&gt; p.types[0] === type
+  };
+}
+
+function createSecondaryTypeCategory() {
+  const type = random(allTypes);
+
+  return {
+    group: &quot;secondaryType&quot;,
+    text: `Sekundärtyp ${typeDE[type]}`,
+    filter: p =&gt; p.types[1] === type
+  };
+}
+
+function createNoTypeCategory() {
+  return null;
+}
+
+function createGenerationCategory() {
+  return null;
+}
+
+function createColorCategory() {
+  const color = random(Object.keys(colorDE));
+
+  return {
+    group: &quot;color&quot;,
+    text: `Hauptfarbe ${colorDE[color]}`,
+    filter: p =&gt; p.color === color
+  };
+}
+
+function createFormCountCategory() {
+  const minimum = random([3, 4, 5, 6, 7, 8]);
+
+  return {
+    group: &quot;formCount&quot;,
+    text: `Mindestens ${minimum} Formen`,
+    details: &quot;Gezählt werden regionale Formen, Sonderformen, Fusionsformen, Tiergeistformen und weitere relevante PokéAPI-Form-/Varianten-Einträge. Gigadynamax-, Platten-, Speicher-, Modul- sowie Koraidon-/Miraidon-Modusformen werden ausgeschlossen.&quot;,
+    filter: p =&gt; p.formCount &gt;= minimum
+  };
+}
+
+function createLegendCategory() {
+  return null;
+}
+
+function createEvolutionStageCategory() {
+  const mode = random([&quot;base&quot;, &quot;middle&quot;, &quot;final&quot;, &quot;noEvo&quot;, &quot;canEvolve&quot;]);
+
+  const data = {
+    base: {
+      text: &quot;Basis-Pokémon&quot;,
+      filter: p =&gt; p.stage === 0
+    },
+    middle: {
+      text: &quot;Mittlere Entwicklung&quot;,
+      filter: p =&gt; p.stage === 1 &amp;&amp; p.canEvolve
+    },
+    final: {
+      text: &quot;Finale Entwicklung&quot;,
+      filter: p =&gt; p.stage &gt; 0 &amp;&amp; !p.canEvolve
+    },
+    noEvo: {
+      text: &quot;Keine Entwicklung&quot;,
+      filter: p =&gt; p.stage === 0 &amp;&amp; !p.canEvolve
+    },
+    canEvolve: {
+      text: &quot;Kann sich entwickeln&quot;,
+      filter: p =&gt; p.canEvolve
+    }
+  };
+
+  return {
+    group: &quot;evolutionStage&quot;,
+    ...data[mode]
+  };
+}
+
+function createEvolutionMethodCategory() {
+  return null;
+}
+
+function createTypeEffectCategory() {
+  const attackType = random(allTypes);
+  const mode = random([&quot;weak4&quot;, &quot;weak2&quot;, &quot;immune&quot;, &quot;resist&quot;, &quot;resist4&quot;, &quot;neutral&quot;]);
+
+  const labels = {
+    weak4: `4-fach schwach gegen ${typeDE[attackType]}`,
+    weak2: `Schwach gegen ${typeDE[attackType]}`,
+    immune: `Immun gegen ${typeDE[attackType]}`,
+    resist: `Resistiert ${typeDE[attackType]}`,
+    resist4: `Doppelte Resistenz gegen ${typeDE[attackType]}`,
+    neutral: `Neutral gegen ${typeDE[attackType]}`
+  };
+
+  return {
+    group: &quot;typeEffect&quot;,
+    text: labels[mode],
+    filter: p =&gt; {
+      const mult = getEffectiveness(attackType, p.types);
+
+      if (mode === &quot;weak4&quot;) return mult === 4;
+      if (mode === &quot;weak2&quot;) return mult === 2;
+      if (mode === &quot;immune&quot;) return mult === 0;
+      if (mode === &quot;resist&quot;) return mult === 0.5;
+      if (mode === &quot;resist4&quot;) return mult === 0.25;
+      if (mode === &quot;neutral&quot;) return mult === 1;
+      return false;
+    }
+  };
+}
+
+function createBSTCategory() {
+  const values = allPokemon.map(p =&gt; p.bst);
+  const range = createNumericRange(values, 30, 90, 5);
+  if (!range) return null;
+
+  return {
+    group: &quot;bst&quot;,
+    text: `Basiswert ${range.min} bis ${range.max}`,
+    details: `Erlaubter Basiswert: ${range.min} bis ${range.max}`,
+    filter: p =&gt; p.bst &gt;= range.min &amp;&amp; p.bst &lt;= range.max
+  };
+}
+
+function createDualTypeCategory() {
+  const primaryType = random(allTypes);
+  let secondaryType = random(allTypes);
+
+  while (secondaryType === primaryType) {
+    secondaryType = random(allTypes);
+  }
+
+  return {
+    group: &quot;dualType&quot;,
+    text: `Typ ${typeDE[primaryType]} / ${typeDE[secondaryType]}`,
+    details: `Gesuchte Typkombination: ${typeDE[primaryType]} / ${typeDE[secondaryType]} oder ${typeDE[secondaryType]} / ${typeDE[primaryType]}`,
+    filter: p =&gt; sameTypeCombination(p.types, [primaryType, secondaryType])
+  };
+}
+
+function createPokedexRangeCategory() {
+  const start = randomInt(1, MAX_ID - 40);
+  const end = start + randomInt(20, 40);
+
+  return {
+    group: &quot;pokedexRange&quot;,
+    text: `Pokédex #${start} bis #${end}`,
+    details: `Erlaubte Pokédexnummern: #${start} bis #${end}`,
+    filter: p =&gt; p.id &gt;= start &amp;&amp; p.id &lt;= end
+  };
+}
+
+function createCompareHeightCategory() {
+  const pair = createReferencePairByValue(allPokemon, &quot;height&quot;, 0.5, 1.2);
+  if (!pair) return null;
+
+  return {
+    group: &quot;compareHeight&quot;,
+    text: `Größer als ${pair.low.name}, kleiner als ${pair.high.name}`,
+    details: `${pair.low.name}: ${formatM(pair.low.height)} · ${pair.high.name}: ${formatM(pair.high.height)}`,
+    fieldHint: `${formatM(pair.low.height)} - ${formatM(pair.high.height)}`,
+    references: [pair.low, pair.high],
+    filter: p =&gt; p.height &gt; pair.low.height &amp;&amp; p.height &lt; pair.high.height
+  };
+}
+
+function createCompareWeightCategory() {
+  const pair = createReferencePairByValue(allPokemon, &quot;weight&quot;, 10, 80);
+  if (!pair) return null;
+
+  return {
+    group: &quot;compareWeight&quot;,
+    text: `Schwerer als ${pair.low.name}, leichter als ${pair.high.name}`,
+    details: `${pair.low.name}: ${formatKg(pair.low.weight)} · ${pair.high.name}: ${formatKg(pair.high.weight)}`,
+    fieldHint: `${formatKg(pair.low.weight)} - ${formatKg(pair.high.weight)}`,
+    references: [pair.low, pair.high],
+    filter: p =&gt; p.weight &gt; pair.low.weight &amp;&amp; p.weight &lt; pair.high.weight
+  };
+}
+
+function createSameTypeCategory() {
+  const ref = random(allPokemon);
+
+  return {
+    group: &quot;sameType&quot;,
+    text: `Selber Typ wie ${ref.name}`,
+    details: `${ref.name}: ${translateTypes(ref.types).join(&quot; / &quot;)}`,
+    reference: ref,
+    filter: p =&gt; p.id !== ref.id &amp;&amp; sameTypeCombination(p.types, ref.types)
+  };
+}
+
+function createCompareStatCategory() {
+  const ref = random(allPokemon);
+  const stat = random([
+    [&quot;hp&quot;, &quot;mehr KP&quot;, &quot;KP&quot;],
+    [&quot;attack&quot;, &quot;mehr Angriff&quot;, &quot;Angriff&quot;],
+    [&quot;defense&quot;, &quot;mehr Verteidigung&quot;, &quot;Verteidigung&quot;],
+    [&quot;special-attack&quot;, &quot;mehr Spezial-Angriff&quot;, &quot;Spezial-Angriff&quot;],
+    [&quot;special-defense&quot;, &quot;mehr Spezial-Verteidigung&quot;, &quot;Spezial-Verteidigung&quot;],
+    [&quot;speed&quot;, &quot;schneller&quot;, &quot;Initiative&quot;]
+  ]);
+
+  return {
+    group: &quot;compareStat&quot;,
+    text: `${stat[1]} als ${ref.name}`,
+    details: `${ref.name}: ${stat[2]} ${ref.stats[stat[0]]}`,
+    fieldHint: `${stat[2]} ${ref.stats[stat[0]]}`,
+    reference: ref,
+    filter: p =&gt; p.stats[stat[0]] &gt; ref.stats[stat[0]]
+  };
+}
+
+/* ---------- Hilfsfunktionen ---------- */
+
+function getEffectiveness(attackType, defendingTypes) {
+  return defendingTypes.reduce((mult, defType) =&gt; {
+    return mult * (typeAttackChart[attackType]?.[defType] ?? 1);
+  }, 1);
+}
+
+function sameTypeCombination(typesA, typesB) {
+  if (typesA.length !== typesB.length) return false;
+  const sortedA = [...typesA].sort();
+  const sortedB = [...typesB].sort();
+  return sortedA.every((type, index) =&gt; type === sortedB[index]);
+}
+
+function createNumericRange(values, minDiff, maxDiff, step) {
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const maxStart = maxValue - minDiff;
+
+  if (maxStart &lt; minValue) return null;
+
+  for (let attempts = 0; attempts &lt; 80; attempts++) {
+    const start = randomDecimal(minValue, maxStart, step);
+    const largestAllowedDiff = Math.min(maxDiff, maxValue - start);
+    if (largestAllowedDiff &lt; minDiff) continue;
+
+    const diff = randomDecimal(minDiff, largestAllowedDiff, step);
+    const end = +(start + diff).toFixed(1);
+    return { min: start, max: end };
+  }
+
+  return null;
+}
+
+function createReferencePairByValue(pokemon, key, minDiff, maxDiff) {
+  const sorted = pokemon
+    .filter(p =&gt; Number.isFinite(p[key]))
+    .sort((a, b) =&gt; a[key] - b[key]);
+
+  const pairs = [];
+
+  for (let i = 0; i &lt; sorted.length; i++) {
+    for (let j = i + 1; j &lt; sorted.length; j++) {
+      const diff = sorted[j][key] - sorted[i][key];
+      if (diff &lt; minDiff) continue;
+      if (diff &gt; maxDiff) break;
+      pairs.push({ low: sorted[i], high: sorted[j] });
+    }
+  }
+
+  return pairs.length ? random(pairs) : null;
+}
+
+function translateTypes(types) {
+  return types.map(t =&gt; typeDE[t] || t);
+}
+
+function random(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  return [...arr].sort(() =&gt; Math.random() - 0.5);
+}
+
+function randomDecimal(min, max, step) {
+  const decimals = String(step).includes(&quot;.&quot;) ? String(step).split(&quot;.&quot;)[1].length : 0;
+  const steps = Math.floor((max - min) / step);
+  return +(min + Math.floor(Math.random() * (steps + 1)) * step).toFixed(decimals);
+}
+
+function formatM(value) {
+  return `${value.toFixed(1).replace(&quot;.&quot;, &quot;,&quot;)} m`;
+}
+
+function formatKg(value) {
+  return `${value.toFixed(0)} kg`;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;"></iframe>
+</div>
+
 <div id="pokemonCustomShinyView" class="app-view hidden-view">
   <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
   <div class="pcsg-tool-wrap">
@@ -11677,6 +12849,7 @@ function showMainAppView(view) {
   const favoritePokemon = document.getElementById("favoritePokemonPickerView");
   const randomTeamer = document.getElementById("pokemonRandomTeamerView");
   const customShiny = document.getElementById("pokemonCustomShinyView");
+  const pokeQuizTeamChallenge = document.getElementById("pokeQuizTeamChallengeView");
 
   if (menu) menu.classList.toggle("hidden-view", view !== "menu");
   if (game) game.classList.toggle("hidden-view", view !== "game");
@@ -11685,6 +12858,7 @@ function showMainAppView(view) {
   if (favoritePokemon) favoritePokemon.classList.toggle("hidden-view", view !== "favoritePokemon");
   if (randomTeamer) randomTeamer.classList.toggle("hidden-view", view !== "randomTeamer");
   if (customShiny) customShiny.classList.toggle("hidden-view", view !== "customShiny");
+  if (pokeQuizTeamChallenge) pokeQuizTeamChallenge.classList.toggle("hidden-view", view !== "pokeQuizTeamChallenge");
 
   if (view === "favoritePokemon" && typeof fppInitOnce === "function") {
     fppInitOnce();
