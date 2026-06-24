@@ -11816,6 +11816,28 @@ window.addEventListener("DOMContentLoaded", () => {
     line-height: 1.4;
   }
 
+  .pokemon-sort-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px auto 16px;
+  }
+
+  .pokemon-sort-controls button {
+    background: #333;
+    color: white;
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: 9px;
+  }
+
+  .pokemon-sort-controls button.active {
+    background: #00b7ff;
+    box-shadow: 0 0 12px rgba(0,183,255,.45);
+  }
+
   .pokemon-list {
     display: flex;
     flex-wrap: wrap;
@@ -11867,6 +11889,10 @@ window.addEventListener("DOMContentLoaded", () => {
 &lt;div id=&quot;pokemonArea&quot;&gt;
   &lt;div id=&quot;pokemonTitle&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;conditionDetails&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;pokemon-sort-controls&quot; id=&quot;pokemonSortControls&quot;&gt;
+    &lt;button id=&quot;sortDexButton&quot; class=&quot;active&quot; onclick=&quot;setSortMode(&#x27;dex&#x27;)&quot;&gt;Pokédex&lt;/button&gt;
+    &lt;button id=&quot;sortAlphaButton&quot; onclick=&quot;setSortMode(&#x27;alpha&#x27;)&quot;&gt;Alphabet&lt;/button&gt;
+  &lt;/div&gt;
   &lt;div class=&quot;pokemon-list&quot; id=&quot;pokemonList&quot;&gt;&lt;/div&gt;
   &lt;button id=&quot;wrongButton&quot; onclick=&quot;markWrong()&quot;&gt;X&lt;/button&gt;
 &lt;/div&gt;
@@ -11885,6 +11911,7 @@ window.addEventListener("DOMContentLoaded", () => {
 let allPokemon = [];
 let currentChallenge = [];
 let activeBoxIndex = null;
+let sortMode = &quot;dex&quot;;
 
 const categoryOptions = [
   { id: &quot;height&quot;, label: &quot;Größenbereich&quot;, creator: createHeightCategory, enabled: true },
@@ -12281,6 +12308,7 @@ function showPokemonList(condition) {
 
   area.style.display = &quot;block&quot;;
   title.textContent = `${condition.text} — ${condition.matches.length} Pokémon`;
+  updateSortButtons();
 
   if (condition.details) {
     details.style.display = &quot;block&quot;;
@@ -12290,7 +12318,15 @@ function showPokemonList(condition) {
     details.innerHTML = &quot;&quot;;
   }
 
-  list.innerHTML = condition.matches.map(p =&gt; `
+  const pokemonToShow = [...condition.matches];
+
+  if (sortMode === &quot;alpha&quot;) {
+    pokemonToShow.sort((a, b) =&gt; a.name.localeCompare(b.name, &quot;de&quot;, { sensitivity: &quot;base&quot; }));
+  } else {
+    pokemonToShow.sort((a, b) =&gt; a.id - b.id);
+  }
+
+  list.innerHTML = pokemonToShow.map(p =&gt; `
     &lt;div class=&quot;pokemon&quot; onclick=&quot;choosePokemon(${p.id})&quot;&gt;
       &lt;img src=&quot;${p.sprite}&quot;&gt;
       &lt;strong&gt;${p.name}&lt;/strong&gt;
@@ -12303,6 +12339,23 @@ function showPokemonList(condition) {
       &lt;div class=&quot;info&quot;&gt;${p.formCount} Form${p.formCount === 1 ? &quot;&quot; : &quot;en&quot;}&lt;/div&gt;
     &lt;/div&gt;
   `).join(&quot;&quot;);
+}
+
+function setSortMode(mode) {
+  sortMode = mode === &quot;alpha&quot; ? &quot;alpha&quot; : &quot;dex&quot;;
+  updateSortButtons();
+
+  if (activeBoxIndex !== null &amp;&amp; currentChallenge[activeBoxIndex]) {
+    showPokemonList(currentChallenge[activeBoxIndex]);
+  }
+}
+
+function updateSortButtons() {
+  const dexButton = document.getElementById(&quot;sortDexButton&quot;);
+  const alphaButton = document.getElementById(&quot;sortAlphaButton&quot;);
+
+  if (dexButton) dexButton.classList.toggle(&quot;active&quot;, sortMode === &quot;dex&quot;);
+  if (alphaButton) alphaButton.classList.toggle(&quot;active&quot;, sortMode === &quot;alpha&quot;);
 }
 
 function choosePokemon(id) {
