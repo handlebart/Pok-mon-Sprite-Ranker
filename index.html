@@ -11561,7 +11561,7 @@ window.addEventListener("DOMContentLoaded", () => {
       <div class="tt-manager-box">
         <h3>Pokémon/Form suchen</h3>
         <div class="tt-manager-row">
-          <input id="ttManagerSearch" type="text" placeholder="z. B. charizard, mega, alola, gmax...">
+          <input id="ttManagerSearch" type="text" placeholder="z. B. Glurak, charizard, mega, alola, gmax...">
           <button onclick="ttLoadAllPokemonForms()">Formen laden</button>
         </div>
         <div class="tt-manager-status" id="ttManagerStatus">Noch nicht geladen.</div>
@@ -16611,6 +16611,9 @@ let ttCustomCategories = {};
 let ttEditingCustomCategoryKey = null;
 let ttAllPokemonForms = [];
 let ttAllPokemonFormsLoaded = false;
+let ttAllPokemonGermanNamesLoaded = false;
+let ttPokemonSpeciesGermanMap = {};
+let ttPokemonSpeciesNamesSorted = [];
 let ttManagerSearchTimer = null;
 
 const ttCustomCategoryButtons = document.getElementById("ttCustomCategoryButtons");
@@ -16768,20 +16771,85 @@ function ttDeleteSelectedCustomCategory() {
   ttSaveCustomCategories();
 }
 
+function ttNormalizeSearch(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss");
+}
+
+function ttGuessSpeciesNameFromPokemonId(pokemonId) {
+  const id = String(pokemonId || "");
+  if (ttPokemonSpeciesGermanMap[id]) return id;
+  return ttPokemonSpeciesNamesSorted.find(speciesName => id === speciesName || id.startsWith(speciesName + "-")) || id;
+}
+
+function ttBuildManagerDisplayName(pokemonId) {
+  const speciesName = ttGuessSpeciesNameFromPokemonId(pokemonId);
+  const german = ttPokemonSpeciesGermanMap[speciesName] || speciesName || pokemonId;
+  const suffix = ttFormNameSuffix(pokemonId, speciesName);
+  return suffix ? `${german} (${suffix})` : german;
+}
+
+function ttEnrichManagerFormsWithGermanNames() {
+  ttAllPokemonForms = ttAllPokemonForms.map(item => {
+    const speciesName = ttGuessSpeciesNameFromPokemonId(item.id);
+    const germanName = ttBuildManagerDisplayName(item.id);
+    const searchText = ttNormalizeSearch(`${item.id} ${item.name || ""} ${speciesName} ${germanName}`);
+    return { ...item, speciesName, germanName, searchText };
+  });
+}
+
+async function ttLoadGermanSpeciesNamesForManager() {
+  if (ttAllPokemonGermanNamesLoaded) return;
+  if (ttManagerStatus) ttManagerStatus.textContent = "Lade deutsche Pokémon-Namen...";
+
+  const speciesListRes = await fetch("https://pokeapi.co/api/v2/pokemon-species?limit=20000");
+  if (!speciesListRes.ok) throw new Error("PokéAPI-Speziesliste konnte nicht geladen werden.");
+  const speciesListData = await speciesListRes.json();
+  const speciesList = speciesListData.results || [];
+
+  let done = 0;
+  const chunkSize = 35;
+  for (let i = 0; i < speciesList.length; i += chunkSize) {
+    const chunk = speciesList.slice(i, i + chunkSize);
+    const settled = await Promise.allSettled(chunk.map(async species => {
+      const res = await fetch(species.url);
+      if (!res.ok) throw new Error(species.name);
+      const data = await res.json();
+      const de = data.names?.find(n => n.language?.name === "de")?.name || species.name;
+      ttPokemonSpeciesGermanMap[species.name] = de;
+    }));
+    done += chunk.length;
+    if (ttManagerStatus) ttManagerStatus.textContent = `Lade deutsche Pokémon-Namen... ${done}/${speciesList.length}`;
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  ttPokemonSpeciesNamesSorted = Object.keys(ttPokemonSpeciesGermanMap).sort((a, b) => b.length - a.length);
+  ttAllPokemonGermanNamesLoaded = true;
+}
+
 async function ttLoadAllPokemonForms() {
-  if (ttAllPokemonFormsLoaded) {
+  if (ttAllPokemonFormsLoaded && ttAllPokemonGermanNamesLoaded) {
     ttRenderManagerSearchResults();
     return;
   }
   if (ttManagerStatus) ttManagerStatus.textContent = "Lade alle Pokémon und Formen...";
   if (ttManagerResults) ttManagerResults.innerHTML = "";
   try {
-    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20000");
-    if (!res.ok) throw new Error("PokéAPI-Liste konnte nicht geladen werden.");
-    const data = await res.json();
-    ttAllPokemonForms = (data.results || []).map(item => ({ id: item.name, name: item.name }));
-    ttAllPokemonFormsLoaded = true;
-    if (ttManagerStatus) ttManagerStatus.textContent = `${ttAllPokemonForms.length} Pokémon/Formen geladen.`;
+    if (!ttAllPokemonFormsLoaded) {
+      const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20000");
+      if (!res.ok) throw new Error("PokéAPI-Liste konnte nicht geladen werden.");
+      const data = await res.json();
+      ttAllPokemonForms = (data.results || []).map(item => ({ id: item.name, name: item.name }));
+      ttAllPokemonFormsLoaded = true;
+    }
+
+    await ttLoadGermanSpeciesNamesForManager();
+    ttEnrichManagerFormsWithGermanNames();
+
+    if (ttManagerStatus) ttManagerStatus.textContent = `${ttAllPokemonForms.length} Pokémon/Formen geladen – Suche funktioniert jetzt auch mit deutschen Namen.`;
     ttRenderManagerSearchResults();
   } catch (err) {
     if (ttManagerStatus) ttManagerStatus.textContent = "Fehler beim Laden. Prüfe Internetverbindung/PokéAPI.";
@@ -16840,9 +16908,10 @@ async function ttFetchPokemonForThemeEntry(entry, categoryKey) {
 
 function ttRenderManagerSearchResults() {
   if (!ttManagerResults) return;
-  const q = (ttManagerSearch?.value || "").trim().toLowerCase();
+  const qRaw = (ttManagerSearch?.value || "").trim();
+  const q = ttNormalizeSearch(qRaw);
   ttManagerResults.innerHTML = "";
-  if (!ttAllPokemonFormsLoaded) {
+  if (!ttAllPokemonFormsLoaded || !ttAllPokemonGermanNamesLoaded) {
     ttManagerResults.innerHTML = '<div class="tt-manager-status">Klicke zuerst auf „Formen laden“.</div>';
     return;
   }
@@ -16851,7 +16920,7 @@ function ttRenderManagerSearchResults() {
     return;
   }
   const matches = ttAllPokemonForms
-    .filter(item => item.name.includes(q))
+    .filter(item => (item.searchText || ttNormalizeSearch(`${item.name} ${item.id}`)).includes(q))
     .slice(0, 80);
   if (!matches.length) {
     ttManagerResults.innerHTML = '<div class="tt-manager-status">Keine Treffer.</div>';
@@ -16860,10 +16929,11 @@ function ttRenderManagerSearchResults() {
   matches.forEach(item => {
     const row = document.createElement("div");
     row.className = "tt-manager-pokemon";
-    row.innerHTML = `<span>${ttEscapeHtml(item.name)}<small>PokéAPI-ID</small></span>`;
+    const displayName = item.germanName || item.name;
+    row.innerHTML = `<span>${ttEscapeHtml(displayName)}<small>${ttEscapeHtml(item.id)} · PokéAPI-ID</small></span>`;
     const btn = document.createElement("button");
     btn.textContent = "+ Hinzufügen";
-    btn.onclick = () => ttAddPokemonToCustomCategory(item.name);
+    btn.onclick = () => ttAddPokemonToCustomCategory(item.id);
     row.appendChild(btn);
     ttManagerResults.appendChild(row);
   });
@@ -16901,9 +16971,11 @@ function ttRenderSelectedCustomCategory() {
   ttSelectedCategoryStatus.textContent = `${cat.name}: ${entries.length} Pokémon/Formen enthalten.`;
   entries.forEach((entry, index) => {
     const id = typeof entry === "string" ? entry : entry.id;
+    const known = ttAllPokemonForms.find(item => item.id === id);
+    const label = known?.germanName || id;
     const row = document.createElement("div");
     row.className = "tt-manager-pokemon";
-    row.innerHTML = `<span>${ttEscapeHtml(id)}<small>Wird beim Anzeigen mit Namen, Typen und Sprite geladen</small></span>`;
+    row.innerHTML = `<span>${ttEscapeHtml(label)}<small>${ttEscapeHtml(id)} · Wird beim Anzeigen mit Namen, Typen und Sprite geladen</small></span>`;
     const btn = document.createElement("button");
     btn.className = "remove";
     btn.textContent = "Entfernen";
