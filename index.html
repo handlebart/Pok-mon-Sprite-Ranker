@@ -2259,6 +2259,41 @@ button:disabled {
 }
 
 
+/* ===== THEMEN TEAMS: eigener Kategorie-Manager ===== */
+.tt-manager-panel {
+  width: min(980px, 96vw);
+  margin: 16px auto 18px;
+  padding: 16px;
+  border: 3px solid #111827;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  text-align: left;
+}
+.tt-manager-panel.hidden { display: none; }
+.tt-manager-panel h2 { text-align: center; margin: 0 0 12px; }
+.tt-manager-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 8px 0; }
+.tt-manager-row input, .tt-manager-row select { padding: 10px; border: 2px solid #ddd; border-radius: 10px; min-width: 220px; }
+.tt-manager-row button, .tt-manager-toggle { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 900; color: white; background: #111827; }
+.tt-manager-create { background: #16a34a !important; }
+.tt-manager-delete { background: #dc2626 !important; }
+.tt-manager-close { background: #6b7280 !important; }
+.tt-manager-help { text-align: center; color: #444; font-size: 13px; margin: 8px 0 12px; }
+.tt-manager-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+.tt-manager-box { border: 2px solid #e5e7eb; border-radius: 14px; padding: 12px; background: #fafafa; min-height: 260px; }
+.tt-manager-box h3 { margin: 0 0 10px; text-align: center; }
+.tt-manager-search-results, .tt-manager-selected-list { max-height: 340px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+.tt-manager-pokemon { display: flex; align-items: center; gap: 8px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 7px; }
+.tt-manager-pokemon img { width: 46px; height: 46px; object-fit: contain; }
+.tt-manager-pokemon span { flex: 1; font-weight: bold; font-size: 13px; }
+.tt-manager-pokemon small { display: block; font-weight: normal; color: #666; }
+.tt-manager-pokemon button { border: none; border-radius: 8px; padding: 7px 9px; font-weight: 900; color: white; background: #2563eb; }
+.tt-manager-pokemon button.remove { background: #dc2626; }
+.tt-manager-status { text-align: center; font-weight: bold; font-size: 13px; min-height: 18px; color: #333; }
+.tt-custom-category-buttons { display: inline; }
+@media (max-width: 780px) { .tt-manager-columns { grid-template-columns: 1fr; } }
+
+
 .menu-fav-pokemon-button {
   background: linear-gradient(135deg, #0ea5e9, #8b5cf6, #ec4899);
 }
@@ -11502,6 +11537,43 @@ window.addEventListener("DOMContentLoaded", () => {
     <button onclick="ttSetCategory('china')">🐉 China</button>
     <button onclick="ttSetCategory('gigantamax')">🔥 Gigadynamax</button>
     <button onclick="ttSetCategory('gen1Sprites')">🎮 Gen 1 Sprites</button>
+    <span id="ttCustomCategoryButtons" class="tt-custom-category-buttons"></span>
+    <button class="tt-manager-toggle" onclick="ttToggleCategoryManager()">➕ Kategorie erstellen</button>
+  </div>
+
+  <div id="ttCategoryManager" class="tt-manager-panel hidden">
+    <h2>Eigene Themen-Team-Kategorien</h2>
+    <div class="tt-manager-help">Erstelle eigene Kategorien und füge normale Pokémon, Regionalformen, Mega-Entwicklungen, Gigadynamax-Formen und weitere Sonderformen aus der PokéAPI hinzu.</div>
+
+    <div class="tt-manager-row">
+      <input id="ttNewCategoryName" type="text" placeholder="Neue Kategorie, z. B. Mario Kart Items">
+      <button class="tt-manager-create" onclick="ttCreateCustomCategory()">Kategorie erstellen</button>
+    </div>
+
+    <div class="tt-manager-row">
+      <select id="ttCustomCategorySelect" onchange="ttSelectCustomCategoryForEdit(this.value)"></select>
+      <button onclick="ttUseSelectedCustomCategory()">Kategorie anzeigen</button>
+      <button class="tt-manager-delete" onclick="ttDeleteSelectedCustomCategory()">Kategorie löschen</button>
+      <button class="tt-manager-close" onclick="ttToggleCategoryManager(false)">Schließen</button>
+    </div>
+
+    <div class="tt-manager-columns">
+      <div class="tt-manager-box">
+        <h3>Pokémon/Form suchen</h3>
+        <div class="tt-manager-row">
+          <input id="ttManagerSearch" type="text" placeholder="z. B. charizard, mega, alola, gmax...">
+          <button onclick="ttLoadAllPokemonForms()">Formen laden</button>
+        </div>
+        <div class="tt-manager-status" id="ttManagerStatus">Noch nicht geladen.</div>
+        <div id="ttManagerResults" class="tt-manager-search-results"></div>
+      </div>
+
+      <div class="tt-manager-box">
+        <h3>Enthaltene Pokémon</h3>
+        <div class="tt-manager-status" id="ttSelectedCategoryStatus">Keine eigene Kategorie ausgewählt.</div>
+        <div id="ttManagerSelected" class="tt-manager-selected-list"></div>
+      </div>
+    </div>
   </div>
 
   <div class="tt-team">
@@ -11653,6 +11725,15 @@ window.addEventListener("DOMContentLoaded", () => {
   .box.active {
     background: #ebe5d8;
     z-index: 2;
+  }
+
+  .box.answered {
+    cursor: default;
+  }
+
+  .box.answered:hover {
+    background: #f4f0e8;
+    z-index: 1;
   }
 
   .question {
@@ -11921,6 +12002,7 @@ const categoryOptions = [
   { id: &quot;weight&quot;, label: &quot;Gewichtsbereich&quot;, creator: createWeightCategory, enabled: true },
   { id: &quot;primaryType&quot;, label: &quot;Primärtyp&quot;, creator: createPrimaryTypeCategory, enabled: true },
   { id: &quot;secondaryType&quot;, label: &quot;Sekundärtyp&quot;, creator: createSecondaryTypeCategory, enabled: true },
+  { id: &quot;monoType&quot;, label: &quot;Monotyp&quot;, creator: createMonoTypeCategory, enabled: true },
   { id: &quot;color&quot;, label: &quot;Hauptfarbe&quot;, creator: createColorCategory, enabled: true },
   { id: &quot;formCount&quot;, label: &quot;Mindestens X Formen&quot;, creator: createFormCountCategory, enabled: true },
   { id: &quot;typeEffect&quot;, label: &quot;Typen-Effektivität&quot;, creator: createTypeEffectCategory, enabled: true },
@@ -11930,7 +12012,8 @@ const categoryOptions = [
   { id: &quot;compareHeight&quot;, label: &quot;Größer/kleiner als Pokémon&quot;, creator: createCompareHeightCategory, enabled: true },
   { id: &quot;compareWeight&quot;, label: &quot;Schwerer/leichter als Pokémon&quot;, creator: createCompareWeightCategory, enabled: true },
   { id: &quot;sameType&quot;, label: &quot;Selber Typ wie Pokémon&quot;, creator: createSameTypeCategory, enabled: true },
-  { id: &quot;compareStat&quot;, label: &quot;Mehr Statuswert als Pokémon&quot;, creator: createCompareStatCategory, enabled: true }
+  { id: &quot;compareStat&quot;, label: &quot;Mehr Statuswert als Pokémon&quot;, creator: createCompareStatCategory, enabled: true },
+  { id: &quot;firstLetter&quot;, label: &quot;Anfangsbuchstabe&quot;, creator: createFirstLetterCategory, enabled: true }
 ];
 
 const MAX_ID = 1025;
@@ -12264,7 +12347,8 @@ function renderBoxes() {
   currentChallenge.forEach((c, index) =&gt; {
     const box = document.createElement(&quot;div&quot;);
     box.className = &quot;box&quot;;
-    if (index === activeBoxIndex) box.classList.add(&quot;active&quot;);
+    if (c.chosen || c.wrong) box.classList.add(&quot;answered&quot;);
+    if (index === activeBoxIndex &amp;&amp; !c.chosen &amp;&amp; !c.wrong) box.classList.add(&quot;active&quot;);
 
     box.onclick = () =&gt; revealBox(index);
 
@@ -12297,10 +12381,13 @@ function renderBoxes() {
 }
 
 function revealBox(index) {
-  currentChallenge[index].revealed = true;
+  const condition = currentChallenge[index];
+  if (!condition || condition.chosen || condition.wrong) return;
+
+  condition.revealed = true;
   activeBoxIndex = index;
   renderBoxes();
-  showPokemonList(currentChallenge[index]);
+  showPokemonList(condition);
 }
 
 function showPokemonList(condition) {
@@ -12366,7 +12453,7 @@ function choosePokemon(id) {
   const chosen = allPokemon.find(p =&gt; p.id === id);
   currentChallenge[activeBoxIndex].chosen = chosen;
   currentChallenge[activeBoxIndex].wrong = false;
-  goToNextBox();
+  finishActiveBox();
 }
 
 function markWrong() {
@@ -12374,20 +12461,10 @@ function markWrong() {
   currentChallenge[activeBoxIndex].chosen = null;
   currentChallenge[activeBoxIndex].wrong = true;
   currentChallenge[activeBoxIndex].revealed = true;
-  goToNextBox();
+  finishActiveBox();
 }
 
-function goToNextBox() {
-  const nextIndex = activeBoxIndex + 1;
-
-  if (nextIndex &lt; currentChallenge.length) {
-    currentChallenge[nextIndex].revealed = true;
-    activeBoxIndex = nextIndex;
-    renderBoxes();
-    showPokemonList(currentChallenge[nextIndex]);
-    return;
-  }
-
+function finishActiveBox() {
   activeBoxIndex = null;
   document.getElementById(&quot;pokemonArea&quot;).style.display = &quot;none&quot;;
   document.getElementById(&quot;conditionDetails&quot;).style.display = &quot;none&quot;;
@@ -12459,7 +12536,8 @@ function createPrimaryTypeCategory() {
   return {
     group: &quot;primaryType&quot;,
     text: `Primärtyp ${typeDE[type]}`,
-    filter: p =&gt; p.types[0] === type
+    details: `Nur Pokémon mit Doppeltyp, deren erster Typ ${typeDE[type]} ist.`,
+    filter: p =&gt; p.types.length === 2 &amp;&amp; p.types[0] === type
   };
 }
 
@@ -12469,7 +12547,19 @@ function createSecondaryTypeCategory() {
   return {
     group: &quot;secondaryType&quot;,
     text: `Sekundärtyp ${typeDE[type]}`,
-    filter: p =&gt; p.types[1] === type
+    details: `Nur Pokémon mit Doppeltyp, deren zweiter Typ ${typeDE[type]} ist.`,
+    filter: p =&gt; p.types.length === 2 &amp;&amp; p.types[1] === type
+  };
+}
+
+function createMonoTypeCategory() {
+  const type = random(allTypes);
+
+  return {
+    group: &quot;monoType&quot;,
+    text: `Monotyp ${typeDE[type]}`,
+    details: `Nur Pokémon, die ausschließlich den Typ ${typeDE[type]} besitzen.`,
+    filter: p =&gt; p.types.length === 1 &amp;&amp; p.types[0] === type
   };
 }
 
@@ -12674,6 +12764,24 @@ function createCompareStatCategory() {
   };
 }
 
+function createFirstLetterCategory() {
+  const alphabet = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;.split(&quot;&quot;);
+  const availableLetters = alphabet.filter(letter =&gt;
+    allPokemon.some(p =&gt; getFirstLetter(p.name) === letter)
+  );
+
+  if (!availableLetters.length) return null;
+
+  const letter = random(availableLetters);
+
+  return {
+    group: &quot;firstLetter&quot;,
+    text: `Anfangsbuchstabe ${letter}`,
+    details: `Gesucht ist ein Pokémon, dessen deutscher Name mit ${letter} beginnt. Buchstaben ohne Pokémon werden automatisch nicht gezogen.`,
+    filter: p =&gt; getFirstLetter(p.name) === letter
+  };
+}
+
 /* ---------- Hilfsfunktionen ---------- */
 
 function getEffectiveness(attackType, defendingTypes) {
@@ -12756,6 +12864,15 @@ function formatM(value) {
 
 function formatKg(value) {
   return `${value.toFixed(0)} kg`;
+}
+
+function getFirstLetter(name) {
+  return String(name || &quot;&quot;)
+    .trim()
+    .normalize(&quot;NFD&quot;)
+    .replace(/[\u0300-\u036f]/g, &quot;&quot;)
+    .charAt(0)
+    .toUpperCase();
 }
 
 function capitalize(str) {
@@ -16489,6 +16606,23 @@ const ttWrongBtn = document.getElementById("ttWrongBtn");
 const ttUnlockBtn = document.getElementById("ttUnlockBtn");
 const ttLockStatus = document.getElementById("ttLockStatus");
 
+const TT_CUSTOM_CATEGORY_STORAGE_KEY = "pokemonThemeTeamsCustomCategories_v1";
+let ttCustomCategories = {};
+let ttEditingCustomCategoryKey = null;
+let ttAllPokemonForms = [];
+let ttAllPokemonFormsLoaded = false;
+let ttManagerSearchTimer = null;
+
+const ttCustomCategoryButtons = document.getElementById("ttCustomCategoryButtons");
+const ttCategoryManager = document.getElementById("ttCategoryManager");
+const ttNewCategoryName = document.getElementById("ttNewCategoryName");
+const ttCustomCategorySelect = document.getElementById("ttCustomCategorySelect");
+const ttManagerSearch = document.getElementById("ttManagerSearch");
+const ttManagerResults = document.getElementById("ttManagerResults");
+const ttManagerSelected = document.getElementById("ttManagerSelected");
+const ttManagerStatus = document.getElementById("ttManagerStatus");
+const ttSelectedCategoryStatus = document.getElementById("ttSelectedCategoryStatus");
+
 const ttShinyCategories = ["blueShiny","yellowShiny","blackShiny","redShiny","greenShiny"];
 
 const ttTypeColors = {
@@ -16506,6 +16640,285 @@ function ttHexToRGBA(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+
+
+function ttEscapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function ttSlugifyCategoryName(name) {
+  const base = String(name || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "eigene-kategorie";
+  let key = `custom_${base}`;
+  let i = 2;
+  while (ttCategories[key] || ttCustomCategories[key]) key = `custom_${base}-${i++}`;
+  return key;
+}
+
+function ttLoadCustomCategories() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(TT_CUSTOM_CATEGORY_STORAGE_KEY) || "{}");
+    ttCustomCategories = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    ttCustomCategories = {};
+  }
+}
+
+function ttSaveCustomCategories() {
+  localStorage.setItem(TT_CUSTOM_CATEGORY_STORAGE_KEY, JSON.stringify(ttCustomCategories));
+  ttRenderCustomCategoryButtons();
+  ttRenderCustomCategorySelect();
+}
+
+function ttGetCustomCategory(cat) {
+  return ttCustomCategories && ttCustomCategories[cat] ? ttCustomCategories[cat] : null;
+}
+
+function ttGetCategoryEntries(cat) {
+  const custom = ttGetCustomCategory(cat);
+  if (custom) return Array.isArray(custom.entries) ? custom.entries : [];
+  return ttCategories[cat] || [];
+}
+
+function ttRenderCustomCategoryButtons() {
+  if (!ttCustomCategoryButtons) return;
+  ttCustomCategoryButtons.innerHTML = "";
+  Object.entries(ttCustomCategories).forEach(([key, cat]) => {
+    const btn = document.createElement("button");
+    btn.textContent = `⭐ ${cat.name || "Eigene Kategorie"}`;
+    btn.onclick = () => ttSetCategory(key);
+    ttCustomCategoryButtons.appendChild(btn);
+  });
+}
+
+function ttRenderCustomCategorySelect() {
+  if (!ttCustomCategorySelect) return;
+  const keys = Object.keys(ttCustomCategories);
+  ttCustomCategorySelect.innerHTML = "";
+  if (!keys.length) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Keine eigene Kategorie vorhanden";
+    ttCustomCategorySelect.appendChild(opt);
+    ttEditingCustomCategoryKey = null;
+    ttRenderSelectedCustomCategory();
+    return;
+  }
+  keys.forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = ttCustomCategories[key].name || key;
+    ttCustomCategorySelect.appendChild(opt);
+  });
+  if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) {
+    ttEditingCustomCategoryKey = keys[0];
+  }
+  ttCustomCategorySelect.value = ttEditingCustomCategoryKey;
+  ttRenderSelectedCustomCategory();
+}
+
+function ttToggleCategoryManager(force) {
+  if (!ttCategoryManager) return;
+  const shouldShow = typeof force === "boolean" ? force : ttCategoryManager.classList.contains("hidden");
+  ttCategoryManager.classList.toggle("hidden", !shouldShow);
+  if (shouldShow) {
+    ttRenderCustomCategorySelect();
+    ttRenderSelectedCustomCategory();
+  }
+}
+
+function ttCreateCustomCategory() {
+  const name = (ttNewCategoryName?.value || "").trim();
+  if (!name) {
+    alert("Bitte gib einen Kategorienamen ein.");
+    return;
+  }
+  const key = ttSlugifyCategoryName(name);
+  ttCustomCategories[key] = { name, entries: [] };
+  ttEditingCustomCategoryKey = key;
+  if (ttNewCategoryName) ttNewCategoryName.value = "";
+  ttSaveCustomCategories();
+  ttToggleCategoryManager(true);
+}
+
+function ttSelectCustomCategoryForEdit(key) {
+  ttEditingCustomCategoryKey = key || null;
+  ttRenderSelectedCustomCategory();
+}
+
+function ttUseSelectedCustomCategory() {
+  if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) return;
+  ttSetCategory(ttEditingCustomCategoryKey);
+}
+
+function ttDeleteSelectedCustomCategory() {
+  if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) return;
+  const name = ttCustomCategories[ttEditingCustomCategoryKey].name || "diese Kategorie";
+  if (!confirm(`Kategorie „${name}“ wirklich löschen?`)) return;
+  delete ttCustomCategories[ttEditingCustomCategoryKey];
+  ttEditingCustomCategoryKey = Object.keys(ttCustomCategories)[0] || null;
+  ttSaveCustomCategories();
+}
+
+async function ttLoadAllPokemonForms() {
+  if (ttAllPokemonFormsLoaded) {
+    ttRenderManagerSearchResults();
+    return;
+  }
+  if (ttManagerStatus) ttManagerStatus.textContent = "Lade alle Pokémon und Formen...";
+  if (ttManagerResults) ttManagerResults.innerHTML = "";
+  try {
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20000");
+    if (!res.ok) throw new Error("PokéAPI-Liste konnte nicht geladen werden.");
+    const data = await res.json();
+    ttAllPokemonForms = (data.results || []).map(item => ({ id: item.name, name: item.name }));
+    ttAllPokemonFormsLoaded = true;
+    if (ttManagerStatus) ttManagerStatus.textContent = `${ttAllPokemonForms.length} Pokémon/Formen geladen.`;
+    ttRenderManagerSearchResults();
+  } catch (err) {
+    if (ttManagerStatus) ttManagerStatus.textContent = "Fehler beim Laden. Prüfe Internetverbindung/PokéAPI.";
+  }
+}
+
+function ttFormNameSuffix(rawName, speciesName) {
+  if (!rawName || !speciesName || rawName === speciesName) return "";
+  let suffix = rawName.startsWith(speciesName + "-") ? rawName.slice(speciesName.length + 1) : rawName;
+  return suffix
+    .split("-")
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+async function ttFetchPokemonForThemeEntry(entry, categoryKey) {
+  const name = typeof entry === "string" ? entry : entry.id;
+  const fetchName = typeof entry === "object" && entry.fetchId ? entry.fetchId : name;
+  const forceShiny = typeof entry === "object" && entry.shiny === true;
+  const forceGen1Sprite = typeof entry === "object" && entry.gen1Sprite === true;
+  const customSprite = typeof entry === "object" && entry.sprite ? entry.sprite : null;
+  const customSpriteFallbacks = typeof entry === "object" && Array.isArray(entry.spriteFallbacks) ? entry.spriteFallbacks : [];
+  const suffix = typeof entry === "object" && entry.suffix ? entry.suffix : null;
+  const manualName = typeof entry === "object" && entry.manualName ? entry.manualName : null;
+  const manualTypes = typeof entry === "object" && Array.isArray(entry.manualTypes) ? entry.manualTypes : null;
+
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${fetchName}`);
+  if (!res.ok) throw new Error(`Pokémon nicht gefunden: ${fetchName}`);
+  const data = await res.json();
+  const speciesRes = await fetch(data.species.url);
+  const species = await speciesRes.json();
+  let german = manualName || species.names.find(n => n.language.name === "de")?.name || name;
+  const autoSuffix = ttFormNameSuffix(data.name, species.name);
+  if (!manualName && autoSuffix && !german.toLowerCase().includes(autoSuffix.toLowerCase())) german = `${german} (${autoSuffix})`;
+  if (name.includes("-hisui") && !german.toLowerCase().includes("hisui")) german = `${german} (Hisui)`;
+  if (suffix) german = `${german} (${suffix})`;
+
+  const useShinySprite = forceShiny || ttShinyCategories.includes(categoryKey);
+  const useGen1Sprite = forceGen1Sprite || categoryKey === "gen1Sprites";
+  const spriteFallbacks = customSpriteFallbacks.length
+    ? customSpriteFallbacks
+    : (useGen1Sprite ? ttBuildGen1SpriteUrls(data) : []);
+  const sprite = customSprite || (useGen1Sprite
+    ? (spriteFallbacks[0] || ttGetSpriteFromData(data, { shiny: useShinySprite }))
+    : ttGetSpriteFromData(data, { shiny: useShinySprite, gen1Sprite: false }));
+
+  return {
+    id: data.name,
+    name: german,
+    sprite,
+    spriteFallbacks,
+    types: manualTypes || data.types.map(t => t.type.name)
+  };
+}
+
+function ttRenderManagerSearchResults() {
+  if (!ttManagerResults) return;
+  const q = (ttManagerSearch?.value || "").trim().toLowerCase();
+  ttManagerResults.innerHTML = "";
+  if (!ttAllPokemonFormsLoaded) {
+    ttManagerResults.innerHTML = '<div class="tt-manager-status">Klicke zuerst auf „Formen laden“.</div>';
+    return;
+  }
+  if (!q) {
+    ttManagerResults.innerHTML = '<div class="tt-manager-status">Suchbegriff eingeben.</div>';
+    return;
+  }
+  const matches = ttAllPokemonForms
+    .filter(item => item.name.includes(q))
+    .slice(0, 80);
+  if (!matches.length) {
+    ttManagerResults.innerHTML = '<div class="tt-manager-status">Keine Treffer.</div>';
+    return;
+  }
+  matches.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "tt-manager-pokemon";
+    row.innerHTML = `<span>${ttEscapeHtml(item.name)}<small>PokéAPI-ID</small></span>`;
+    const btn = document.createElement("button");
+    btn.textContent = "+ Hinzufügen";
+    btn.onclick = () => ttAddPokemonToCustomCategory(item.name);
+    row.appendChild(btn);
+    ttManagerResults.appendChild(row);
+  });
+}
+
+async function ttAddPokemonToCustomCategory(pokemonId) {
+  if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) {
+    alert("Bitte zuerst eine eigene Kategorie erstellen oder auswählen.");
+    return;
+  }
+  const cat = ttCustomCategories[ttEditingCustomCategoryKey];
+  if (!Array.isArray(cat.entries)) cat.entries = [];
+  if (cat.entries.some(e => (typeof e === "string" ? e : e.id) === pokemonId)) return;
+  cat.entries.push({ id: pokemonId });
+  ttSaveCustomCategories();
+  ttRenderSelectedCustomCategory();
+}
+
+function ttRemovePokemonFromCustomCategory(index) {
+  if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) return;
+  ttCustomCategories[ttEditingCustomCategoryKey].entries.splice(index, 1);
+  ttSaveCustomCategories();
+  ttRenderSelectedCustomCategory();
+}
+
+function ttRenderSelectedCustomCategory() {
+  if (!ttManagerSelected || !ttSelectedCategoryStatus) return;
+  ttManagerSelected.innerHTML = "";
+  const cat = ttEditingCustomCategoryKey ? ttCustomCategories[ttEditingCustomCategoryKey] : null;
+  if (!cat) {
+    ttSelectedCategoryStatus.textContent = "Keine eigene Kategorie ausgewählt.";
+    return;
+  }
+  const entries = Array.isArray(cat.entries) ? cat.entries : [];
+  ttSelectedCategoryStatus.textContent = `${cat.name}: ${entries.length} Pokémon/Formen enthalten.`;
+  entries.forEach((entry, index) => {
+    const id = typeof entry === "string" ? entry : entry.id;
+    const row = document.createElement("div");
+    row.className = "tt-manager-pokemon";
+    row.innerHTML = `<span>${ttEscapeHtml(id)}<small>Wird beim Anzeigen mit Namen, Typen und Sprite geladen</small></span>`;
+    const btn = document.createElement("button");
+    btn.className = "remove";
+    btn.textContent = "Entfernen";
+    btn.onclick = () => ttRemovePokemonFromCustomCategory(index);
+    row.appendChild(btn);
+    ttManagerSelected.appendChild(row);
+  });
+}
+
+if (ttManagerSearch) {
+  ttManagerSearch.addEventListener("input", () => {
+    clearTimeout(ttManagerSearchTimer);
+    ttManagerSearchTimer = setTimeout(ttRenderManagerSearchResults, 120);
+  });
+}
 
 function ttUpdateLockControls() {
   if (ttLockBtn) {
@@ -17093,62 +17506,33 @@ async function ttSetCategory(cat) {
     return;
   }
 
+  const entries = ttGetCategoryEntries(cat);
+  if (!entries.length) {
+    ttList.innerHTML = "Keine Pokémon in dieser Kategorie.";
+    ttRenderList([]);
+    return;
+  }
+
   ttList.innerHTML = "Lade...";
 
-  for (let entry of ttCategories[cat]) {
-    const name = typeof entry === "string" ? entry : entry.id;
-    const fetchName = typeof entry === "object" && entry.fetchId ? entry.fetchId : name;
-    const forceShiny = typeof entry === "object" && entry.shiny === true;
-    const forceGen1Sprite = typeof entry === "object" && entry.gen1Sprite === true;
-    const customSprite = typeof entry === "object" && entry.sprite ? entry.sprite : null;
-    const customSpriteFallbacks = typeof entry === "object" && Array.isArray(entry.spriteFallbacks) ? entry.spriteFallbacks : [];
-    const suffix = typeof entry === "object" && entry.suffix ? entry.suffix : null;
-    const manualName = typeof entry === "object" && entry.manualName ? entry.manualName : null;
-    const manualTypes = typeof entry === "object" && Array.isArray(entry.manualTypes) ? entry.manualTypes : null;
-
+  for (let entry of entries) {
+    const isManualFallback = typeof entry === "object" && entry.manualTypes && entry.sprite;
     try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${fetchName}`);
-      if (!res.ok) throw new Error(`Pokémon nicht gefunden: ${fetchName}`);
-
-      const data = await res.json();
-      const speciesRes = await fetch(data.species.url);
-      const species = await speciesRes.json();
-      let german = manualName || species.names.find(n => n.language.name === "de")?.name || name;
-      if (name.includes("-hisui") && !german.toLowerCase().includes("hisui")) german = `${german} (Hisui)`;
-      if (suffix) german = `${german} (${suffix})`;
-
-      const useShinySprite = forceShiny || ttShinyCategories.includes(cat);
-      const useGen1Sprite = forceGen1Sprite || cat === "gen1Sprites";
-      const spriteFallbacks = customSpriteFallbacks.length
-        ? customSpriteFallbacks
-        : (useGen1Sprite ? ttBuildGen1SpriteUrls(data) : []);
-      const sprite = customSprite || (useGen1Sprite
-        ? (spriteFallbacks[0] || ttGetSpriteFromData(data, { shiny: useShinySprite }))
-        : ttGetSpriteFromData(data, {
-            shiny: useShinySprite,
-            gen1Sprite: false
-          }));
-
-      ttFilteredPokemon.push({
-        name: german,
-        sprite: sprite,
-        spriteFallbacks: spriteFallbacks,
-        types: data.types.map(t => t.type.name)
-      });
-
+      const p = await ttFetchPokemonForThemeEntry(entry, cat);
+      ttFilteredPokemon.push(p);
       ttRenderList(ttFilteredPokemon);
     } catch {
-      if (manualTypes && customSprite) {
-        let german = manualName || name;
-        if (suffix) german = `${german} (${suffix})`;
-
+      if (isManualFallback) {
+        const name = entry.id;
+        let german = entry.manualName || name;
+        if (entry.suffix) german = `${german} (${entry.suffix})`;
         ttFilteredPokemon.push({
+          id: name,
           name: german,
-          sprite: customSprite,
-          spriteFallbacks: customSpriteFallbacks,
-          types: manualTypes
+          sprite: entry.sprite,
+          spriteFallbacks: Array.isArray(entry.spriteFallbacks) ? entry.spriteFallbacks : [],
+          types: entry.manualTypes
         });
-
         ttRenderList(ttFilteredPokemon);
       }
     }
@@ -17204,6 +17588,11 @@ if (ttSearchInput) {
     ttRenderList(ttFilteredPokemon.filter(p => p.name.toLowerCase().includes(val)));
   });
 }
+
+
+ttLoadCustomCategories();
+ttRenderCustomCategoryButtons();
+ttRenderCustomCategorySelect();
 
 
 /* ===== FAVORITE POKÉMON PICKER JS ===== */
