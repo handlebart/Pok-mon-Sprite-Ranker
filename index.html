@@ -13900,21 +13900,34 @@ function showRandomPokemon() {
   drawPokemon(pokemonData[Math.floor(Math.random() * pokemonData.length)]);
 }
 
-function showSearchedPokemon() {
-  const query = searchInput.value.trim().toLowerCase();
+function normalizePcsgSearchText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
-  const found = pokemonData.find(p => {
-    const name = p.name.toLowerCase();
-    const slug = String(p.showdownSlug || "").toLowerCase();
-    return name === query ||
-      name.includes(query) ||
-      slug === query ||
-      slug.includes(query) ||
-      String(p.id) === query;
+function showSearchedPokemon() {
+  const query = normalizePcsgSearchText(searchInput.value);
+  if (!query) return;
+
+  // Wichtig: erst ALLE exakten Treffer prüfen.
+  // Sonst wird z. B. "Mew" von "Mewtu" abgefangen, weil Mewtu (#150) vor Mew (#151) geladen wird.
+  const exactMatch = pokemonData.find(p => {
+    const name = normalizePcsgSearchText(p.name);
+    const slug = normalizePcsgSearchText(p.showdownSlug);
+    return name === query || slug === query || String(p.id) === query;
   });
 
-  if (found) {
-    drawPokemon(found);
+  const partialMatch = exactMatch || pokemonData.find(p => {
+    const name = normalizePcsgSearchText(p.name);
+    const slug = normalizePcsgSearchText(p.showdownSlug);
+    return name.includes(query) || slug.includes(query);
+  });
+
+  if (partialMatch) {
+    drawPokemon(partialMatch);
   } else {
     statusText.textContent = "Kein Pokémon gefunden.";
   }
