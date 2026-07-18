@@ -2288,7 +2288,15 @@ button:disabled {
 .tt-manager-pokemon span { flex: 1; font-weight: bold; font-size: 13px; }
 .tt-manager-pokemon small { display: block; font-weight: normal; color: #666; }
 .tt-manager-pokemon button { border: none; border-radius: 8px; padding: 7px 9px; font-weight: 900; color: white; background: #2563eb; }
+.tt-manager-pokemon button.shiny-add { background: linear-gradient(135deg, #d97706, #eab308, #7c3aed); }
 .tt-manager-pokemon button.remove { background: #dc2626; }
+.tt-manager-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.tt-shiny-label { color: #b8860b; font-weight: 900; }
+.tt-manager-pokemon.tt-shiny-entry {
+  border-color: #eab308;
+  background: linear-gradient(135deg, #fffdf0, #faf5ff);
+  box-shadow: inset 0 0 0 1px rgba(234,179,8,0.25);
+}
 .tt-manager-status { text-align: center; font-weight: bold; font-size: 13px; min-height: 18px; color: #333; }
 .tt-custom-category-buttons { display: inline; }
 @media (max-width: 780px) { .tt-manager-columns { grid-template-columns: 1fr; } }
@@ -16809,7 +16817,7 @@ function ttEnrichManagerFormsWithGermanNames() {
   ttAllPokemonForms = ttAllPokemonForms.map(item => {
     const speciesName = ttGuessSpeciesNameFromPokemonId(item.id);
     const germanName = ttBuildManagerDisplayName(item.id);
-    const searchText = ttNormalizeSearch(`${item.id} ${item.name || ""} ${speciesName} ${germanName}`);
+    const searchText = ttNormalizeSearch(`${item.id} ${item.name || ""} ${speciesName} ${germanName} shiny schillernd`);
     return { ...item, speciesName, germanName, searchText };
   });
 }
@@ -16912,9 +16920,10 @@ async function ttFetchPokemonForThemeEntry(entry, categoryKey) {
 
   return {
     id: data.name,
-    name: german,
+    name: useShinySprite ? `✨ ${german} (Shiny)` : german,
     sprite,
     spriteFallbacks,
+    shiny: useShinySprite,
     types: manualTypes || data.types.map(t => t.type.name)
   };
 }
@@ -16943,24 +16952,40 @@ function ttRenderManagerSearchResults() {
     const row = document.createElement("div");
     row.className = "tt-manager-pokemon";
     const displayName = item.germanName || item.name;
-    row.innerHTML = `<span>${ttEscapeHtml(displayName)}<small>${ttEscapeHtml(item.id)} · PokéAPI-ID</small></span>`;
-    const btn = document.createElement("button");
-    btn.textContent = "+ Hinzufügen";
-    btn.onclick = () => ttAddPokemonToCustomCategory(item.id);
-    row.appendChild(btn);
+    row.innerHTML = `<span>${ttEscapeHtml(displayName)}<small>${ttEscapeHtml(item.id)} · Normal oder Shiny auswählbar</small></span>`;
+
+    const actions = document.createElement("div");
+    actions.className = "tt-manager-actions";
+
+    const normalBtn = document.createElement("button");
+    normalBtn.textContent = "+ Normal";
+    normalBtn.onclick = () => ttAddPokemonToCustomCategory(item.id, false);
+
+    const shinyBtn = document.createElement("button");
+    shinyBtn.className = "shiny-add";
+    shinyBtn.textContent = "✨ + Shiny";
+    shinyBtn.onclick = () => ttAddPokemonToCustomCategory(item.id, true);
+
+    actions.append(normalBtn, shinyBtn);
+    row.appendChild(actions);
     ttManagerResults.appendChild(row);
   });
 }
 
-async function ttAddPokemonToCustomCategory(pokemonId) {
+async function ttAddPokemonToCustomCategory(pokemonId, shiny = false) {
   if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) {
     alert("Bitte zuerst eine eigene Kategorie erstellen oder auswählen.");
     return;
   }
   const cat = ttCustomCategories[ttEditingCustomCategoryKey];
   if (!Array.isArray(cat.entries)) cat.entries = [];
-  if (cat.entries.some(e => (typeof e === "string" ? e : e.id) === pokemonId)) return;
-  cat.entries.push({ id: pokemonId });
+  const alreadyExists = cat.entries.some(entry => {
+    const entryId = typeof entry === "string" ? entry : entry.id;
+    const entryShiny = typeof entry === "object" && entry.shiny === true;
+    return entryId === pokemonId && entryShiny === shiny;
+  });
+  if (alreadyExists) return;
+  cat.entries.push(shiny ? { id: pokemonId, shiny: true } : { id: pokemonId });
   ttSaveCustomCategories();
   ttRenderSelectedCustomCategory();
 }
@@ -16984,11 +17009,12 @@ function ttRenderSelectedCustomCategory() {
   ttSelectedCategoryStatus.textContent = `${cat.name}: ${entries.length} Pokémon/Formen enthalten.`;
   entries.forEach((entry, index) => {
     const id = typeof entry === "string" ? entry : entry.id;
+    const isShiny = typeof entry === "object" && entry.shiny === true;
     const known = ttAllPokemonForms.find(item => item.id === id);
     const label = known?.germanName || id;
     const row = document.createElement("div");
-    row.className = "tt-manager-pokemon";
-    row.innerHTML = `<span>${ttEscapeHtml(label)}<small>${ttEscapeHtml(id)} · Wird beim Anzeigen mit Namen, Typen und Sprite geladen</small></span>`;
+    row.className = `tt-manager-pokemon${isShiny ? " tt-shiny-entry" : ""}`;
+    row.innerHTML = `<span>${isShiny ? '<span class="tt-shiny-label">✨ Shiny</span> · ' : ''}${ttEscapeHtml(label)}<small>${ttEscapeHtml(id)} · ${isShiny ? "Shiny-Sprite" : "Normaler Sprite"} wird beim Anzeigen geladen</small></span>`;
     const btn = document.createElement("button");
     btn.className = "remove";
     btn.textContent = "Entfernen";
