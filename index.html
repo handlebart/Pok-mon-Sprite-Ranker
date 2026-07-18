@@ -11551,7 +11551,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   <div id="ttCategoryManager" class="tt-manager-panel hidden">
     <h2>Eigene Themen-Team-Kategorien</h2>
-    <div class="tt-manager-help">Erstelle eigene Kategorien und füge normale Pokémon, Regionalformen, Mega-Entwicklungen, Gigadynamax-Formen und weitere Sonderformen aus der PokéAPI hinzu.</div>
+    <div class="tt-manager-help">Erstelle eigene Kategorien und füge normale oder Shiny-Pokémon, Regionalformen, Mega-Entwicklungen, Gigadynamax-Formen sowie alle 18 Typformen von Arceus und Amigento hinzu.</div>
 
     <div class="tt-manager-row">
       <input id="ttNewCategoryName" type="text" placeholder="Neue Kategorie, z. B. Mario Kart Items">
@@ -16813,11 +16813,62 @@ function ttBuildManagerDisplayName(pokemonId) {
   return suffix ? `${german} (${suffix})` : german;
 }
 
+const ttTypeGermanNames = {
+  normal: "Normal", fire: "Feuer", water: "Wasser", electric: "Elektro",
+  grass: "Pflanze", ice: "Eis", fighting: "Kampf", poison: "Gift",
+  ground: "Boden", flying: "Flug", psychic: "Psycho", bug: "Käfer",
+  rock: "Gestein", ghost: "Geist", dragon: "Drache", dark: "Unlicht",
+  steel: "Stahl", fairy: "Fee"
+};
+
+const ttPlateMemoryTypes = Object.keys(ttTypeGermanNames);
+
+function ttBuildTypeFormSpriteFallbacks(dexNumber, type, shiny = false) {
+  const root = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
+  const shinyPart = shiny ? "shiny/" : "";
+  return [
+    `${root}/other/home/${shinyPart}${dexNumber}-${type}.png`,
+    `${root}/other/official-artwork/${shinyPart}${dexNumber}-${type}.png`,
+    `${root}/${shinyPart}${dexNumber}-${type}.png`,
+    `${root}/other/home/${shinyPart}${dexNumber}.png`,
+    `${root}/other/official-artwork/${shinyPart}${dexNumber}.png`,
+    `${root}/${shinyPart}${dexNumber}.png`
+  ];
+}
+
+function ttBuildPlateMemoryFormEntries() {
+  const families = [
+    { species: "arceus", dex: 493, german: "Arceus", source: "Tafel" },
+    { species: "silvally", dex: 773, german: "Amigento", source: "Disc" }
+  ];
+
+  return families.flatMap(family => ttPlateMemoryTypes.map(type => ({
+    id: `${family.species}-${type}`,
+    name: `${family.species}-${type}`,
+    fetchId: family.species,
+    manualName: family.german,
+    suffix: `${ttTypeGermanNames[type]}-${family.source}`,
+    manualTypes: [type],
+    formType: type,
+    formFamily: family.species,
+    spriteFallbacks: ttBuildTypeFormSpriteFallbacks(family.dex, type, false),
+    shinySpriteFallbacks: ttBuildTypeFormSpriteFallbacks(family.dex, type, true)
+  })));
+}
+
+function ttMergeSpecialTypeForms() {
+  const byId = new Map(ttAllPokemonForms.map(item => [item.id, item]));
+  ttBuildPlateMemoryFormEntries().forEach(item => byId.set(item.id, { ...(byId.get(item.id) || {}), ...item }));
+  ttAllPokemonForms = [...byId.values()];
+}
+
 function ttEnrichManagerFormsWithGermanNames() {
   ttAllPokemonForms = ttAllPokemonForms.map(item => {
     const speciesName = ttGuessSpeciesNameFromPokemonId(item.id);
-    const germanName = ttBuildManagerDisplayName(item.id);
-    const searchText = ttNormalizeSearch(`${item.id} ${item.name || ""} ${speciesName} ${germanName} shiny schillernd`);
+    const germanName = item.manualName
+      ? `${item.manualName}${item.suffix ? ` (${item.suffix})` : ""}`
+      : ttBuildManagerDisplayName(item.id);
+    const searchText = ttNormalizeSearch(`${item.id} ${item.name || ""} ${speciesName} ${germanName} ${item.formType || ""} ${ttTypeGermanNames[item.formType] || ""} tafel platte disc speicher shiny schillernd`);
     return { ...item, speciesName, germanName, searchText };
   });
 }
@@ -16864,6 +16915,7 @@ async function ttLoadAllPokemonForms() {
       if (!res.ok) throw new Error("PokéAPI-Liste konnte nicht geladen werden.");
       const data = await res.json();
       ttAllPokemonForms = (data.results || []).map(item => ({ id: item.name, name: item.name }));
+      ttMergeSpecialTypeForms();
       ttAllPokemonFormsLoaded = true;
     }
 
@@ -16959,12 +17011,12 @@ function ttRenderManagerSearchResults() {
 
     const normalBtn = document.createElement("button");
     normalBtn.textContent = "+ Normal";
-    normalBtn.onclick = () => ttAddPokemonToCustomCategory(item.id, false);
+    normalBtn.onclick = () => ttAddPokemonToCustomCategory(item, false);
 
     const shinyBtn = document.createElement("button");
     shinyBtn.className = "shiny-add";
     shinyBtn.textContent = "✨ + Shiny";
-    shinyBtn.onclick = () => ttAddPokemonToCustomCategory(item.id, true);
+    shinyBtn.onclick = () => ttAddPokemonToCustomCategory(item, true);
 
     actions.append(normalBtn, shinyBtn);
     row.appendChild(actions);
@@ -16972,11 +17024,15 @@ function ttRenderManagerSearchResults() {
   });
 }
 
-async function ttAddPokemonToCustomCategory(pokemonId, shiny = false) {
+async function ttAddPokemonToCustomCategory(pokemonOrItem, shiny = false) {
   if (!ttEditingCustomCategoryKey || !ttCustomCategories[ttEditingCustomCategoryKey]) {
     alert("Bitte zuerst eine eigene Kategorie erstellen oder auswählen.");
     return;
   }
+  const item = typeof pokemonOrItem === "string"
+    ? (ttAllPokemonForms.find(candidate => candidate.id === pokemonOrItem) || { id: pokemonOrItem })
+    : pokemonOrItem;
+  const pokemonId = item.id;
   const cat = ttCustomCategories[ttEditingCustomCategoryKey];
   if (!Array.isArray(cat.entries)) cat.entries = [];
   const alreadyExists = cat.entries.some(entry => {
@@ -16985,7 +17041,19 @@ async function ttAddPokemonToCustomCategory(pokemonId, shiny = false) {
     return entryId === pokemonId && entryShiny === shiny;
   });
   if (alreadyExists) return;
-  cat.entries.push(shiny ? { id: pokemonId, shiny: true } : { id: pokemonId });
+
+  const entry = { id: pokemonId };
+  ["fetchId", "manualName", "suffix", "manualTypes", "formType", "formFamily"].forEach(key => {
+    if (item[key] !== undefined) entry[key] = item[key];
+  });
+  const fallbacks = shiny ? item.shinySpriteFallbacks : item.spriteFallbacks;
+  if (Array.isArray(fallbacks) && fallbacks.length) {
+    entry.sprite = fallbacks[0];
+    entry.spriteFallbacks = fallbacks.slice(1);
+  }
+  if (shiny) entry.shiny = true;
+
+  cat.entries.push(entry);
   ttSaveCustomCategories();
   ttRenderSelectedCustomCategory();
 }
