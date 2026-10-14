@@ -5327,6 +5327,51 @@ button,
   background: #101010;
 }
 
+
+/* ===== POKEMON-RINGE (gekapselt, Praefix pring) ===== */
+#pokemonRingeView{--bg:#f1f2f5;--fg:#1b1d22;--card:#fff;--line:#d3d6dd}
+@media(prefers-color-scheme:dark){#pokemonRingeView{--bg:#15171c;--fg:#eceef2;--card:#1f222a;--line:#343946}}
+#pringRoot *{box-sizing:border-box}
+#pokemonRingeView{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding:12px}
+#pringRoot .app{max-width:1280px;margin:0 auto}
+#pringRoot #pringWrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#eee}
+#pringRoot #pringScene{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0}
+#pringRoot #pringScene svg{position:absolute;left:0;top:0}
+#pringRoot .ring{fill:none;stroke-width:56;stroke-dasharray:100;stroke-dashoffset:100;opacity:0;transition:stroke-dashoffset .9s ease,opacity .4s}
+#pringRoot .ring.on{stroke-dashoffset:0;opacity:1}
+#pringRoot #pringTeamer{opacity:0;visibility:hidden;transition:opacity .9s ease,visibility 0s linear .9s}
+#pringRoot #pringTeamer.on{opacity:1;visibility:visible;transition:opacity .9s ease,visibility 0s}
+#pringRoot .slice{fill:rgba(90,95,110,.10);stroke:#4b4f5b;stroke-width:6;stroke-linejoin:round;transition:fill .4s}
+#pringRoot .qmark{font:700 60px system-ui,sans-serif;fill:#6b6f7a;text-anchor:middle;dominant-baseline:middle;animation:pringPulse 2.2s ease-in-out infinite}
+@keyframes pringPulse{0%,100%{opacity:.4}50%{opacity:.85}}
+#pringRoot .mon{position:absolute;left:0;top:0;pointer-events:none;filter:brightness(0);transition:filter .7s,opacity .5s;will-change:transform}
+#pringRoot .mon.rev{filter:none}
+#pringRoot .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+#pringRoot button,#pringRoot select,#pringRoot input[type=text]{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+#pringRoot button{cursor:pointer}
+#pringRoot button:hover{border-color:#888}
+#pringRoot button:disabled{opacity:.5;cursor:default}
+#pringRoot .pri{background:#3a6df0;border-color:#3a6df0;color:#fff}
+#pringRoot h2{font-size:16px;margin:16px 0 8px}
+#pringRoot #pringList{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+#pringRoot .card{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px}
+#pringRoot .card img{width:56px;height:56px;object-fit:contain}
+#pringRoot .card .f{flex:1;min-width:120px;display:flex;flex-direction:column;gap:6px}
+#pringRoot .card .r{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+#pringRoot .card .r button{padding:5px 9px;font-size:13px}
+#pringRoot .card select{padding:5px 8px}
+#pringRoot .hint{opacity:.7;font-size:13px}
+
+/* Hub-Anpassungen: Aussenabstand, Platz fuer den festen Zurueck-Button, Reset der globalen Hub-Button-Regeln */
+#pokemonRingeView{box-sizing:border-box;min-height:100vh;width:100%;padding:64px 12px 24px;text-align:start;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+#pringRoot button{margin:0;box-shadow:none;transition:initial;font-weight:400;letter-spacing:normal}
+#pringRoot button:hover:not(:disabled),#pringRoot button:active:not(:disabled){transform:none;filter:none;box-shadow:none}
+
+.menu-pring-button {
+  background: linear-gradient(135deg, #e53935, #fb8c00, #fdd835, #43a047);
+}
+
 </style>
 </head>
 
@@ -5347,6 +5392,7 @@ button,
       <button class="menu-random-teamer-button" onclick="showMainAppView('randomTeamer')">Pokémon Random Teamer</button>
       <button class="menu-pokequiz-button" onclick="showMainAppView('pokeQuizTeamChallenge')">PokeQuiz - Team Challenge</button>
       <button class="menu-overlay-quiz-button" onclick="showMainAppView('overlayQuiz')">Overlay Quiz</button>
+      <button class="menu-pring-button" onclick="showMainAppView('pokemonRinge')">Pokémon-Ringe</button>
     </div>
   </div>
 </div>
@@ -13054,6 +13100,391 @@ function capitalize(str) {
   </iframe>
 </div>
 
+<div id="pokemonRingeView" class="app-view hidden-view">
+  <button class="menu-back-button" onclick="showMainAppView('menu')">← Hauptmenü</button>
+  <div id="pringRoot">
+<div class="app">
+<div id="pringWrap"><div id="pringScene">
+<svg width="1600" height="900" viewBox="0 0 1600 900">
+<circle cx="800" cy="450" r="140" fill="rgba(128,128,128,.10)" stroke="#888" stroke-width="3" stroke-dasharray="10 8"/>
+<defs id="pringTdefs"></defs><g id="pringRings"></g><g id="pringTeamer"></g></svg>
+</div></div>
+
+<div class="bar">
+<button class="pri" id="pringRingPlus">Ring einblenden (0/4)</button>
+<button id="pringRingMinus">Ring ausblenden</button>
+<button id="pringRingOff">Alle Ringe ausblenden</button>
+<button id="pringAllSend">Alle zum Ring</button>
+<button id="pringAllBack">Alle zurück in den Kreis</button><button id="pringAllOut">Alle aus Kreis</button><button id="pringAllSeq" class="pri">Alle nacheinander in den Kreis</button><select id="pringSeqGap" title="Zeitabstand zwischen den Pokémon"><option value="300">Abstand 0,3 s</option><option value="600" selected>Abstand 0,6 s</option><option value="1000">Abstand 1 s</option><option value="1500">Abstand 1,5 s</option></select>
+<button id="pringTeamBtn" class="pri">Teamer anzeigen</button>
+<button id="pringAllRev">Alle einfärben</button>
+<button id="pringAllHide">Alle Silhouette</button>
+<button id="pringAllPixOn">Alle verpixeln</button>
+<button id="pringAllPixOff">Alle scharf</button>
+<button id="pringAllPixAuto">Alle Pixel: Auto</button>
+<label><input type="checkbox" id="pringSpin" checked> Kreisen</label>
+<label>Hintergrund
+<select id="pringBg"><option value="#eeeeee">Hell</option><option value="#9aa0aa">Grau</option><option value="#0047ff">Blau (Key)</option><option value="#ffffff">Weiß</option></select></label>
+</div>
+
+<h2>Manager</h2>
+<div class="bar">
+<input type="text" id="pringQ" list="pringNames" placeholder="Deutscher Name oder Dex-Nr., z. B. Glurak" size="30" disabled>
+<datalist id="pringNames"></datalist>
+<select id="pringRingSel"></select>
+<button class="pri" id="pringAdd" disabled>Hinzufügen</button>
+<span class="hint" id="pringStatus">Lade Namensliste …</span>
+</div>
+<div class="bar">
+<input type="text" id="pringPName" placeholder="Name, z. B. Wasser-Team" size="24">
+<button class="pri" id="pringPSave">Vorauswahl speichern</button>
+<select id="pringPSel"></select>
+<button id="pringPLoad">Laden</button><button id="pringPDel">Löschen</button>
+<button id="pringPExp">Exportieren</button><button id="pringPImp">Importieren</button>
+<input type="file" id="pringPFile" accept=".json,application/json" hidden>
+</div>
+<div id="pringList"></div>
+</div>
+  </div>
+</div>
+
+<script>
+/* ===== POKEMON-RINGE JS (gekapselt) ===== */
+(() => {
+const CX=800,CY=450,R0=140;
+// gleich breite Ringe (56 px) mit 8 px Abstand, außen Rot → innen Grün, maximaler Radius 396 < 450
+const RINGS=[{n:'Rot',c:'#e53935',r:368},{n:'Orange',c:'#fb8c00',r:304},{n:'Gelb',c:'#fdd835',r:240},{n:'Grün',c:'#43a047',r:176}];
+const $=id=>document.getElementById('pring'+id.charAt(0).toUpperCase()+id.slice(1));
+const scene=$('scene'),wrap=$('wrap');
+let shown=0;
+const ringEls=RINGS.map(o=>{
+  const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',o.r);
+  c.setAttribute('stroke',o.c);c.setAttribute('pathLength',100);c.setAttribute('class','ring');
+  c.style.transform='rotate(-90deg)';c.style.transformOrigin=CX+'px '+CY+'px';
+  $('rings').appendChild(c);return c;});
+function updRing(){
+  ringEls.forEach((e,i)=>e.classList.toggle('on',i<shown));
+  $('ringPlus').textContent=shown<4?`Ring einblenden (${shown}/4)`:'Alle Ringe sichtbar (4/4)';
+  $('ringPlus').disabled=shown>=4;$('ringMinus').disabled=shown<=0;
+}
+$('ringPlus').onclick=()=>{if(shown<4){shown++;updRing();}};
+$('ringMinus').onclick=()=>{if(shown>0){shown--;updRing();}};
+$('ringOff').onclick=()=>{shown=0;updRing();};
+updRing();
+
+/* ---------- Teamer: 6 Tortenfelder zwischen Mittelkreis und äußerstem Ring ---------- */
+const TEAM_R_OUT=RINGS[0].r,TEAM_R_IN=R0,TEAM_MID=(TEAM_R_OUT+TEAM_R_IN)/2;
+// Größter Kreis im Tortenfeld: Radius ≈ 111 px -> ein Quadrat bis ca. 157 px passt in jeder Drehung komplett hinein
+const TEAM_SIZE=150;
+const teamSlots=[null,null,null,null,null,null];
+const tg=$('teamer');
+function polar(r,degFromTop){const a=(degFromTop-90)*Math.PI/180;return[CX+Math.cos(a)*r,CY+Math.sin(a)*r];}
+const SVGNS='http://www.w3.org/2000/svg',TDEFS=$('tdefs');
+// 18 Typen, sanfte Pastellfarben
+const TYPE_COLORS={normal:'#CBC7B8',fighting:'#E4A0A0',flying:'#C6D6F2',poison:'#D9AEE0',ground:'#E7D2A0',
+  rock:'#D3C592',bug:'#D6DE96',ghost:'#B9A8D6',steel:'#CBCFDA',fire:'#F4AE82',water:'#96CBEE',grass:'#AEDC9B',
+  electric:'#F3E28F',psychic:'#F3A9C9',ice:'#B3E6E6',dragon:'#AA9AE6',dark:'#AFA595',fairy:'#F4C2D8'};
+const sliceEls=[];
+function sectorPath(rIn,rOut,d0,d1){
+  const[ox0,oy0]=polar(rOut,d0),[ox1,oy1]=polar(rOut,d1),[ix1,iy1]=polar(rIn,d1),[ix0,iy0]=polar(rIn,d0);
+  return `M ${ox0} ${oy0} A ${rOut} ${rOut} 0 0 1 ${ox1} ${oy1} L ${ix1} ${iy1} A ${rIn} ${rIn} 0 0 0 ${ix0} ${iy0} Z`;
+}
+for(let i=0;i<6;i++){
+  const p=document.createElementNS(SVGNS,'path');
+  p.setAttribute('d',sectorPath(TEAM_R_IN,TEAM_R_OUT,i*60,i*60+60));
+  p.setAttribute('class','slice');tg.appendChild(p);sliceEls.push(p);
+}
+function resetSlice(i){sliceEls[i].setAttribute('fill','');sliceEls[i].style.fill='';}
+function applySliceColor(i,types){
+  if(!types||!types.length){resetSlice(i);return;}
+  if(types.length===1){sliceEls[i].style.fill=TYPE_COLORS[types[0]]||'';return;}
+  let g=document.getElementById('pringSg'+i);
+  if(!g){
+    g=document.createElementNS(SVGNS,'linearGradient');g.id='pringSg'+i;
+    g.setAttribute('x1','0%');g.setAttribute('y1','0%');g.setAttribute('x2','100%');g.setAttribute('y2','100%');
+    const s1=document.createElementNS(SVGNS,'stop');s1.setAttribute('offset','50%');
+    const s2=document.createElementNS(SVGNS,'stop');s2.setAttribute('offset','50%');
+    g.appendChild(s1);g.appendChild(s2);TDEFS.appendChild(g);
+  }
+  g.children[0].setAttribute('stop-color',TYPE_COLORS[types[0]]||'#ccc');
+  g.children[1].setAttribute('stop-color',TYPE_COLORS[types[1]]||'#ccc');
+  sliceEls[i].style.fill='url(#pringSg'+i+')';
+}
+async function fetchTypes(m){
+  try{
+    const j=await(await fetch(`https://pokeapi.co/api/v2/pokemon/${m.id}`)).json();
+    m.types=j.types.sort((a,b)=>a.slot-b.slot).map(t=>t.type.name);
+    if(m.slot!=null)applySliceColor(m.slot,m.types);
+  }catch(e){}
+}
+const qmarks=[];
+for(let i=0;i<6;i++){
+  const[x,y]=polar(TEAM_MID,i*60+30);
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('class','qmark');t.textContent='?';
+  t.style.animationDelay=(i*0.15)+'s';tg.appendChild(t);qmarks.push(t);
+}
+$('teamBtn').onclick=()=>{
+  tg.classList.toggle('on');
+  $('teamBtn').textContent=tg.classList.contains('on')?'Teamer ausblenden':'Teamer anzeigen';
+};
+function releaseSlot(m){if(m.slot!=null){teamSlots[m.slot]=null;qmarks[m.slot].style.display='';resetSlice(m.slot);m.slot=null;}}
+function teamIn(m){
+  if(m.mode==='out')return;
+  const i=teamSlots.indexOf(null);
+  if(i<0){$('status').textContent='Team ist bereits voll (6/6).';return;}
+  releaseSlot(m);
+  teamSlots[i]=m;m.slot=i;m.mode='team';
+  const[x,y]=polar(TEAM_MID,i*60+30);m.tx=x;m.ty=y;
+  qmarks[i].style.display='none';
+  applySliceColor(i,m.types);
+  m.ui.team.textContent='Aus Team';m.ui.go.disabled=true;
+}
+function teamOut(m){
+  releaseSlot(m);
+  m.mode='in';m.ret=true;m.ui.team.textContent='Ins Team';m.ui.go.disabled=false;
+}
+function circleOut(m){
+  releaseSlot(m);
+  m.mode='out';m.el.style.display='none';
+  m.ui.circ.textContent='In Kreis';m.ui.go.disabled=true;m.ui.team.disabled=true;
+}
+function circleIn(m){
+  m.mode='in';m.ret=false;m.el.style.opacity='0';m.el.style.display='';void m.el.offsetWidth;m.el.style.opacity='';
+  const a=Math.random()*6.283,d=Math.random()*40;m.x=CX+Math.cos(a)*d;m.y=CY+Math.sin(a)*d;
+  [m.vx,m.vy]=rndVel();
+  m.ui.circ.textContent='Aus Kreis';m.ui.go.disabled=false;m.ui.team.disabled=false;
+}
+RINGS.forEach((o,i)=>$('ringSel').add(new Option('Ring: '+o.n,i)));
+
+function fit(){scene.style.transform='scale('+(wrap.clientWidth/1600)+')';}
+new ResizeObserver(fit).observe(wrap);fit();
+$('bg').onchange=e=>wrap.style.background=e.target.value;
+
+/* ---------- PokeAPI: deutsche Namen ---------- */
+let NAMES=[]; // [id, deutscherName]
+const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+async function loadNames(){
+  try{const c=JSON.parse(localStorage.getItem('deNames')||'null');if(c&&c.length>1000)return c;}catch(e){}
+  let list=null;
+  try{
+    const r=await fetch('https://beta.pokeapi.co/graphql/v1beta',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:'{pokemon_v2_pokemonspeciesname(where:{pokemon_v2_language:{name:{_eq:"de"}}},order_by:{pokemon_species_id:asc}){name pokemon_species_id}}'})});
+    const j=await r.json();
+    list=j.data.pokemon_v2_pokemonspeciesname.map(x=>[x.pokemon_species_id,x.name]);
+  }catch(e){list=null;}
+  if(!list||list.length<500){ // Fallback: REST, einmalig, danach gecacht
+    const r=await fetch('https://pokeapi.co/api/v2/pokemon-species?limit=2000');
+    const urls=(await r.json()).results.map(x=>x.url);
+    list=[];let i=0;
+    const worker=async()=>{while(i<urls.length){const u=urls[i++];
+      try{const s=await (await fetch(u)).json();const n=s.names.find(n=>n.language.name==='de');
+        list.push([s.id,n?n.name:s.name]);}catch(e){}
+      $('status').textContent=`Lade Namensliste … ${list.length}/${urls.length}`;}};
+    await Promise.all(Array.from({length:16},worker));
+  }
+  list.sort((a,b)=>a[0]-b[0]);
+  try{localStorage.setItem('deNames',JSON.stringify(list));}catch(e){}
+  return list;
+}
+function pringStartLoad(){loadNames().then(l=>{
+  NAMES=l;
+  $('names').innerHTML=l.map(x=>`<option value="${x[1]}">`).join('');
+  $('q').disabled=$('add').disabled=false;
+  $('status').textContent=`${l.length} Pokémon verfügbar`;
+}).catch(()=>{$('status').textContent='PokeAPI nicht erreichbar – Internetverbindung prüfen und Seite neu laden.';});}
+
+function findMon(q){
+  q=q.trim().toLowerCase();if(!q)return null;
+  if(/^\d+$/.test(q))return NAMES.find(x=>x[0]===+q)||null;
+  return NAMES.find(x=>x[1].toLowerCase()===q)||NAMES.find(x=>x[1].toLowerCase().startsWith(q))||NAMES.find(x=>x[1].toLowerCase().includes(q))||null;
+}
+function addFromInput(){
+  const m=findMon($('q').value);
+  if(!m){$('status').textContent='Kein Pokémon gefunden.';return;}
+  addMon(m[0],m[1],+$('ringSel').value);
+  $('q').value='';$('status').textContent=`${m[1]} hinzugefügt`;
+}
+$('add').onclick=addFromInput;
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter')addFromInput();});
+
+/* ---------- Pokémon auf der Bühne ---------- */
+const mons=[];
+function rndVel(){const a=Math.random()*6.283,s=110+Math.random()*80;return[Math.cos(a)*s,Math.sin(a)*s];}
+function addMon(id,name,ring){
+  const el=document.createElement('canvas');el.width=el.height=192;el.className='mon';scene.appendChild(el);
+  const img=new Image();img.src=ART(id);
+  img.onload=()=>{m.n=-1;};
+  img.onerror=()=>{$('status').textContent='Artwork für '+name+' konnte nicht geladen werden.';};
+  const a=Math.random()*6.283,d=Math.random()*40,[vx,vy]=rndVel();
+  const m={id,name,src:ART(id),el,img,n:-1,pix:'auto',slot:null,types:null,ring,mode:'in',ret:false,rev:false,x:CX+Math.cos(a)*d,y:CY+Math.sin(a)*d,vx,vy,th:0,size:90};
+  mons.push(m);makeCard(m);fetchTypes(m);
+}
+function makeCard(m){
+  const c=document.createElement('div');c.className='card';
+  const opts=RINGS.map((o,i)=>`<option value="${i}"${i===m.ring?' selected':''}>${o.n}</option>`).join('');
+  c.innerHTML=`<img src="${m.src}" alt=""><div class="f"><b>${m.name}</b><select>${opts}</select></div>
+  <div class="r"><button data-a="circ">Aus Kreis</button><button data-a="go">→ Ring</button><button data-a="team">Ins Team</button><button data-a="col">Einfärben</button><button data-a="pix">Pixel: Auto</button><button data-a="del">Entfernen</button></div>`;
+  const go=c.querySelector('[data-a=go]'),col=c.querySelector('[data-a=col]'),pix=c.querySelector('[data-a=pix]'),team=c.querySelector('[data-a=team]'),circ=c.querySelector('[data-a=circ]');
+  m.ui={go,col,pix,team,circ};m.card=c;paint(m);
+  c.querySelector('select').onchange=e=>{m.ring=+e.target.value;if(m.mode==='ring')m.th=bestAngle(m);paint(m);sortList();};
+  go.onclick=()=>m.mode==='in'?send(m):m.mode==='ring'?back(m):null;
+  col.onclick=()=>reveal(m,!m.rev);
+  pix.onclick=()=>setPix(m,m.pix==='auto'?'on':m.pix==='on'?'off':'auto');
+  team.onclick=()=>m.mode==='team'?teamOut(m):teamIn(m);
+  circ.onclick=()=>m.mode==='out'?circleIn(m):circleOut(m);
+  c.querySelector('[data-a=del]').onclick=()=>{releaseSlot(m);m.el.remove();c.remove();mons.splice(mons.indexOf(m),1);};
+  $('list').appendChild(c);sortList();
+}
+// Winkel auf dem eigenen Ring mit dem größten Abstand zu den anderen Pokémon auf diesem Ring
+function bestAngle(m){
+  const T=Math.PI*2;
+  const a=mons.filter(o=>o!==m&&o.mode==='ring'&&o.ring===m.ring).map(o=>((o.th%T)+T)%T).sort((x,y)=>x-y);
+  if(!a.length)return Math.atan2(m.y-CY,m.x-CX);
+  if(a.length===1)return a[0]+Math.PI;
+  let best=-1,mid=a[0];
+  for(let i=0;i<a.length;i++){
+    const nx=i===a.length-1?a[0]+T:a[i+1],gap=nx-a[i];
+    if(gap>best){best=gap;mid=a[i]+gap/2;}
+  }
+  return mid;
+}
+function send(m){m.mode='ring';m.th=bestAngle(m);m.ui.go.textContent='← Kreis';}
+function back(m){m.mode='in';m.ret=true;m.ui.go.textContent='→ Ring';}
+function reveal(m,v){m.rev=v;m.el.classList.toggle('rev',v);m.ui.col.textContent=v?'Silhouette':'Einfärben';}
+function setPix(m,v){m.pix=v;m.n=-1;m.ui.pix.textContent='Pixel: '+(v==='auto'?'Auto':v==='on'?'An':'Aus');}
+$('allSend').onclick=()=>mons.forEach(m=>m.mode==='in'&&send(m));
+$('allBack').onclick=()=>mons.forEach(m=>m.mode==='ring'&&back(m));
+// alle nacheinander (in Reihenfolge des Hinzufügens) mit Zeitabstand in den Kreis holen
+let seqT=[];
+function seqCancel(){seqT.forEach(clearTimeout);seqT=[];$('allSeq').disabled=false;}
+$('allOut').onclick=()=>{seqCancel();mons.forEach(m=>m.mode!=='out'&&circleOut(m));};
+$('allSeq').onclick=()=>{
+  const q=mons.filter(m=>m.mode==='out');
+  if(!q.length){$('status').textContent='Es sind keine Pokémon außerhalb des Kreises.';return;}
+  const gap=+$('seqGap').value;
+  $('allSeq').disabled=true;
+  q.forEach((m,i)=>seqT.push(setTimeout(()=>{
+    if(m.mode==='out'&&mons.includes(m))circleIn(m);
+    if(i===q.length-1)seqCancel();
+  },i*gap)));
+};
+$('allRev').onclick=()=>mons.forEach(m=>reveal(m,true));
+$('allHide').onclick=()=>mons.forEach(m=>reveal(m,false));
+$('allPixOn').onclick=()=>mons.forEach(m=>setPix(m,'on'));
+$('allPixOff').onclick=()=>mons.forEach(m=>setPix(m,'off'));
+$('allPixAuto').onclick=()=>mons.forEach(m=>setPix(m,'auto'));
+
+const PIX=18; // Zellen pro Seite im Mittelkreis (kleiner = gröber)
+function drawPix(m,n){
+  if(n===m.n||!m.img.complete||!m.img.naturalWidth)return;
+  m.n=n;const c=m.el.getContext('2d');c.clearRect(0,0,192,192);
+  if(n>=192){c.imageSmoothingEnabled=true;c.drawImage(m.img,0,0,192,192);return;}
+  const s=m.sc||(m.sc=document.createElement('canvas'));s.width=s.height=n;
+  const x=s.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(m.img,0,0,n,n);
+  c.imageSmoothingEnabled=false;c.drawImage(s,0,0,n,n,0,0,192,192);
+}
+function paint(m){m.card.style.borderLeft='6px solid '+RINGS[m.ring].c;}
+function sortList(){mons.slice().sort((a,b)=>a.ring-b.ring).forEach(m=>$('list').appendChild(m.card));}
+
+/* ---------- Vorauswahlen ---------- */
+function getP(){try{return JSON.parse(localStorage.getItem('presets')||'{}')||{};}catch(e){return {};}}
+function setP(p){try{localStorage.setItem('presets',JSON.stringify(p));return true;}catch(e){$('status').textContent='Speichern im Browser nicht möglich – bitte „Exportieren“ nutzen.';return false;}}
+function refreshP(sel){
+  const keys=Object.keys(getP());$('pSel').innerHTML='';
+  keys.forEach(k=>$('pSel').add(new Option(`${k} (${getP()[k].length})`,k)));
+  if(sel&&keys.includes(sel))$('pSel').value=sel;
+}
+function clearAll(){mons.slice().forEach(m=>{m.el.remove();m.card.remove();});mons.length=0;}
+$('pSave').onclick=()=>{
+  const name=$('pName').value.trim();
+  if(!name){$('status').textContent='Bitte einen Namen für die Vorauswahl eingeben.';return;}
+  if(!mons.length){$('status').textContent='Es sind keine Pokémon zum Speichern vorhanden.';return;}
+  const p=getP();p[name]=mons.map(m=>({id:m.id,name:m.name,ring:m.ring}));
+  if(setP(p)){refreshP(name);$('status').textContent=`Vorauswahl „${name}“ gespeichert (${mons.length} Pokémon).`;}
+};
+$('pLoad').onclick=()=>{
+  const k=$('pSel').value,list=getP()[k];
+  if(!list){$('status').textContent='Keine Vorauswahl ausgewählt.';return;}
+  clearAll();list.forEach(x=>addMon(x.id,x.name,x.ring));
+  $('pName').value=k;$('status').textContent=`Vorauswahl „${k}“ geladen.`;
+};
+$('pSel').onchange=()=>{$('pName').value=$('pSel').value;};
+$('pDel').onclick=()=>{
+  const k=$('pSel').value,p=getP();if(!(k in p))return;
+  if(!confirm(`Vorauswahl „${k}“ löschen?`))return;
+  delete p[k];setP(p);refreshP();$('status').textContent=`„${k}“ gelöscht.`;
+};
+$('pExp').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(getP(),null,1)],{type:'application/json'}));
+  a.download='pokemon-vorauswahlen.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$('pImp').onclick=()=>$('pFile').click();
+$('pFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{
+    const j=JSON.parse(t),p=getP();let n=0;
+    for(const k in j){if(Array.isArray(j[k])){p[k]=j[k].filter(x=>x&&+x.id>0&&x.name&&x.ring>=0&&x.ring<4);n++;}}
+    setP(p);refreshP();$('status').textContent=`${n} Vorauswahl(en) importiert.`;
+  }).catch(()=>{$('status').textContent='Datei konnte nicht gelesen werden.';});
+  e.target.value='';
+};
+refreshP();
+
+let last=performance.now();
+function tick(t){
+  const dt=Math.min(.05,(t-last)/1000);last=t;
+  const spin=$('spin').checked;
+  for(const m of mons){
+    if(m.mode==='in'){
+      const lim=R0-m.size/2+4;
+      if(m.ret){
+        const k=1-Math.exp(-4*dt);m.x+=(CX-m.x)*k;m.y+=(CY-m.y)*k;
+        if(Math.hypot(m.x-CX,m.y-CY)<lim-6){m.ret=false;[m.vx,m.vy]=rndVel();}
+      }else{
+        m.x+=m.vx*dt;m.y+=m.vy*dt;
+        const dx=m.x-CX,dy=m.y-CY,d=Math.hypot(dx,dy);
+        if(d>lim){
+          const nx=dx/d,ny=dy/d,dot=m.vx*nx+m.vy*ny;
+          if(dot>0){m.vx-=2*dot*nx;m.vy-=2*dot*ny;}
+          m.x=CX+nx*lim;m.y=CY+ny*lim;
+        }
+      }
+    }else if(m.mode==='team'){
+      const k=1-Math.exp(-5*dt);m.x+=(m.tx-m.x)*k;m.y+=(m.ty-m.y)*k;
+    }else{
+      if(spin)m.th+=(.16+m.ring*.03)*dt;
+      const r=RINGS[m.ring].r,k=1-Math.exp(-4*dt);
+      m.x+=(CX+Math.cos(m.th)*r-m.x)*k;m.y+=(CY+Math.sin(m.th)*r-m.y)*k;
+    }
+    const ts=m.mode==='team'?TEAM_SIZE:m.mode==='ring'?96:90;
+    m.size+=(ts-m.size)*(1-Math.exp(-5*dt));
+    let q;
+    if(m.pix==='on')q=1;else if(m.pix==='off')q=0;
+    else if(m.mode==='team')q=0;
+    else{const rr=RINGS[m.ring].r,dd=Math.hypot(m.x-CX,m.y-CY);
+      q=(m.mode==='ring'||m.ret)?Math.max(0,Math.min(1,(rr-dd)/(rr-100))):1;}
+    drawPix(m,Math.round(192*Math.pow(PIX/192,q)));
+    m.el.style.width=m.el.style.height=m.size+'px';
+    m.el.style.transform=`translate(${m.x-m.size/2}px,${m.y-m.size/2}px)`;
+  }
+}
+
+/* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
+let rafId=0,started=false;
+function loop(t){tick(t);rafId=requestAnimationFrame(loop);}
+window.pringSetActive=function(active){
+  if(active){
+    if(!started){started=true;pringStartLoad();}
+    if(!rafId){last=performance.now();rafId=requestAnimationFrame(loop);}
+    fit();
+  }else if(rafId){cancelAnimationFrame(rafId);rafId=0;}
+};
+})();
+</script>
+
 <script>
 function showMainAppView(view) {
   const menu = document.getElementById("mainMenu");
@@ -13065,6 +13496,7 @@ function showMainAppView(view) {
   const customShiny = document.getElementById("pokemonCustomShinyView");
   const pokeQuizTeamChallenge = document.getElementById("pokeQuizTeamChallengeView");
   const overlayQuiz = document.getElementById("overlayQuizView");
+  const pokemonRinge = document.getElementById("pokemonRingeView");
 
   if (menu) menu.classList.toggle("hidden-view", view !== "menu");
   if (game) game.classList.toggle("hidden-view", view !== "game");
@@ -13075,6 +13507,7 @@ function showMainAppView(view) {
   if (customShiny) customShiny.classList.toggle("hidden-view", view !== "customShiny");
   if (pokeQuizTeamChallenge) pokeQuizTeamChallenge.classList.toggle("hidden-view", view !== "pokeQuizTeamChallenge");
   if (overlayQuiz) overlayQuiz.classList.toggle("hidden-view", view !== "overlayQuiz");
+  if (pokemonRinge) pokemonRinge.classList.toggle("hidden-view", view !== "pokemonRinge");
 
   if (view === "favoritePokemon" && typeof fppInitOnce === "function") {
     fppInitOnce();
@@ -13086,6 +13519,10 @@ function showMainAppView(view) {
 
   if (view === "customShiny" && typeof window.pcsgInitOnce === "function") {
     window.pcsgInitOnce();
+  }
+
+  if (typeof window.pringSetActive === "function") {
+    window.pringSetActive(view === "pokemonRinge");
   }
 
   document.body.style.overflow = "";
