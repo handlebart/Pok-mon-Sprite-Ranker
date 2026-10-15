@@ -5366,6 +5366,8 @@ button,
 #pokemonRingeView{box-sizing:border-box;min-height:100vh;width:100%;padding:64px 12px 24px;text-align:start;
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 #pringRoot button{margin:0;box-shadow:none;transition:initial;font-weight:400;letter-spacing:normal}
+#pringRoot input[type=range]{width:150px;vertical-align:middle;margin:0 4px}
+#pringRoot #pringPixVal{display:inline-block;min-width:1.6em;text-align:right}
 #pringRoot button:hover:not(:disabled),#pringRoot button:active:not(:disabled){transform:none;filter:none;box-shadow:none}
 
 .menu-pring-button {
@@ -13122,6 +13124,7 @@ function capitalize(str) {
 <button id="pringAllPixOn">Alle verpixeln</button>
 <button id="pringAllPixOff">Alle scharf</button>
 <button id="pringAllPixAuto">Alle Pixel: Auto</button>
+<label title="Pixel pro Bildseite – kleiner = gröber">Pixelstärke <input type="range" id="pringPixSize" min="5" max="20" step="1" value="18"> <b id="pringPixVal">18</b></label>
 <label><input type="checkbox" id="pringSpin" checked> Kreisen</label>
 <label>Hintergrund
 <select id="pringBg"><option value="#eeeeee">Hell</option><option value="#9aa0aa">Grau</option><option value="#0047ff">Blau (Key)</option><option value="#ffffff">Weiß</option></select></label>
@@ -13177,6 +13180,8 @@ updRing();
 const TEAM_R_OUT=RINGS[0].r,TEAM_R_IN=R0,TEAM_MID=(TEAM_R_OUT+TEAM_R_IN)/2;
 // Größter Kreis im Tortenfeld: Radius ≈ 111 px -> ein Quadrat bis ca. 157 px passt in jeder Drehung komplett hinein
 const TEAM_SIZE=150;
+// Pixel-Auto-Pokémon werden im Teamer erst entpixelt und nach dieser kurzen Verzögerung (ms) eingefärbt
+const TEAM_REVEAL_DELAY=300;
 const teamSlots=[null,null,null,null,null,null];
 const tg=$('teamer');
 function polar(r,degFromTop){const a=(degFromTop-90)*Math.PI/180;return[CX+Math.cos(a)*r,CY+Math.sin(a)*r];}
@@ -13229,7 +13234,7 @@ $('teamBtn').onclick=()=>{
   tg.classList.toggle('on');
   $('teamBtn').textContent=tg.classList.contains('on')?'Teamer ausblenden':'Teamer anzeigen';
 };
-function releaseSlot(m){if(m.slot!=null){teamSlots[m.slot]=null;qmarks[m.slot].style.display='';resetSlice(m.slot);m.slot=null;}}
+function releaseSlot(m){clearTimeout(m.revT);if(m.slot!=null){teamSlots[m.slot]=null;qmarks[m.slot].style.display='';resetSlice(m.slot);m.slot=null;}}
 function teamIn(m){
   if(m.mode==='out')return;
   const i=teamSlots.indexOf(null);
@@ -13240,6 +13245,10 @@ function teamIn(m){
   qmarks[i].style.display='none';
   applySliceColor(i,m.types);
   m.ui.team.textContent='Aus Team';m.ui.go.disabled=true;
+  // Nur beim Wechsel in den Teamer (nicht in die Ringe): Pixel-Auto-Pokémon nach kurzer Verzögerung einfärben
+  if(m.pix==='auto'&&!m.rev){
+    m.revT=setTimeout(()=>{if(mons.includes(m)&&m.mode==='team'&&m.pix==='auto')reveal(m,true);},TEAM_REVEAL_DELAY);
+  }
 }
 function teamOut(m){
   releaseSlot(m);
@@ -13376,7 +13385,8 @@ $('allPixOn').onclick=()=>mons.forEach(m=>setPix(m,'on'));
 $('allPixOff').onclick=()=>mons.forEach(m=>setPix(m,'off'));
 $('allPixAuto').onclick=()=>mons.forEach(m=>setPix(m,'auto'));
 
-const PIX=18; // Zellen pro Seite im Mittelkreis (kleiner = gröber)
+let PIX=18; // Zellen pro Seite im Mittelkreis (kleiner = gröber), per Regler 5–20
+$('pixSize').oninput=e=>{PIX=+e.target.value;$('pixVal').textContent=PIX;mons.forEach(m=>m.n=-1);};
 function drawPix(m,n){
   if(n===m.n||!m.img.complete||!m.img.naturalWidth)return;
   m.n=n;const c=m.el.getContext('2d');c.clearRect(0,0,192,192);
