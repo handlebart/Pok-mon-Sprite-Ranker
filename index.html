@@ -13337,7 +13337,7 @@ function makeCard(m){
   <div class="r"><button data-a="circ">Aus Kreis</button><button data-a="go">→ Ring</button><button data-a="team">Ins Team</button><button data-a="col">Einfärben</button><button data-a="pix">Pixel: Auto</button><button data-a="del">Entfernen</button></div>`;
   const go=c.querySelector('[data-a=go]'),col=c.querySelector('[data-a=col]'),pix=c.querySelector('[data-a=pix]'),team=c.querySelector('[data-a=team]'),circ=c.querySelector('[data-a=circ]');
   m.ui={go,col,pix,team,circ};m.card=c;paint(m);
-  c.querySelector('select').onchange=e=>{m.ring=+e.target.value;if(m.mode==='ring')m.rk=ringCnt[m.ring]++;paint(m);sortList();};
+  c.querySelector('select').onchange=e=>{m.ring=+e.target.value;if(m.mode==='ring'){m.rk=ringCnt[m.ring]++;m.fresh=true;}paint(m);sortList();};
   go.onclick=()=>m.mode==='in'?send(m):m.mode==='ring'?back(m):null;
   col.onclick=()=>reveal(m,!m.rev);
   pix.onclick=()=>setPix(m,m.pix==='auto'?'on':m.pix==='on'?'off':'auto');
@@ -13351,7 +13351,7 @@ function makeCard(m){
 // hinzugefügte Pokémon landen so nie direkt nebeneinander, sondern verteilt über den ganzen Ring.
 const ringCnt=[0,0,0,0],ringPhase=[0,0,0,0];
 function vdc(n){let r=0,f=.5;while(n){if(n&1)r+=f;n>>=1;f/=2;}return r;}
-function joinRing(m){m.th=Math.atan2(m.y-CY,m.x-CX);m.rk=ringCnt[m.ring]++;}
+function joinRing(m){m.th=Math.atan2(m.y-CY,m.x-CX);m.rk=ringCnt[m.ring]++;m.fresh=true;}
 function send(m){m.mode='ring';joinRing(m);m.ui.go.textContent='← Kreis';}
 function back(m){m.mode='in';m.ret=true;m.ui.go.textContent='→ Ring';}
 function reveal(m,v){m.rev=v;m.el.classList.toggle('rev',v);m.ui.col.textContent=v?'Silhouette':'Einfärben';}
@@ -13462,7 +13462,13 @@ function tick(t){
     }else if(m.mode==='team'){
       const k=1-Math.exp(-5*dt);m.x+=(m.tx-m.x)*k;m.y+=(m.ty-m.y)*k;
     }else if(m.mode==='ring'){
-      const dth=((m.tth-m.th+Math.PI)%T2+T2)%T2-Math.PI;m.th+=dth*(1-Math.exp(-3*dt));
+      if(m.fresh){m.th=m.tth-.5;m.fresh=false;} // Einstieg knapp hinter dem Zielplatz: Vorwärts ankommen
+      const dth=((m.tth-m.th+Math.PI)%T2+T2)%T2-Math.PI;
+      if(spin){
+        // nur in Drehrichtung: Liegt der Zielplatz hinter dem Pokémon, wird es nur langsamer als der Ring (nie rückwärts)
+        const sp=.16+m.ring*.03;
+        m.th+=(sp+Math.max(3*dth,-.85*sp))*dt;
+      }else m.th+=dth*(1-Math.exp(-3*dt));
       const r=RINGS[m.ring].r,k=1-Math.exp(-4*dt);
       m.x+=(CX+Math.cos(m.th)*r-m.x)*k;m.y+=(CY+Math.sin(m.th)*r-m.y)*k;
     }
