@@ -5368,6 +5368,19 @@ button,
 #pringRoot button{margin:0;box-shadow:none;transition:initial;font-weight:400;letter-spacing:normal}
 #pringRoot input[type=range]{width:150px;vertical-align:middle;margin:0 4px}
 #pringRoot #pringPixVal{display:inline-block;min-width:1.6em;text-align:right}
+
+/* ===== Aufnahme-Modus: Bühne steht fest, nur die Bedienung darunter scrollt ===== */
+html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscroll-behavior:none}
+#pokemonRingeView.pring-rec{position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;height:100vh;height:100dvh;min-height:0;
+  padding:8px 12px 0;padding-top:max(8px,env(safe-area-inset-top));overflow:hidden}
+#pokemonRingeView.pring-rec .menu-back-button{display:none!important}
+#pokemonRingeView.pring-rec #pringRoot,#pokemonRingeView.pring-rec #pringRoot .app{height:100%}
+#pokemonRingeView.pring-rec #pringRoot .app{display:flex;flex-direction:column}
+#pokemonRingeView.pring-rec #pringWrap{flex:0 0 auto;margin:0 auto;
+  width:min(100%,calc((100vh - 220px) * 16 / 9));width:min(100%,calc((100dvh - 220px) * 16 / 9))}
+#pokemonRingeView.pring-rec #pringCtrl{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+#pringRoot #pringRecBtn.on{background:#d92d2d;border-color:#d92d2d;color:#fff;font-weight:600}
 #pringRoot button:hover:not(:disabled),#pringRoot button:active:not(:disabled){transform:none;filter:none;box-shadow:none}
 
 .menu-pring-button {
@@ -13112,7 +13125,9 @@ function capitalize(str) {
 <defs id="pringTdefs"></defs><g id="pringRings"></g><g id="pringTeamer"></g></svg>
 </div></div>
 
+<div id="pringCtrl">
 <div class="bar">
+<button id="pringRecBtn" title="Bühne bleibt fest stehen, nur die Bedienung darunter scrollt">● Aufnahme-Modus</button>
 <button class="pri" id="pringRingPlus">Ring einblenden (0/4)</button>
 <button id="pringRingMinus">Ring ausblenden</button>
 <button id="pringRingOff">Alle Ringe ausblenden</button>
@@ -13148,9 +13163,30 @@ function capitalize(str) {
 </div>
 <div id="pringList"></div>
 </div>
+</div>
   </div>
 </div>
 
+<script>
+/* ===== POKEMON-RINGE Aufnahme-Modus ===== */
+(function(){
+  const view=document.getElementById('pokemonRingeView');
+  const btn=document.getElementById('pringRecBtn');
+  const ctrl=document.getElementById('pringCtrl');
+  if(!view||!btn||!ctrl)return;
+  function setRec(on){
+    view.classList.toggle('pring-rec',on);
+    document.documentElement.classList.toggle('pring-rec-lock',on);
+    btn.classList.toggle('on',on);
+    btn.textContent=on?'■ Aufnahme-Modus beenden':'● Aufnahme-Modus';
+    if(!on)ctrl.scrollTop=0;
+    window.scrollTo(0,0);
+  }
+  btn.addEventListener('click',()=>setRec(!view.classList.contains('pring-rec')));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.classList.contains('pring-rec'))setRec(false);});
+  window.pringSetRec=setRec;
+})();
+</script>
 <script>
 /* ===== POKEMON-RINGE JS (gekapselt) ===== */
 (() => {
@@ -13532,6 +13568,10 @@ function showMainAppView(view) {
 
   if (view === "customShiny" && typeof window.pcsgInitOnce === "function") {
     window.pcsgInitOnce();
+  }
+
+  if (view !== "pokemonRinge" && typeof window.pringSetRec === "function") {
+    window.pringSetRec(false);
   }
 
   if (typeof window.pringSetActive === "function") {
