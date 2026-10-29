@@ -13584,7 +13584,14 @@ const ZOOM_BALL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARIAAAESCAYAAAAxN
 const Z={on:false,busy:false,m:null,items:[],raf:0,iris:0,ix:800,iy:450};
 const ZOOM_SIZE=640;                 // Größe des Artworks nach dem Reinzoomen (Bühnen-px)
 const ART_POS={x:470,y:455,s:700};   // Endposition des Artworks links (einzeln)
-const PAIR_POS={x:460,y:470,s:640};  // Endposition der Gruppe links (Partner)
+// Steckbrief-Ansicht mit Partner: eines so weit links unten, eines so weit rechts oben wie möglich in der linken Hälfte.
+// Je 540 px groß (statt 640), 28 px Abstand zum Rand -> nichts wird abgeschnitten, auch nicht beim Schweben.
+const PAIR_SIZE=540,PAIR_MARGIN=28,PAIR_RIGHT=820;
+const PAIR_LB={x:PAIR_MARGIN+PAIR_SIZE/2,y:900-PAIR_MARGIN-PAIR_SIZE/2},PAIR_RT={x:PAIR_RIGHT-PAIR_MARGIN-PAIR_SIZE/2,y:PAIR_MARGIN+PAIR_SIZE/2};
+const PAIR_POS={x:(PAIR_LB.x+PAIR_RT.x)/2,y:(PAIR_LB.y+PAIR_RT.y)/2,s:PAIR_SIZE};
+const PF=ZOOM_SIZE/PAIR_SIZE;
+const PAIR_FINAL_FRONT={dx:(PAIR_LB.x-PAIR_POS.x)*PF,dy:(PAIR_LB.y-PAIR_POS.y)*PF,s:1},
+      PAIR_FINAL_BACK={dx:(PAIR_RT.x-PAIR_POS.x)*PF,dy:(PAIR_RT.y-PAIR_POS.y)*PF,s:1};
 // Anordnung des Paars, relativ zur Gruppenmitte bei Größe ZOOM_SIZE: vorne etwas tiefer/links, hinten höher/rechts, kleiner
 const PAIR_FRONT={dx:-80,dy:48,s:.92},PAIR_BACK={dx:100,dy:-58,s:.8},SOLO={dx:0,dy:0,s:1};
 const zBg=document.getElementById('pringZBg'),zx=zBg.getContext('2d');
@@ -13699,22 +13706,24 @@ async function irisOpen(){
   for(const it of Z.items.slice().reverse())zoomEl.appendChild(it.wrap);   // gleiche Elemente, gleiche Stelle -> nahtlos (items[0] liegt vorne)
   setGroup(800,450,ZOOM_SIZE);
   zoomEl.classList.add('on');cancelAnimationFrame(Z.raf);Z.raf=requestAnimationFrame(zLoop);
-  const F=groupFinal();
+  const F=groupFinal(),pair=Z.items.length>1,o0=Z.items.map(i=>i.o),o1=[PAIR_FINAL_FRONT,PAIR_FINAL_BACK];
   await tween(1100,(e,p)=>{Z.iris=IRIS_R*e;const k=ease(clamp01((p-.25)/.75));
+    if(pair)Z.items.forEach((it,i)=>it.o=lerpO(o0[i],o1[i],k));
     setGroup(800+(F.x-800)*k,450+(F.y-450)*k,ZOOM_SIZE+(F.s-ZOOM_SIZE)*k);});
   Z.f0=performance.now();Z.ampT=1;
 }
 async function irisClose(){
   Z.ampT=0;await new Promise(r=>setTimeout(r,450));             // Schweben sanft auslaufen lassen
-  const F=groupFinal();
+  const F=groupFinal(),pair=Z.items.length>1,o0=Z.items.map(i=>i.o),o1=[PAIR_FRONT,PAIR_BACK];
   await tween(1000,(e,p)=>{Z.iris=IRIS_R*(1-e);const k=1-ease(Math.min(1,p/.75));
+    if(pair)Z.items.forEach((it,i)=>it.o=lerpO(o1[i],o0[i],k));
     setGroup(800+(F.x-800)*k,450+(F.y-450)*k,ZOOM_SIZE+(F.s-ZOOM_SIZE)*k);});
   for(const it of Z.items)it.art.style.transform='';Z.amp=0;
 }
 async function zoomIn(m){
   if(m.mode!=='ring'){$('status').textContent='Zoom geht nur, wenn das Pokémon auf seinem Ring ist.';return;}
   const pt=m.partner&&m.partner.mode==='ring'&&m.partner.ring===m.ring?m.partner:null;
-  Z.busy=true;Z.m=m;zoomBtns();
+  Z.busy=true;Z.m=m;Z.anchor=pt||m;zoomBtns();
   await buildPattern(RINGS[m.ring].c);
   const A=makeZoomItem(m),B=pt?makeZoomItem(pt):null;
   Z.items=B?[A,B]:[A];
@@ -13746,9 +13755,10 @@ async function zoomIn(m){
 async function zoomOut(){
   const m=Z.m;if(!m)return;Z.busy=true;zoomBtns();
   await irisClose();
-  const[A,B]=Z.items,pt=B?B.m:null;
-  for(const it of Z.items){it.bri=1;scene.appendChild(it.wrap);}  // zurück auf die Bühne, exakt an derselben Stelle
-  if(B)scene.appendChild(A.wrap);
+  const names=Z.items.map(i=>i.m.name).join(' & ');
+  const pair=Z.items.length>1,anc=Z.anchor;
+  const B=pair?Z.items.find(i=>i.m===anc):null,A=pair?Z.items.find(i=>i!==B):Z.items[0],pt=pair?anc:null;
+  for(const it of Z.items.slice().reverse()){it.bri=1;scene.appendChild(it.wrap);}  // zurück auf die Bühne, exakt an derselben Stelle
   zoomEl.classList.remove('on');cancelAnimationFrame(Z.raf);Z.raf=0;
   for(const it of Z.items){setPix(it.m,'off');drawPix(it.m,192);}
   if(!B){
@@ -13759,7 +13769,7 @@ async function zoomOut(){
     const a0={x:pt.x+oA.dx/zB,y:pt.y+oA.dy/zB,size:ZOOM_SIZE*oA.s/zB};
     await tween(1400,(e)=>{
       const c=camAt(1-e,pt),k=e;
-      A.pos={x:a0.x+(m.x-a0.x)*k,y:a0.y+(m.y-a0.y)*k,size:a0.size+(m.size-a0.size)*k};
+      const am=A.m;A.pos={x:a0.x+(am.x-a0.x)*k,y:a0.y+(am.y-a0.y)*k,size:a0.size+(am.size-a0.size)*k};
       const o=lerpO(oB,SOLO,k);B.pos={x:pt.x+o.dx/c.z,y:pt.y+o.dy/c.z,size:pt.size*o.s};
       applyCam(c.z,c.cx,c.cy,1-e);
     });
@@ -13767,14 +13777,14 @@ async function zoomOut(){
   for(const it of Z.items){it.m.el.style.visibility='';it.wrap.remove();}
   Z.items=[];applyCam(1,800,450,0);
   Z.on=false;Z.busy=false;Z.m=null;zoomBtns();last=performance.now();
-  $('status').textContent=(pt?m.name+' & '+pt.name+' sind':m.name+' ist')+' zurück im Ring';
+  $('status').textContent=names+(pair?' sind':' ist')+' zurück im Ring';
 }
 /* In der Steckbrief-Ansicht: Reihenfolge des Paars tauschen (wer steht vorne) */
 async function zoomSwap(){
   if(!Z.on||Z.busy||Z.items.length<2)return;Z.busy=true;zoomBtns();
   const[A,B]=Z.items,oa=A.o,ob=B.o,F=PAIR_POS;let swapped=false;
   await tween(700,(e,p)=>{A.o=lerpO(oa,ob,e);B.o=lerpO(ob,oa,e);
-    if(!swapped&&p>.5){swapped=true;zoomEl.appendChild((oa===PAIR_FRONT||oa.s>ob.s)?B.wrap:A.wrap);}
+    if(!swapped&&p>.5){swapped=true;zoomEl.appendChild(oa.dy>ob.dy?B.wrap:A.wrap);}
     setGroup(F.x,F.y,F.s);});
   Z.items=[B,A];Z.busy=false;zoomBtns();
 }
