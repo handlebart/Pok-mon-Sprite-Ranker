@@ -13164,6 +13164,7 @@ function capitalize(str) {
 <span class="hint" id="pringStatus">Lade Namensliste …</span>
 </div>
 <div class="bar">
+<button id="pringPNew" title="Bühne leeren und einen neuen Kader anfangen">Neuer Kader</button>
 <input type="text" id="pringPName" placeholder="Name, z. B. Wasser-Team" size="24">
 <button class="pri" id="pringPSave">Vorauswahl speichern</button>
 <select id="pringPSel"></select>
@@ -13447,7 +13448,18 @@ function refreshP(sel){
   keys.forEach(k=>$('pSel').add(new Option(`${k} (${getP()[k].length})`,k)));
   if(sel&&keys.includes(sel))$('pSel').value=sel;
 }
-function clearAll(){mons.slice().forEach(m=>{m.el.remove();m.card.remove();});mons.length=0;}
+function clearAll(){
+  seqCancel();
+  mons.slice().forEach(m=>{releaseSlot(m);m.el.remove();m.card.remove();});mons.length=0;
+  for(let i=0;i<4;i++)ringCnt[i]=0;
+}
+function zoomBlocked(){if(typeof Z!=='undefined'&&(Z.on||Z.busy)){$('status').textContent='Erst den Zoom beenden.';return true;}return false;}
+$('pNew').onclick=()=>{
+  if(zoomBlocked())return;
+  if(mons.length&&!confirm('Aktuellen Kader von der Bühne nehmen und neu anfangen?\nGespeicherte Vorauswahlen bleiben erhalten.'))return;
+  clearAll();$('pName').value='';$('pSel').selectedIndex=-1;$('q').focus();
+  $('status').textContent='Neuer Kader – Pokémon hinzufügen und unter neuem Namen speichern.';
+};
 $('pSave').onclick=()=>{
   const name=$('pName').value.trim();
   if(!name){$('status').textContent='Bitte einen Namen für die Vorauswahl eingeben.';return;}
@@ -13458,6 +13470,7 @@ $('pSave').onclick=()=>{
 $('pLoad').onclick=()=>{
   const k=$('pSel').value,list=getP()[k];
   if(!list){$('status').textContent='Keine Vorauswahl ausgewählt.';return;}
+  if(zoomBlocked())return;
   clearAll();list.forEach(x=>addMon(x.id,x.name,x.ring));
   $('pName').value=k;$('status').textContent=`Vorauswahl „${k}“ geladen.`;
 };
