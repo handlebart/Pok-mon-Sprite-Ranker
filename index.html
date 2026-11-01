@@ -5454,6 +5454,9 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #ausleseView .srow button{padding:5px 10px}
 #ausleseView .sw{display:flex;gap:3px;margin-left:2px}
 #ausleseView .sw i{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;opacity:.35}
+#ausleseView .star{cursor:pointer;font-size:19px;line-height:1;color:#c9a227;opacity:.55;padding:0 2px;user-select:none}
+#ausleseView .star.on{opacity:1;color:#f5b301;text-shadow:0 0 6px rgba(245,179,1,.6)}
+#ausleseView .star.no{opacity:.15;cursor:default}
 #ausleseView .sw i.on{opacity:1;border-color:var(--fg)}
 #ausleseView .chip{padding-right:4px}
 #ausleseView .rnd{border:1px solid var(--line);border-left-width:6px;border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--card)}
@@ -13960,6 +13963,15 @@ const SAFE={x0:80,x1:870,top:255,bottom:1580};
 const COLORS=['#e53935','#fb8c00','#fdd835','#43a047'];  // Rot, Orange, Gelb, Grün wie die Ringe
 const MAX=16,TILE_T=467,LOOP_SEC=8;
 const ART=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const ART_SHINY=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
+const artOf=p=>p.shiny?ART_SHINY(p.id):ART(p.id);
+/* Beide Artworks gleich beim Hinzufügen vorladen; gibt es kein Shiny-Artwork, wird der Stern gesperrt */
+const shinyOk={},preloaded={};
+function preload(p){
+  if(preloaded[p.id])return;preloaded[p.id]=1;
+  const a=new Image();a.src=ART(p.id);
+  const b=new Image();b.onload=()=>{shinyOk[p.id]=true;};b.onerror=()=>{shinyOk[p.id]=false;group.forEach(g=>{if(g.id===p.id)g.shiny=false;});renderChips();};b.src=ART_SHINY(p.id);
+}
 const $=id=>document.getElementById('au-'+id),ID=e=>e.id.slice(3),ROOT=document.getElementById('au-root'),VIEW=document.getElementById('ausleseView');
 let NAMES=[],active=false,started=false;
 const stage=$('stage'),tilesEl=$('tiles'),layersEl=$('layers'),irisEl=$('iris');
@@ -14150,7 +14162,7 @@ let mons=[];           // auf der Bühne: [{id,name,c,el,alive}]
 let steps=[],stepIdx=-1,busy=false;
 function makeTile(p){
   const el=document.createElement('div');el.className='tile';
-  el.innerHTML=`<img src="${ART(p.id)}" alt=""><svg viewBox="0 0 100 100" preserveAspectRatio="none">
+  el.innerHTML=`<img src="${artOf(p)}" alt=""><svg viewBox="0 0 100 100" preserveAspectRatio="none">
     <line class="b" x1="12" y1="12" x2="88" y2="88" pathLength="1" stroke-width="17"/><line class="b" x1="88" y1="12" x2="12" y2="88" pathLength="1" stroke-width="17"/>
     <line x1="12" y1="12" x2="88" y2="88" pathLength="1" stroke-width="11"/><line x1="88" y1="12" x2="12" y2="88" pathLength="1" stroke-width="11"/></svg>
     <div class="nm">${p.name}</div>`;
@@ -14214,7 +14226,9 @@ async function doStep(s){
     tilesEl.innerHTML='';mons=group.map(makeTile);await setColorNow(0);
     mons.forEach(m=>m.el.style.visibility='hidden');layout(false);
     setText($('foot'),'');setText($('sub'),'');await setText($('title'),$('tStart').value);
-    await wait(650);
+    await wait(1400);
+    await setText($('title'),rtitle(1));
+    await wait(550);
     // Pokémon fallen diagonal nacheinander von oben ins Raster, mit leichtem Drehen und Nachfedern
     const g=gridFor(mons.length),order=mons.map((m,i)=>({m,k:(m.y/(g.cellH||1))+(m.x/(g.cellW||1))})).sort((a,b)=>a.k-b.k);
     order.forEach(({m},i)=>setTimeout(()=>{
@@ -14283,7 +14297,7 @@ function updUI(){
   $('next').disabled=busy||(stepIdx>=0&&!n);$('reset').disabled=busy;
   $('cnt').textContent=group.length+'/'+MAX;$('add').disabled=!NAMES.length||group.length>=MAX;
   if(stepIdx>=0&&!busy)status(n?'Nächster Schritt: '+n.label:'Folge beendet. „Zurück auf Anfang“ für einen neuen Durchlauf.');
-  const lock=stepIdx>=0;document.querySelectorAll('#au-chips button,#au-chips .sw i,#au-add,#au-shuffle,#au-gLoad').forEach(b=>b.style.pointerEvents=lock?'none':'');
+  const lock=stepIdx>=0;document.querySelectorAll('#au-chips button,#au-chips .sw i,#au-chips .star,#au-add,#au-shuffle,#au-gLoad').forEach(b=>b.style.pointerEvents=lock?'none':'');
   $('chips').style.opacity=lock?.6:1;
 }
 
@@ -14291,9 +14305,12 @@ function updUI(){
 function renderChips(){
   $('chips').innerHTML='';
   group.forEach((p,i)=>{const c=document.createElement('div');c.className='chip';
-    c.innerHTML=`<img src="${ART(p.id)}" alt=""><span>${p.name}</span><span class="sw">${COLORS.map((col,k)=>
-      `<i style="background:${col}" class="${p.c===k?'on':''}" title="bleibt bis ${CNAMES[k]}" data-k="${k}"></i>`).join('')}</span><button title="Entfernen">×</button>`;
+    preload(p);const no=shinyOk[p.id]===false;
+    c.innerHTML=`<img src="${artOf(p)}" alt=""><span>${p.name}</span><span class="sw">${COLORS.map((col,k)=>
+      `<i style="background:${col}" class="${p.c===k?'on':''}" title="bleibt bis ${CNAMES[k]}" data-k="${k}"></i>`).join('')}</span>
+      <span class="star${p.shiny?' on':''}${no?' no':''}" title="${no?'Kein Shiny-Artwork vorhanden':'Shiny an/aus'}">${p.shiny?'★':'☆'}</span><button title="Entfernen">×</button>`;
     c.querySelectorAll('.sw i').forEach(d=>d.onclick=()=>{p.c=+d.dataset.k;renderChips();});
+    c.querySelector('.star').onclick=()=>{if(no)return;p.shiny=!p.shiny;renderChips();};
     c.querySelector('button').onclick=()=>{group.splice(i,1);renderChips();};$('chips').appendChild(c);});
   renderRounds();updUI();saveDraft();
 }
@@ -14307,7 +14324,7 @@ function renderRounds(){
       <span class="hint">${out.length} raus · ${left} → ${after}</span></div>
       <input type="text" id="au-rtitle${r}" placeholder="Überschrift" data-def="Runde ${r}">
       <input type="text" id="au-rule${r}" placeholder="Regel, z. B. Alle mit Flügeln fliegen raus!">
-      <div class="out">${out.length?out.map(p=>`<img src="${ART(p.id)}" title="${p.name}" alt="">`).join(''):'<span class="hint">niemand</span>'}</div></div>`;
+      <div class="out">${out.length?out.map(p=>`<img src="${artOf(p)}" title="${p.name}" alt="">`).join(''):'<span class="hint">niemand</span>'}</div></div>`;
     left=after;
   }
   $('rounds').innerHTML=h;
@@ -14330,7 +14347,7 @@ $('shuffle').onclick=()=>{for(let i=group.length-1;i>0;i--){const j=Math.random(
 function shownSources(){
   const s=stepIdx>=0?steps[stepIdx]:null,src={title:'tStart',sub:null,foot:null};
   if(!s){return{title:null,sub:null,foot:null};}
-  if(s.t==='start')return{title:'tStart',sub:'tSub',foot:null};
+  if(s.t==='start')return{title:'rtitle1',sub:'tSub',foot:null};
   if(s.t==='rule')return{title:'rtitle'+s.r,sub:'rule'+s.r,foot:null};
   if(s.t==='drop')return s.r===ROUNDS?{title:'tWin',sub:'tFoot',foot:null}:{title:'rtitle'+(s.r+1),sub:null,foot:null};
   return src;
@@ -14373,7 +14390,7 @@ function refreshG(sel){const g=getG();$('gSel').innerHTML='';Object.keys(g).forE
 $('gSave').onclick=()=>{const n=$('gName').value.trim();if(!n){status('Bitte einen Namen eingeben.');return;}
   if(!group.length){status('Keine Pokémon vorhanden.');return;}
   const t={};TXT.forEach(k=>t[k]=$(k).value);for(let r=1;r<=ROUNDS;r++){t['rule'+r]=rule(r);t['rtitle'+r]=$('rtitle'+r).value;}
-  const g=getG();g[n]={mons:group.map(p=>({id:p.id,name:p.name,c:p.c})),texts:t};if(setG(g)){refreshG(n);status(`„${n}“ gespeichert.`);}};
+  const g=getG();g[n]={mons:group.map(p=>({id:p.id,name:p.name,c:p.c,shiny:!!p.shiny})),texts:t};if(setG(g)){refreshG(n);status(`„${n}“ gespeichert.`);}};
 $('gLoad').onclick=()=>{const k=$('gSel').value,f=getG()[k];if(!f)return;
   group=f.mons.slice(0,MAX).map(p=>({...p}));for(let r=1;r<=ROUNDS;r++){ruleCache[r]=f.texts['rule'+r]||'';ruleCache['t'+r]=f.texts['rtitle'+r]!=null?f.texts['rtitle'+r]:'Runde '+r;}
   TXT.forEach(x=>{if(f.texts[x]!=null)$(x).value=f.texts[x];});
