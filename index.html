@@ -5454,6 +5454,8 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #ausleseView .srow button{padding:5px 10px}
 #ausleseView .sw{display:flex;gap:3px;margin-left:2px}
 #ausleseView .sw i{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;opacity:.35}
+#ausleseView #au-cd{color:#ffd600;opacity:0;white-space:nowrap}
+#ausleseView .cdring{position:absolute;left:0;top:0;border-radius:50%;border-style:solid;border-color:#fff;pointer-events:none;opacity:0}
 #ausleseView .star{cursor:pointer;font-size:19px;line-height:1;color:#c9a227;opacity:.55;padding:0 2px;user-select:none}
 #ausleseView .star.on{opacity:1;color:#f5b301;text-shadow:0 0 6px rgba(245,179,1,.6)}
 #ausleseView .star.no{opacity:.15;cursor:default}
@@ -13893,7 +13895,7 @@ window.pringSetActive=function(active){
 <div id="au-stageWrap"><div id="au-stage">
   <div id="au-layers"></div><div id="au-vig"></div><div id="au-iris"></div>
   <div id="au-tiles"></div>
-  <div id="au-safe" hidden></div><div id="au-title" class="txt"></div><div id="au-sub" class="txt"></div><div id="au-foot" class="txt"></div>
+  <div id="au-safe" hidden></div><div id="au-title" class="txt"></div><div id="au-sub" class="txt"></div><div id="au-cd" class="txt"></div><div id="au-foot" class="txt"></div>
 </div></div>
 
 <div id="au-ctrl">
@@ -13901,6 +13903,10 @@ window.pringSetActive=function(active){
   <div class="bar">
     <button class="pri big" id="au-next">Start</button>
     <button id="au-reset">Zurück auf Anfang</button>
+  </div>
+  <div class="bar">
+    <label><input type="checkbox" id="au-cdOn" checked> Countdown 3-2-1 vor jeder Regel</label>
+    <select id="au-cdSpeed" title="Dauer pro Zahl"><option value="800">0,8 s pro Zahl</option><option value="1000" selected>1 s pro Zahl</option><option value="1200">1,2 s pro Zahl</option></select>
   </div>
   <p class="hint" id="au-status">Lade Namensliste …</p>
 
@@ -14010,6 +14016,26 @@ function styleTexts(){
 }
 /* Untertitel sitzt immer direkt unter der Überschrift */
 function placeSub(){const T=$('title'),Sb=$('sub');const h=T.textContent?T.offsetHeight:0;Sb.style.top=(T.offsetTop+h+14*u)+'px';}
+/* Countdown 3-2-1 im Platz des gelben Untertitels: Zahl ploppt groß auf, ein weißer Ring zieht sich zusammen, dann weg.
+   Das Raster bleibt frei sichtbar, damit man in Ruhe wählen kann. */
+async function countdown(){
+  const el=$('cd'),T=$('title'),per=+$('cdSpeed').value;
+  el.style.left=S(SAFE.x0);el.style.width=S(SAFE.x1-SAFE.x0);el.style.fontSize=S(150);el.style.textShadow=outline(11*u);
+  el.style.top=(T.offsetTop+(T.textContent?T.offsetHeight:0)+4*u)+'px';
+  for(const n of [3,2,1]){
+    el.textContent=n;sfx('count',n);
+    const r=document.createElement('div');r.className='cdring';stage.appendChild(r);
+    const cx=(SAFE.x0+SAFE.x1)/2*u,cy=el.offsetTop+el.offsetHeight/2,R0=150*u,bw=Math.max(3,9*u);
+    r.style.borderWidth=bw+'px';
+    r.animate([{width:2*R0+'px',height:2*R0+'px',transform:`translate(${cx-R0}px,${cy-R0}px)`,opacity:.9},
+               {width:2*R0*.45+'px',height:2*R0*.45+'px',transform:`translate(${cx-R0*.45}px,${cy-R0*.45}px)`,opacity:0}],
+               {duration:per*0.9,easing:'cubic-bezier(.4,0,.6,1)'}).onfinish=()=>r.remove();
+    el.animate([{transform:'scale(1.9)',opacity:0},{transform:'scale(.92)',opacity:1,offset:.22},{transform:'scale(1.04)',opacity:1,offset:.32},
+                {transform:'scale(1)',opacity:1,offset:.8},{transform:'scale(.7)',opacity:0}],{duration:per,easing:'ease-out'});
+    await wait(per);
+  }
+  el.textContent='';
+}
 /* Untertitel schlägt ein: groß und schräg rein, knallt auf, kurzes Nachfedern,
    im Moment des Aufpralls Punch-Sound, leichtes Wackeln von Überschrift und Pokémon und ein paar Funkenstriche */
 function slamIn(el){
@@ -14121,6 +14147,10 @@ const SOUNDS={
     ['Pop',t=>{tone(t,520,.09,{to:1150,vol:.35});noise(t,.03,{type:'highpass',f:3000,vol:.08});}],
     ['Blubb',t=>{tone(t,260,.14,{to:620,vol:.4,type:'sine'});tone(t+.05,390,.12,{to:900,vol:.18});}],
     ['Ding',t=>{tone(t,1318,.55,{type:'triangle',vol:.22});tone(t,1976,.35,{type:'sine',vol:.08});}]]},
+  count:{name:'Countdown 3-2-1',v:[
+    ['Tick',(t,n=3)=>{noise(t,.035,{type:'bandpass',f:n===1?2600:1900,q:4,vol:.7,a:.001});tone(t,n===1?1250:950,.06,{type:'triangle',vol:.18,a:.002});}],
+    ['Piep',(t,n=3)=>{tone(t,n===1?1320:880,.16,{type:'sine',vol:.28,a:.004});}],
+    ['Trommel',(t,n=3)=>{tone(t,n===1?150:110,.22,{to:60,vol:.5,a:.002});noise(t,.06,{type:'lowpass',f:1400,vol:.25,a:.001});}]]},
   sub:{name:'Gelbe Texte (Punch)',v:[
     ['Punch',t=>{tone(t,150,.18,{to:45,vol:.42,a:.002});noise(t,.06,{type:'lowpass',f:2500,vol:.34,a:.001});noise(t+.01,.05,{type:'highpass',f:3500,vol:.18,a:.001});}],
     ['Punch mit Hall',t=>{tone(t,120,.3,{to:40,vol:.5,a:.002});noise(t,.08,{type:'lowpass',f:1800,vol:.4,a:.001});noise(t+.03,.7,{type:'bandpass',f:900,to:300,q:.7,vol:.1,a:.01});}],
@@ -14217,7 +14247,7 @@ const rule=r=>$('rule'+r).value.trim(),rtitle=r=>$('rtitle'+r).value.trim();
 function buildSteps(){
   const st=[{t:'start',label:'Start'}];
   for(let r=1;r<=ROUNDS;r++){
-    st.push({t:'rule',r,label:`Runde ${r}: Regel + Auskreuzen`});
+    st.push({t:'rule',r,label:`Runde ${r}: ${$('cdOn').checked?'Countdown + ':''}Regel + Auskreuzen`});
     st.push({t:'drop',r,label:r<ROUNDS?`Runde ${r}: Rausfliegen + ${CNAMES[r]}`:'Runde 3: Rausfliegen + Grün (Ende)'});
   }
   return st;
@@ -14245,7 +14275,9 @@ async function doStep(s){
     await wait(order.length*75+650);
     await setText($('sub'),$('tSub').value);
   }else if(s.t==='rule'){
-    setText($('foot'),'');setText($('title'),rtitle(s.r));await setText($('sub'),rule(s.r));
+    setText($('foot'),'');setText($('sub'),'');await setText($('title'),rtitle(s.r));
+    if($('cdOn').checked){await wait(250);await countdown();}
+    await setText($('sub'),rule(s.r));
     await wait(1100);                                       // kurz lesen lassen, dann auskreuzen
     const out=mons.filter(m=>m.alive&&m.c===s.r-1);
     for(const m of out){m.el.classList.add('marked');sfx('cross');await wait(150);}
@@ -14417,6 +14449,9 @@ const updNew=()=>{$('gNew').disabled=!$('gName').value.trim();};
 $('gName').addEventListener('input',updNew);updNew();
 $('gDel').onclick=()=>{const k=$('gSel').value,g=getG();if(!(k in g))return;if(!confirm(`„${k}“ löschen?`))return;delete g[k];setG(g);refreshG();};
 refreshG();loadDraft();renderChips();bindLive();
+(function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;}}catch(e){}
+  const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value}));}catch(e){}if(stepIdx>=0&&!busy){steps=buildSteps();updUI();}};
+  $('cdOn').onchange=sv;$('cdSpeed').onchange=sv;})();
 
 /* ---------- Deutsche Namen (PokeAPI, danach im Browser gespeichert) ---------- */
 async function loadNames(){
