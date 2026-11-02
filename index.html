@@ -14171,7 +14171,7 @@ async function setMode(m){
   $('gamePanel').hidden=m!=='game';$('introPanel').hidden=m!=='intro';$('bgPanel').hidden=m!=='bg';
   if(m==='intro'){prefetchIntro();await setColorNow('key');status('Intro-Aufnahme: Bildschirmaufnahme starten, dann „Intro abspielen“.');}
   else if(m==='bg'){await setColorNow(bgSel);markBg();}
-  else{await setColorNow(0);await reset();}
+  else{await reset();}
 }
 function markBg(){$('bgPick').querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(bgSel)===b.dataset.c));}
 $('modes').querySelectorAll('button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
@@ -14491,7 +14491,9 @@ async function next(){
   await doStep(steps[stepIdx]);
   busy=false;updUI();
 }
-async function reset(){if(busy)return;stepIdx=-1;tilesEl.innerHTML='';mons=[];clearIntro();await setColorNow(0);
+/* Ruhebild vor dem Start: Magenta bei „Intro mit Kamera“, sonst Rot */
+const idleBg=()=>$('introOn').checked?'key':0;
+async function reset(){if(busy)return;stepIdx=-1;tilesEl.innerHTML='';mons=[];clearIntro();await setColorNow(idleBg());
   setText($('title'),'');setText($('sub'),'');setText($('foot'),'');updUI();}
 $('next').onclick=()=>{if(mode!=='game')return;audio();next();};$('reset').onclick=reset;
 addEventListener('keydown',e=>{if(active&&mode==='game'&&e.key==='ArrowRight'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();next();}});
@@ -14631,7 +14633,7 @@ refreshG();loadDraft();renderChips();bindLive();
 (function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;if(c.intro!=null)$('introOn').checked=c.intro;}}catch(e){}
   const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value,intro:$('introOn').checked}));}catch(e){}
     if(stepIdx>=0&&!busy){const cur=steps[stepIdx];steps=buildSteps();stepIdx=Math.max(0,steps.findIndex(x=>x.t===cur.t&&x.r===cur.r));updUI();}};
-  $('cdOn').onchange=sv;$('cdSpeed').onchange=sv;$('introOn').onchange=()=>{if(stepIdx>=0){$('introOn').checked=!$('introOn').checked;status('Intro-Option erst nach „Zurück auf Anfang“ ändern.');return;}sv();};})();
+  $('cdOn').onchange=sv;$('cdSpeed').onchange=sv;$('introOn').onchange=()=>{if(stepIdx>=0){$('introOn').checked=!$('introOn').checked;status('Intro-Option erst nach „Zurück auf Anfang“ ändern.');return;}sv();if(mode==='game')setColorNow(idleBg());};})();
 
 /* ---------- Deutsche Namen (PokeAPI, danach im Browser gespeichert) ---------- */
 async function loadNames(){
@@ -14658,7 +14660,7 @@ function startNames(){loadNames().then(l=>{NAMES=l;$('names').innerHTML=l.map(x=
 setColorNow(0);updUI();
 window.auslSetActive=function(on){
   active=on;
-  if(on){if(!started){started=true;startNames();}fitStage();}
+  if(on){if(!started){started=true;startNames();}fitStage();if(mode==='game'&&stepIdx<0&&!busy)setColorNow(idleBg());}
   else if(SND.ctx&&SND.ctx.state==='running')SND.ctx.suspend();
 };
 })();
