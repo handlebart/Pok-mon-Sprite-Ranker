@@ -13935,9 +13935,10 @@ window.pringSetActive=function(active){
   <div id="au-sList"></div>
   <p class="hint">Bei der Bildschirmaufnahme am iPad wird der Ton des iPads mit aufgenommen. Das Mikrofon kannst du dafür ausgeschaltet lassen.</p>
 
-  <h2>Folge speichern</h2>
+  <h2>Folgen speichern &amp; laden <span class="hint">(Pokémon, Farben, Shiny und alle Texte)</span></h2>
   <div class="bar">
     <input type="text" id="au-gName" placeholder="Name der Folge" size="18">
+    <button id="au-gNew" title="Leere Folge unter dem eingegebenen Namen anlegen">Neue Folge</button>
     <button id="au-gSave">Speichern</button>
     <select id="au-gSel"></select><button id="au-gLoad">Laden</button><button id="au-gDel">Löschen</button>
   </div>
@@ -14390,11 +14391,30 @@ function refreshG(sel){const g=getG();$('gSel').innerHTML='';Object.keys(g).forE
 $('gSave').onclick=()=>{const n=$('gName').value.trim();if(!n){status('Bitte einen Namen eingeben.');return;}
   if(!group.length){status('Keine Pokémon vorhanden.');return;}
   const t={};TXT.forEach(k=>t[k]=$(k).value);for(let r=1;r<=ROUNDS;r++){t['rule'+r]=rule(r);t['rtitle'+r]=$('rtitle'+r).value;}
-  const g=getG();g[n]={mons:group.map(p=>({id:p.id,name:p.name,c:p.c,shiny:!!p.shiny})),texts:t};if(setG(g)){refreshG(n);status(`„${n}“ gespeichert.`);}};
+  if(n in getG()&&!confirm(`„${n}“ gibt es schon. Überschreiben?`))return;
+  const g=getG();g[n]={mons:group.map(p=>({id:p.id,name:p.name,c:p.c,shiny:!!p.shiny})),texts:t};if(setG(g)){refreshG(n);status(`„${n}“ gespeichert – Pokémon, Farben und alle Texte.`);}};
 $('gLoad').onclick=()=>{const k=$('gSel').value,f=getG()[k];if(!f)return;
   group=f.mons.slice(0,MAX).map(p=>({...p}));for(let r=1;r<=ROUNDS;r++){ruleCache[r]=f.texts['rule'+r]||'';ruleCache['t'+r]=f.texts['rtitle'+r]!=null?f.texts['rtitle'+r]:'Runde '+r;}
   TXT.forEach(x=>{if(f.texts[x]!=null)$(x).value=f.texts[x];});
-  $('gName').value=k;renderChips();reset();status(`„${k}“ geladen.`);};
+  $('gName').value=k;renderChips();
+  // renderChips() übernimmt die aktuell eingetippten Rundentexte – daher die gespeicherten danach direkt setzen
+  for(let r=1;r<=ROUNDS;r++){$('rule'+r).value=f.texts['rule'+r]||'';$('rtitle'+r).value=f.texts['rtitle'+r]!=null?f.texts['rtitle'+r]:'Runde '+r;}
+  saveDraft();reset();status(`„${k}“ geladen – Pokémon, Farben und alle Texte.`);};
+/* Neue, leere Folge: keine Pokémon, Regeln leer; Rundenüberschriften und Start-/Endtexte bleiben */
+$('gNew').onclick=()=>{
+  if(busy)return;
+  const n=$('gName').value.trim();
+  if(!n){status('Erst einen Namen für die neue Folge eingeben.');$('gName').focus();return;}
+  if(n in getG()){status(`„${n}“ gibt es schon – bitte einen anderen Namen wählen.`);return;}
+  if(group.length&&!confirm(`Neue Folge „${n}“ anlegen? Die aktuellen Pokémon werden dafür aus der Liste genommen (gespeicherte Folgen bleiben erhalten).`))return;
+  group=[];renderChips();
+  for(let r=1;r<=ROUNDS;r++)$('rule'+r).value='';
+  const t={};TXT.forEach(k=>t[k]=$(k).value);for(let r=1;r<=ROUNDS;r++){t['rule'+r]='';t['rtitle'+r]=$('rtitle'+r).value;}
+  const g=getG();g[n]={mons:[],texts:t};
+  if(setG(g)){refreshG(n);saveDraft();reset();status(`Neue Folge „${n}“ angelegt – jetzt Pokémon hinzufügen und am Ende „Speichern“ drücken.`);$('q').focus();}
+};
+const updNew=()=>{$('gNew').disabled=!$('gName').value.trim();};
+$('gName').addEventListener('input',updNew);updNew();
 $('gDel').onclick=()=>{const k=$('gSel').value,g=getG();if(!(k in g))return;if(!confirm(`„${k}“ löschen?`))return;delete g[k];setG(g);refreshG();};
 refreshG();loadDraft();renderChips();bindLive();
 
