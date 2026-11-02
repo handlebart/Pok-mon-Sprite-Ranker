@@ -13925,6 +13925,11 @@ window.pringSetActive=function(active){
   <div id="au-introPanel" class="panel" hidden>
     <h2>Intro-Aufnahme</h2>
     <p class="hint">Die Bühne ist Magenta – in CapCut per Chroma Key ausstanzen und über dein Kamerabild legen. Die Silhouetten sind bei jedem Abspielen zufällig (nicht aus der Folge). Kein Pink tragen.</p>
+<div class="bar">
+      <label>Intro-Variante <select class="iStyleSel"><option value="black">Silhouetten schwarz</option><option value="white">Silhouetten weiß</option><option value="text">Nur Text</option></select></label>
+      <label><input type="checkbox" class="iCrossChk"> Text am Ende quer über das letzte Pokémon</label>
+    </div>
+    <div class="bar"><label class="f"><span>Intro-Text</span><input type="text" class="iTextInp" value="Wie viele Runden überlebst du?"></label></div>
     <div class="bar">
       <button class="pri big" id="au-introPlay">Intro abspielen</button>
       <button id="au-introClear">Leeren</button>
@@ -13950,8 +13955,14 @@ window.pringSetActive=function(active){
     <button id="au-reset">Zurück auf Anfang</button>
   </div>
   <div class="bar">
-    <label><input type="checkbox" id="au-introOn"> Intro mit Kamera (Magenta + Silhouetten, dann roter Kreis)</label>
+    <label><input type="checkbox" id="au-introOn"> Intro mit Kamera (Magenta + Intro, dann Schnurrbart-Übergang)</label>
   </div>
+  <div class="bar">
+      <label>Intro-Variante <select class="iStyleSel"><option value="black">Silhouetten schwarz</option><option value="white">Silhouetten weiß</option><option value="text">Nur Text</option></select></label>
+      <label><input type="checkbox" class="iCrossChk"> Text am Ende quer über das letzte Pokémon</label>
+    </div>
+    <div class="bar"><label class="f"><span>Intro-Text</span><input type="text" class="iTextInp" value="Wie viele Runden überlebst du?"></label></div>
+  <select id="au-iStyle" hidden><option value="black">s</option><option value="white">w</option><option value="text">t</option></select><input type="checkbox" id="au-iCross" hidden><input type="hidden" id="au-iText">
   <div class="bar">
     <label><input type="checkbox" id="au-cdOn" checked> Countdown 3-2-1 vor jeder Regel</label>
     <select id="au-cdSpeed" title="Dauer pro Zahl"><option value="800">0,8 s pro Zahl</option><option value="1000" selected>1 s pro Zahl</option><option value="1200">1,2 s pro Zahl</option></select>
@@ -14091,20 +14102,45 @@ function drawSil(m){                                         // Silhouette (schw
   try{
     const a=document.createElement('canvas');a.width=a.height=px;const ax=a.getContext('2d');
     ax.imageSmoothingQuality='high';ax.drawImage(m.img,r+1,r+1,px-2*r-2,px-2*r-2);
-    const blk=binarize(a,'#000000'),wht=document.createElement('canvas');wht.width=wht.height=px;
-    wht.getContext('2d').drawImage(blk,0,0);binarize(wht,'#ffffff');
-    stamp(cv,wht,r);x.drawImage(blk,0,0);
-    if(m.q){const t=textCanvas('?',m.s*0.55,'#ffffff',9);x.drawImage(t,Math.round((px-t.width)/2),Math.round((px-t.height)/2));}
+    const white=introStyle()==='white',fill=white?'#ffffff':'#000000',rim=white?'#111111':'#ffffff';
+    const body=binarize(a,fill),edge=document.createElement('canvas');edge.width=edge.height=px;
+    edge.getContext('2d').drawImage(body,0,0);binarize(edge,rim);
+    stamp(cv,edge,r);x.drawImage(body,0,0);
+    if(m.q){const t=white?textCanvas('?',m.s*0.55,'#111111',9,'#ffffff'):textCanvas('?',m.s*0.55,'#ffffff',9);x.drawImage(t,Math.round((px-t.width)/2),Math.round((px-t.height)/2));}
   }catch(e){x.drawImage(m.img,0,0,px,px);}                 // Fallback ohne Pixelzugriff
   cv.style.width=cv.style.height='100%';
 }
-function textCanvas(txt,sizeU,col,outU){                    // Text mit hartem dunklem Rand, ohne Kantenglättung zum Hintergrund
-  const d=DPR(),fs=Math.round(sizeU*u*d),ol=Math.max(2,Math.round(outU*u*d));
-  const c=document.createElement('canvas'),cx=c.getContext('2d');const font=`900 ${fs}px system-ui,-apple-system,"Segoe UI",sans-serif`;
-  cx.font=font;const w=Math.ceil(cx.measureText(txt).width)+2*ol+8,h=Math.ceil(fs*1.25)+2*ol;
-  c.width=w;c.height=h;cx.font=font;cx.textAlign='center';cx.textBaseline='middle';
-  cx.lineJoin='round';cx.lineWidth=ol*2;cx.strokeStyle='#111';cx.strokeText(txt,w/2,h/2);cx.fillStyle=col;cx.fillText(txt,w/2,h/2);
+function textCanvas(txt,sizeU,col,outU,oc='#111',deg=0,maxWU=0){   // Text mit hartem Rand, ohne Kantenglättung zum Hintergrund
+  const d=DPR(),ol=Math.max(2,Math.round(outU*u*d));let fs=Math.round(sizeU*u*d);
+  const mk=f=>`900 ${f}px system-ui,-apple-system,"Segoe UI",sans-serif`;
+  const m=document.createElement('canvas').getContext('2d');
+  let lines=String(txt).split('\n');
+  const width=()=>{m.font=mk(fs);return Math.max(...lines.map(l=>m.measureText(l).width));};
+  if(maxWU){const max=maxWU*u*d;
+    if(lines.length===1&&width()>max){const w=lines[0].split(' ');let best=null;      // ggf. in zwei Zeilen teilen
+      for(let i=1;i<w.length;i++){const a=w.slice(0,i).join(' '),b=w.slice(i).join(' ');m.font=mk(fs);const v=Math.max(m.measureText(a).width,m.measureText(b).width);if(!best||v<best.v)best={a,b,v};}
+      if(best)lines=[best.a,best.b];}
+    while(fs>12&&width()>max)fs-=2;}
+  m.font=mk(fs);const lh=fs*1.08,tw=Math.ceil(width())+2*ol+8,th=Math.ceil(lh*lines.length+fs*.25)+2*ol;
+  const rad=deg*Math.PI/180,W2=Math.ceil(Math.abs(tw*Math.cos(rad))+Math.abs(th*Math.sin(rad))),H2=Math.ceil(Math.abs(tw*Math.sin(rad))+Math.abs(th*Math.cos(rad)));
+  const c=document.createElement('canvas');c.width=W2;c.height=H2;const cx=c.getContext('2d');
+  cx.translate(W2/2,H2/2);cx.rotate(rad);cx.font=mk(fs);cx.textAlign='center';cx.textBaseline='middle';cx.lineJoin='round';
+  lines.forEach((l,i)=>{const y=(i-(lines.length-1)/2)*lh;cx.lineWidth=ol*2;cx.strokeStyle=oc;cx.strokeText(l,0,y);cx.fillStyle=col;cx.fillText(l,0,y);});
   return binarize(c);
+}
+/* Intro-Variante: 'black' | 'white' | 'text'; dazu optional Text quer über dem letzten Pokémon */
+const introStyle=()=>$('iStyle').value,introCross=()=>$('iCross').checked&&introStyle()!=='text';
+function introText(){return($('iText').value||'').trim()||'Wie viele Runden überlebst du?';}
+let introTxtEl=null;
+function showIntroText(cross){
+  if(introTxtEl){introTxtEl.remove();introTxtEl=null;}
+  const d=DPR(),c=textCanvas(introText(),cross?96:110,'#ffd600',9,'#111',cross?-9:0,(SAFE.x1-SAFE.x0)*0.98);c.className='ilabel';
+  const w=c.width/d,h=c.height/d;c.style.width=w+'px';c.style.height=h+'px';
+  const cy=cross?(IA.y0+IA.y1)/2:IA.y0+150;
+  c.style.left=((SAFE.x0+SAFE.x1)/2*u-w/2)+'px';c.style.top=(cy*u-h/2)+'px';
+  $('intro').appendChild(c);introTxtEl=c;
+  c.animate([{transform:'scale(2.2) rotate(-4deg)'},{transform:'scale(.92)',offset:.55},{transform:'scale(1.04)',offset:.75},{transform:'scale(1)'}],{duration:340,easing:'cubic-bezier(.55,0,.75,.4)'});
+  setTimeout(()=>sfx('sub'),190);
 }
 function loadArt(id){return new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';let done=false;
   i.onload=()=>{if(!done){done=true;r(i.naturalWidth?{id,img:i}:null);}};i.onerror=()=>{if(!done){done=true;r(null);}};
@@ -14137,9 +14173,11 @@ function showIntroLabel(txt,ci){
   c.animate([{transform:'scale(1.7)'},{transform:'scale(.92)',offset:.55},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});
   sfx('sub');
 }
-function clearIntro(){introEls.forEach(m=>m.el.remove());introEls=[];showIntroLabel('');}
+function clearIntro(){introEls.forEach(m=>m.el.remove());introEls=[];showIntroLabel('');if(introTxtEl){introTxtEl.remove();introTxtEl=null;}}
 async function playIntro(){
-  clearIntro();prefetchIntro();
+  clearIntro();
+  if(introStyle()==='text'){showIntroText(false);await wait(900);return;}   // nur Text
+  prefetchIntro();
   const arts=await introNext;introNext=null;prefetchIntro();
   const box=$('intro');
   introEls=arts.map(o=>{const el=document.createElement('div');el.className='isil';const cv=document.createElement('canvas');el.appendChild(cv);
@@ -14157,6 +14195,7 @@ async function playIntro(){
     if(last){showIntroLabel('');introEls.forEach(m=>m.q=true);}else showIntroLabel(rtitle(k+1),k);
     introLayout(introEls);
     if(last){const w=introEls[0];if(w){w.el.animate([{transform:`translate(${w.x*u}px,${w.y*u}px) scale(1)`},{transform:`translate(${w.x*u}px,${w.y*u}px) scale(1.08)`,offset:.4},{transform:`translate(${w.x*u}px,${w.y*u}px) scale(1)`}],{duration:700,delay:300});setTimeout(()=>sfx('win'),350);}
+      if(introCross()){await wait(380);showIntroText(true);}
       await wait(ISPEED.last+400);}
     else await wait(ISPEED.stepHold);
   }
@@ -14497,7 +14536,7 @@ async function doStep(s){
   }
   if(s.t==='start'){
     if(s.intro){                                              // Silhouetten fallen weg, roter Kreis öffnet sich über der Kamera
-      const old=introEls;introEls=[];showIntroLabel('');
+      const old=introEls;introEls=[];showIntroLabel('');if(introTxtEl){const t=introTxtEl;introTxtEl=null;t.animate([{transform:'scale(1)'},{transform:'scale(0)'}],{duration:250,fill:'forwards'}).onfinish=()=>t.remove();}
       if(old.length)sfx('fall');old.forEach((m,i)=>fall(m,i*40));
       await mustacheTo(0);clearIntro();
     }
@@ -14639,9 +14678,9 @@ function liveUpdate(id){
   for(const k of ['title','sub','foot'])if(src[k]===id){const el=$(k);el.textContent=$(id).value.trim();fitText(el);el.classList.toggle('hide',!el.textContent);}
   saveDraft();
 }
-function bindLive(){document.querySelectorAll('#au-ctrl input[type=text]').forEach(i=>{if(ID(i)==='q'||ID(i)==='gName'||i._live)return;i._live=1;i.addEventListener('input',()=>liveUpdate(ID(i)));});}
+function bindLive(){document.querySelectorAll('#au-ctrl input[type=text]').forEach(i=>{if(!i.id||ID(i)==='q'||ID(i)==='gName'||i._live)return;i._live=1;i.addEventListener('input',()=>liveUpdate(ID(i)));});}
 const DKEY='auslese-entwurf';
-function saveDraft(){try{const t={};document.querySelectorAll('#au-ctrl input[type=text]').forEach(i=>{if(ID(i)!=='q'&&ID(i)!=='gName')t[ID(i)]=i.value;});
+function saveDraft(){try{const t={};document.querySelectorAll('#au-ctrl input[type=text]').forEach(i=>{if(i.id&&ID(i)!=='q'&&ID(i)!=='gName')t[ID(i)]=i.value;});
   localStorage.setItem(DKEY,JSON.stringify({mons:group,texts:t}));}catch(e){}}
 function loadDraft(){try{const d=JSON.parse(localStorage.getItem(DKEY)||'null');if(!d)return;
   group=(d.mons||[]).slice(0,MAX);for(let r=1;r<=ROUNDS;r++){if(d.texts['rule'+r]!=null)ruleCache[r]=d.texts['rule'+r];if(d.texts['rtitle'+r]!=null)ruleCache['t'+r]=d.texts['rtitle'+r];}
@@ -14698,6 +14737,17 @@ const updNew=()=>{$('gNew').disabled=!$('gName').value.trim();};
 $('gName').addEventListener('input',updNew);updNew();
 $('gDel').onclick=()=>{const k=$('gSel').value,g=getG();if(!(k in g))return;if(!confirm(`„${k}“ löschen?`))return;delete g[k];setG(g);refreshG();};
 refreshG();loadDraft();renderChips();bindLive();
+(function(){const K='auslese-intro-stil';
+  const sels=[...ROOT.querySelectorAll('.iStyleSel')],chks=[...ROOT.querySelectorAll('.iCrossChk')],txts=[...ROOT.querySelectorAll('.iTextInp')];
+  const apply=(v)=>{$('iStyle').value=v.style;$('iCross').checked=v.cross;$('iText').value=v.text;
+    sels.forEach(x=>x.value=v.style);chks.forEach(x=>{x.checked=v.cross;x.disabled=v.style==='text';});txts.forEach(x=>{if(x!==document.activeElement)x.value=v.text;});};
+  let v={style:'black',cross:false,text:'Wie viele Runden überlebst du?'};try{v={...v,...JSON.parse(localStorage.getItem(K)||'{}')};}catch(e){}
+  apply(v);
+  const save=()=>{try{localStorage.setItem(K,JSON.stringify(v));}catch(e){}};
+  sels.forEach(x=>x.onchange=()=>{v.style=x.value;apply(v);save();});
+  chks.forEach(x=>x.onchange=()=>{v.cross=x.checked;apply(v);save();});
+  txts.forEach(x=>x.oninput=()=>{v.text=x.value;apply(v);save();});
+})();
 soundState();
 (function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;if(c.intro!=null)$('introOn').checked=c.intro;}}catch(e){}
   const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value,intro:$('introOn').checked}));}catch(e){}
