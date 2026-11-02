@@ -5473,7 +5473,8 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #ausleseView .isil canvas,#ausleseView .ilabel{image-rendering:crisp-edges;image-rendering:pixelated}
 #ausleseView .ilabel{position:absolute;left:0;top:0}
 #ausleseView #au-stage.key #au-iris{box-shadow:none}
-#ausleseView #au-stage.key #au-vig{display:none}
+#ausleseView #au-vig{transition:opacity .5s ease}
+#ausleseView #au-stage.key #au-vig{opacity:0;transition:none}
 #ausleseView .star{cursor:pointer;font-size:19px;line-height:1;color:#c9a227;opacity:.55;padding:0 2px;user-select:none}
 #ausleseView .star.on{opacity:1;color:#f5b301;text-shadow:0 0 6px rgba(245,179,1,.6)}
 #ausleseView .star.no{opacity:.15;cursor:default}
@@ -14262,11 +14263,11 @@ async function makeLayer(ci){
   if(ci==='key'){L.style.backgroundColor=KEY;}
   else if(ci==='sw'){L.style.backgroundColor=SW_BG;L.style.backgroundImage=`url(${await patternURL(SW_BG,SW_ICON,.32)})`;}
   else{L.style.backgroundColor=COLORS[ci];L.style.backgroundImage=`url(${await patternURL(COLORS[ci])})`;}
-  layersEl.appendChild(L);return L;
+  placeBg(L,performance.now());layersEl.appendChild(L);return L;
 }
+function placeBg(L,t){const o=((t/1000)%LOOP_SEC)/LOOP_SEC*TILE_T*u,sz=TILE_T*u;L.style.backgroundSize=`${sz}px ${sz}px`;L.style.backgroundPosition=`${o}px ${o}px`;}
 (function loopBg(t){if(!active){requestAnimationFrame(loopBg);return;}
-  const o=((t/1000)%LOOP_SEC)/LOOP_SEC*TILE_T*u,sz=TILE_T*u;
-  for(const L of layersEl.children){L.style.backgroundSize=`${sz}px ${sz}px`;L.style.backgroundPosition=`${o}px ${o}px`;}
+  for(const L of layersEl.children)placeBg(L,t);
   requestAnimationFrame(loopBg);
 })(0);
 let colorIdx=0;
@@ -14432,7 +14433,7 @@ async function doStep(s){
       if(old.length)sfx('fall');old.forEach((m,i)=>fall(m,i*40));
       await irisTo(0);clearIntro();
     }
-    tilesEl.innerHTML='';mons=group.map(makeTile);await setColorNow(0);
+    tilesEl.innerHTML='';mons=group.map(makeTile);if(!s.intro)await setColorNow(0);
     mons.forEach(m=>m.el.style.visibility='hidden');layout(false);
     setText($('foot'),'');setText($('sub'),'');
     if(!s.intro){await setText($('title'),$('tStart').value);await wait(1400);}   // mit Intro direkt „Runde 1“
