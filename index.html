@@ -5456,6 +5456,20 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #ausleseView .sw i{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;opacity:.35}
 #ausleseView #au-cd{color:#ffd600;opacity:0;white-space:nowrap}
 #ausleseView .cdring{position:absolute;left:0;top:0;border-radius:50%;border-style:solid;border-color:#fff;pointer-events:none;opacity:0}
+#ausleseView .modes{display:flex;gap:0;margin:2px 0 10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;width:max-content;max-width:100%}
+#ausleseView #au-root .modes button{border:0;border-radius:0;padding:8px 14px;background:var(--card);color:var(--fg)}
+#ausleseView #au-root .modes button+button{border-left:1px solid var(--line)}
+#ausleseView #au-root .modes button.on{background:var(--acc);color:#fff;font-weight:600}
+#ausleseView #au-root .sw2{display:inline-flex;align-items:center;gap:6px}
+#ausleseView #au-root .sw2::before{content:'';width:16px;height:16px;border-radius:50%;background:var(--c);border:1px solid rgba(128,128,128,.6)}
+#ausleseView #au-root .sw2.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+#ausleseView #au-intro{position:absolute;inset:0;pointer-events:none}
+#ausleseView .isil{position:absolute;left:0;top:0;transition:transform .7s cubic-bezier(.2,.8,.2,1),width .7s cubic-bezier(.2,.8,.2,1),height .7s cubic-bezier(.2,.8,.2,1)}
+#ausleseView .isil.falling{transition:none}
+#ausleseView .isil img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#ausleseView .isil .q{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff}
+#ausleseView #au-icount{opacity:0;white-space:nowrap}
+#ausleseView #au-stage.key #au-vig{display:none}
 #ausleseView .star{cursor:pointer;font-size:19px;line-height:1;color:#c9a227;opacity:.55;padding:0 2px;user-select:none}
 #ausleseView .star.on{opacity:1;color:#f5b301;text-shadow:0 0 6px rgba(245,179,1,.6)}
 #ausleseView .star.no{opacity:.15;cursor:default}
@@ -13895,14 +13909,43 @@ window.pringSetActive=function(active){
 <div id="au-stageWrap"><div id="au-stage">
   <div id="au-layers"></div><div id="au-vig"></div><div id="au-iris"></div>
   <div id="au-tiles"></div>
-  <div id="au-safe" hidden></div><div id="au-title" class="txt"></div><div id="au-sub" class="txt"></div><div id="au-cd" class="txt"></div><div id="au-foot" class="txt"></div>
+  <div id="au-safe" hidden></div><div id="au-title" class="txt"></div><div id="au-sub" class="txt"></div><div id="au-cd" class="txt"></div><div id="au-intro"></div><div id="au-icount" class="txt"></div><div id="au-foot" class="txt"></div>
 </div></div>
 
 <div id="au-ctrl">
+  <div class="modes" id="au-modes">
+    <button data-m="game" class="on">Spiel</button><button data-m="intro">Intro-Aufnahme</button><button data-m="bg">Hintergrund</button>
+  </div>
+
+  <div id="au-introPanel" class="panel" hidden>
+    <h2>Intro-Aufnahme</h2>
+    <p class="hint">Die Bühne ist Magenta – in CapCut per Chroma Key ausstanzen und über dein Kamerabild legen. Die Silhouetten sind bei jedem Abspielen zufällig (nicht aus der Folge). Kein Pink tragen.</p>
+    <div class="bar">
+      <button class="pri big" id="au-introPlay">Intro abspielen</button>
+      <button id="au-introClear">Leeren</button>
+    </div>
+    <div class="bar"><button id="au-introExit">Aufnahmemodus verlassen</button></div>
+  </div>
+
+  <div id="au-bgPanel" class="panel" hidden>
+    <h2>Hintergrund</h2>
+    <p class="hint">Läuft endlos im 9:16-Format, ohne Pokémon und ohne Texte.</p>
+    <div class="bar" id="au-bgPick">
+      <button data-c="0" class="sw2" style="--c:#e53935">Rot</button><button data-c="1" class="sw2" style="--c:#fb8c00">Orange</button>
+      <button data-c="2" class="sw2" style="--c:#fdd835">Gelb</button><button data-c="3" class="sw2" style="--c:#43a047">Grün</button>
+      <button data-c="sw" class="sw2" style="--c:#2a2b30">Schwarz-Weiß</button>
+    </div>
+    <div class="bar"><button id="au-bgExit">Hintergrund verlassen</button></div>
+  </div>
+
+  <div id="au-gamePanel" class="panel">
   <h2>Ablauf</h2>
   <div class="bar">
     <button class="pri big" id="au-next">Start</button>
     <button id="au-reset">Zurück auf Anfang</button>
+  </div>
+  <div class="bar">
+    <label><input type="checkbox" id="au-introOn"> Intro mit Kamera (Magenta + Silhouetten, dann roter Kreis)</label>
   </div>
   <div class="bar">
     <label><input type="checkbox" id="au-cdOn" checked> Countdown 3-2-1 vor jeder Regel</label>
@@ -13950,6 +13993,7 @@ window.pringSetActive=function(active){
   </div>
   <div class="bar"><label><input type="checkbox" id="au-showNames" checked> Namen auf der Bühne anzeigen</label></div>
   <div class="bar"><label><input type="checkbox" id="au-showSafe"> Shorts-Oberfläche einblenden (nur zur Kontrolle, vor der Aufnahme ausschalten)</label></div>
+  </div>
 </div>
   </div>
 </div>
@@ -14016,6 +14060,77 @@ function styleTexts(){
 }
 /* Untertitel sitzt immer direkt unter der Überschrift */
 function placeSub(){const T=$('title'),Sb=$('sub');const h=T.textContent?T.offsetHeight:0;Sb.style.top=(T.offsetTop+h+14*u)+'px';}
+/* ---------- Intro: zufällige Silhouetten 15 → 8 → 4 → 1 auf Magenta (für Chroma Key) ----------
+   Harte Kanten, keine weichen Schatten, damit beim Ausstanzen kein pinker Saum bleibt. */
+const INTRO_STEPS=[15,8,4,1],IA={x0:80,x1:870,y0:1090,y1:1590};
+function hardOutline(r,col='#111'){const a=[];for(let i=0;i<16;i++){const t=i/16*2*Math.PI;a.push(`${(Math.cos(t)*r).toFixed(1)}px ${(Math.sin(t)*r).toFixed(1)}px 0 ${col}`);}return a.join(',');}
+function silFilter(){const k=Math.max(1.5,5*u);return `brightness(0) drop-shadow(${k}px 0 0 #fff) drop-shadow(${-k}px 0 0 #fff) drop-shadow(0 ${k}px 0 #fff) drop-shadow(0 ${-k}px 0 #fff)`;}
+function loadArt(id){return new Promise(r=>{const i=new Image();i.onload=()=>r(i.naturalWidth?id:null);i.onerror=()=>r(null);i.src=ART(id);setTimeout(()=>r(null),6000);});}
+async function randomIds(n){
+  const out=new Set();let tries=0;
+  while(out.size<n&&tries<6){tries++;
+    const want=[];while(want.length<(n-out.size)+3){const id=1+Math.floor(Math.random()*1025);if(!out.has(id)&&!want.includes(id))want.push(id);}
+    (await Promise.all(want.map(loadArt))).forEach(id=>{if(id&&out.size<n)out.add(id);});}
+  return[...out];
+}
+let introEls=[];
+function introLayout(list){
+  const n=list.length,AW=IA.x1-IA.x0,AH=IA.y1-IA.y0;let best=null;
+  for(let c=1;c<=n;c++){const r=Math.ceil(n/c),s=Math.min(AW/c,AH/r);if(!best||s>best.s)best={c,r,s};}
+  const size=Math.min(best.s*0.9,n===1?380:260),cw=AW/best.c,ch=AH/best.r;
+  list.forEach((m,i)=>{const r=Math.floor(i/best.c),inRow=Math.min(best.c,n-r*best.c),c=i-r*best.c;
+    const left=IA.x0+(AW-inRow*cw)/2,top=IA.y0+(AH-best.r*ch)/2;
+    m.x=left+c*cw+(cw-size)/2;m.y=top+r*ch+(ch-size)/2;m.s=size;
+    m.el.style.width=m.el.style.height=S(size);m.el.style.transform=`translate(${m.x*u}px,${m.y*u}px)`;});
+}
+async function showIntroCount(n,ci){
+  const el=$('icount');el.style.left=S(SAFE.x0);el.style.width=S(SAFE.x1-SAFE.x0);el.style.top=S(IA.y0-200);
+  el.style.fontSize=S(150);el.style.color=COLORS[ci];el.style.textShadow=hardOutline(11*u);el.textContent=n;
+  el.animate([{transform:'scale(1.8)',opacity:0},{transform:'scale(.92)',opacity:1,offset:.5},{transform:'scale(1)',opacity:1}],{duration:320,easing:'ease-out',fill:'forwards'});
+  sfx('sub');
+}
+async function clearIntro(){introEls.forEach(m=>m.el.remove());introEls=[];const c=$('icount');c.getAnimations().forEach(a=>a.cancel());c.style.opacity=0;c.textContent='';}
+async function playIntro(){
+  clearIntro();
+  const ids=await randomIds(INTRO_STEPS[0]);
+  const box=$('intro');introEls=ids.map(id=>{const el=document.createElement('div');el.className='isil';
+    el.innerHTML=`<img src="${ART(id)}" alt="">`;el.querySelector('img').style.filter=silFilter();el.style.visibility='hidden';box.appendChild(el);return{id,el};});
+  introLayout(introEls);
+  showIntroCount(INTRO_STEPS[0],0);await wait(250);
+  introEls.forEach((m,i)=>setTimeout(()=>{m.el.style.visibility='';sfx('appear',i);
+    m.el.animate([{transform:`translate(${m.x*u}px,${(m.y-200)*u}px) scale(.4)`,opacity:0},{transform:`translate(${m.x*u}px,${(m.y+10)*u}px) scale(1.05,.95)`,opacity:1,offset:.65},{transform:`translate(${m.x*u}px,${m.y*u}px) scale(1)`}],{duration:520,easing:'cubic-bezier(.3,.7,.4,1)'});},i*55));
+  await wait(introEls.length*55+900);
+  for(let k=1;k<INTRO_STEPS.length;k++){
+    const keep=INTRO_STEPS[k],out=introEls.slice().sort(()=>Math.random()-.5).slice(0,introEls.length-keep);
+    introEls=introEls.filter(m=>!out.includes(m));sfx('fall');
+    out.forEach((m,i)=>fall(m,i*50));
+    await wait(350);showIntroCount(keep,k);introLayout(introEls);
+    await wait(k===INTRO_STEPS.length-1?800:1100);
+  }
+  const w=introEls[0];if(w){const q=document.createElement('div');q.className='q';q.textContent='?';
+    q.style.fontSize=S(w.s*0.55);q.style.textShadow=hardOutline(9*u);w.el.appendChild(q);
+    q.animate([{transform:'scale(2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'scale(1)',opacity:1}],{duration:340,easing:'ease-out'});sfx('win');}
+}
+/* Modi: Spiel · Intro-Aufnahme · Hintergrund */
+let mode='game',bgSel=0;
+async function setMode(m){
+  if(busy||m===mode)return;
+  if(mode==='game'&&stepIdx>=0&&!confirm('Die laufende Folge wird dafür auf Anfang gesetzt. Weiter?'))return;
+  if(mode==='game')await reset();
+  clearIntro();setText($('title'),'');setText($('sub'),'');setText($('foot'),'');tilesEl.innerHTML='';
+  mode=m;$('modes').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('gamePanel').hidden=m!=='game';$('introPanel').hidden=m!=='intro';$('bgPanel').hidden=m!=='bg';
+  if(m==='intro'){await setColorNow('key');status('Intro-Aufnahme: Bildschirmaufnahme starten, dann „Intro abspielen“.');}
+  else if(m==='bg'){await setColorNow(bgSel);markBg();}
+  else{await setColorNow(0);await reset();}
+}
+function markBg(){$('bgPick').querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(bgSel)===b.dataset.c));}
+$('modes').querySelectorAll('button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$('introExit').onclick=()=>setMode('game');$('bgExit').onclick=()=>setMode('game');
+$('introClear').onclick=()=>{if(!busy)clearIntro();};
+$('introPlay').onclick=async()=>{if(busy)return;audio();busy=true;$('introPlay').disabled=true;await playIntro();busy=false;$('introPlay').disabled=false;};
+$('bgPick').querySelectorAll('button').forEach(b=>b.onclick=async()=>{const c=b.dataset.c==='sw'?'sw':+b.dataset.c;if(c===bgSel)return;bgSel=c;markBg();await irisTo(c);});
+
 /* Countdown 3-2-1 im Platz des gelben Untertitels: Zahl ploppt groß auf, ein weißer Ring zieht sich zusammen, dann weg.
    Das Raster bleibt frei sichtbar, damit man in Ruhe wählen kann. */
 async function countdown(){
@@ -14078,8 +14193,8 @@ function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(
 const icons=Promise.all([loadImg(ZOOM_MUSTACHE),loadImg(ZOOM_BALL)]);
 function shade(hex,f){const n=parseInt(hex.slice(1),16);return `rgb(${(n>>16&255)*f|0},${(n>>8&255)*f|0},${(n&255)*f|0})`;}
 const tileCache={};
-async function patternURL(col){
-  if(tileCache[col])return tileCache[col];
+async function patternURL(col,icol,ia){
+  const key=col+(icol||'');if(tileCache[key])return tileCache[key];
   const[mu,ba]=await icons,T=TILE_T;
   const tc=document.createElement('canvas');tc.width=tc.height=T;const c=tc.getContext('2d');
   c.fillStyle=col;c.fillRect(0,0,T,T);
@@ -14088,13 +14203,17 @@ async function patternURL(col){
   for(const[img,fx,fy,rot,w]of items){const h=img.height*w/img.width;
     for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++){
       x.save();x.translate((ox+fx)*T,(oy+fy)*T);x.rotate(rot*Math.PI/180);x.drawImage(img,-w/2,-h/2,w,h);x.restore();}}
-  x.globalCompositeOperation='source-in';x.fillStyle=shade(col,.82);x.fillRect(0,0,T,T);
-  c.globalAlpha=.55;c.drawImage(ic,0,0);
-  return tileCache[col]=tc.toDataURL();
+  x.globalCompositeOperation='source-in';x.fillStyle=icol||shade(col,.82);x.fillRect(0,0,T,T);
+  c.globalAlpha=ia||.55;c.drawImage(ic,0,0);
+  return tileCache[key]=tc.toDataURL();
 }
+/* Hintergründe: 0–3 Ringfarben, 'sw' gedämpftes Schwarz mit hellgrauen Symbolen, 'key' reines Magenta zum Ausstanzen */
+const SW_BG='#26272c',SW_ICON='#8a8d96',KEY='#ff00ff';
 async function makeLayer(ci){
   const L=document.createElement('div');L.className='layer';
-  L.style.backgroundColor=COLORS[ci];L.style.backgroundImage=`url(${await patternURL(COLORS[ci])})`;
+  if(ci==='key'){L.style.backgroundColor=KEY;}
+  else if(ci==='sw'){L.style.backgroundColor=SW_BG;L.style.backgroundImage=`url(${await patternURL(SW_BG,SW_ICON,.32)})`;}
+  else{L.style.backgroundColor=COLORS[ci];L.style.backgroundImage=`url(${await patternURL(COLORS[ci])})`;}
   layersEl.appendChild(L);return L;
 }
 (function loopBg(t){if(!active){requestAnimationFrame(loopBg);return;}
@@ -14103,7 +14222,7 @@ async function makeLayer(ci){
   requestAnimationFrame(loopBg);
 })(0);
 let colorIdx=0;
-async function setColorNow(ci){colorIdx=ci;layersEl.innerHTML='';await makeLayer(ci);}
+async function setColorNow(ci){colorIdx=ci;stage.classList.toggle('key',ci==='key');layersEl.innerHTML='';await makeLayer(ci);}
 /* Farbwechsel: neue Farbe öffnet sich als Kreis mit weißem Rand aus der Mitte (wie beim Zoom im Ringe-Tool) */
 async function irisTo(ci){
   colorIdx=ci;const L=await makeLayer(ci);sfx('iris');
@@ -14112,7 +14231,7 @@ async function irisTo(ci){
   await tween(1050,e=>{const r=R*e;
     L.style.clipPath=L.style.webkitClipPath=`circle(${r*u}px at ${cx*u}px ${cy*u}px)`;
     irisEl.style.width=irisEl.style.height=S(2*r+32);irisEl.style.left=S(cx-r-16);irisEl.style.top=S(cy-r-16);});
-  irisEl.style.display='none';L.style.clipPath=L.style.webkitClipPath='';
+  irisEl.style.display='none';L.style.clipPath=L.style.webkitClipPath='';stage.classList.toggle('key',ci==='key');
   while(layersEl.children.length>1)layersEl.firstChild.remove();
 }
 
@@ -14245,7 +14364,8 @@ function sparkles(m){
 /* ---------- Ablauf: alles vorab festgelegt, ein Knopf führt durch die Folge ---------- */
 const rule=r=>$('rule'+r).value.trim(),rtitle=r=>$('rtitle'+r).value.trim();
 function buildSteps(){
-  const st=[{t:'start',label:'Start'}];
+  const intro=$('introOn').checked;
+  const st=intro?[{t:'intro',label:'Intro (Kamera)'},{t:'start',intro:true,label:'Kreis öffnen + Start'}]:[{t:'start',label:'Start'}];
   for(let r=1;r<=ROUNDS;r++){
     st.push({t:'rule',r,label:`Runde ${r}: ${$('cdOn').checked?'Countdown + ':''}Regel + Auskreuzen`});
     st.push({t:'drop',r,label:r<ROUNDS?`Runde ${r}: Rausfliegen + ${CNAMES[r]}`:'Runde 3: Rausfliegen + Grün (Ende)'});
@@ -14253,7 +14373,16 @@ function buildSteps(){
   return st;
 }
 async function doStep(s){
+  if(s.t==='intro'){
+    tilesEl.innerHTML='';setText($('title'),'');setText($('sub'),'');setText($('foot'),'');
+    await setColorNow('key');await playIntro();return;
+  }
   if(s.t==='start'){
+    if(s.intro){                                              // Silhouetten fallen weg, roter Kreis öffnet sich über der Kamera
+      const old=introEls;introEls=[];const c=$('icount');c.getAnimations().forEach(a=>a.cancel());c.style.opacity=0;
+      if(old.length)sfx('fall');old.forEach((m,i)=>fall(m,i*40));
+      await irisTo(0);clearIntro();
+    }
     tilesEl.innerHTML='';mons=group.map(makeTile);await setColorNow(0);
     mons.forEach(m=>m.el.style.visibility='hidden');layout(false);
     setText($('foot'),'');setText($('sub'),'');await setText($('title'),$('tStart').value);
@@ -14312,10 +14441,10 @@ async function next(){
   await doStep(steps[stepIdx]);
   busy=false;updUI();
 }
-async function reset(){if(busy)return;stepIdx=-1;tilesEl.innerHTML='';mons=[];await setColorNow(0);
+async function reset(){if(busy)return;stepIdx=-1;tilesEl.innerHTML='';mons=[];clearIntro();await setColorNow(0);
   setText($('title'),'');setText($('sub'),'');setText($('foot'),'');updUI();}
-$('next').onclick=()=>{audio();next();};$('reset').onclick=reset;
-addEventListener('keydown',e=>{if(active&&e.key==='ArrowRight'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();next();}});
+$('next').onclick=()=>{if(mode!=='game')return;audio();next();};$('reset').onclick=reset;
+addEventListener('keydown',e=>{if(active&&mode==='game'&&e.key==='ArrowRight'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();next();}});
 $('showNames').onchange=e=>ROOT.classList.toggle('nonames',!e.target.checked);
 function drawSafe(){
   const z=$('safe');
@@ -14449,9 +14578,10 @@ const updNew=()=>{$('gNew').disabled=!$('gName').value.trim();};
 $('gName').addEventListener('input',updNew);updNew();
 $('gDel').onclick=()=>{const k=$('gSel').value,g=getG();if(!(k in g))return;if(!confirm(`„${k}“ löschen?`))return;delete g[k];setG(g);refreshG();};
 refreshG();loadDraft();renderChips();bindLive();
-(function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;}}catch(e){}
-  const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value}));}catch(e){}if(stepIdx>=0&&!busy){steps=buildSteps();updUI();}};
-  $('cdOn').onchange=sv;$('cdSpeed').onchange=sv;})();
+(function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;if(c.intro!=null)$('introOn').checked=c.intro;}}catch(e){}
+  const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value,intro:$('introOn').checked}));}catch(e){}
+    if(stepIdx>=0&&!busy){const cur=steps[stepIdx];steps=buildSteps();stepIdx=Math.max(0,steps.findIndex(x=>x.t===cur.t&&x.r===cur.r));updUI();}};
+  $('cdOn').onchange=sv;$('cdSpeed').onchange=sv;$('introOn').onchange=()=>{if(stepIdx>=0){$('introOn').checked=!$('introOn').checked;status('Intro-Option erst nach „Zurück auf Anfang“ ändern.');return;}sv();};})();
 
 /* ---------- Deutsche Namen (PokeAPI, danach im Browser gespeichert) ---------- */
 async function loadNames(){
