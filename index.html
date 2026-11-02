@@ -13984,6 +13984,7 @@ window.pringSetActive=function(active){
   <h2>Sounds</h2>
   <div class="bar">
     <label><input type="checkbox" id="au-sOn" checked> Sounds an</label>
+    <span class="hint" id="au-sState"></span>
     <label>Lautstärke <input type="range" id="au-sVol" min="0" max="100" value="70" style="vertical-align:middle"></label>
   </div>
   <div id="au-sList"></div>
@@ -14284,20 +14285,86 @@ async function irisTo(ci){
   while(layersEl.children.length>1)layersEl.firstChild.remove();
 }
 
+/* Übergang in Form des Schnurrbart-Logos (nur nach dem Kamera-Intro): Logo ploppt mittig auf,
+   wächst dann stark an, bis sein dickster Teil das ganze Bild füllt. Weißer Rand wie beim Kreis. */
+const MU_AR=170/384,MU_ANCHOR={x:.6146,y:.2882},MU_COVER=11500;
+function muMask(el,mw,fx,fy,cx,cy){
+  const mh=mw*MU_AR,v=`url(${ZOOM_MUSTACHE})`;
+  for(const k of ['maskImage','webkitMaskImage'])el.style[k]=v;
+  for(const k of ['maskRepeat','webkitMaskRepeat'])el.style[k]='no-repeat';
+  const sz=`${mw*u}px ${mh*u}px`,pos=`${(cx-fx*mw)*u}px ${(cy-fy*mh)*u}px`;
+  el.style.maskSize=el.style.webkitMaskSize=sz;el.style.maskPosition=el.style.webkitMaskPosition=pos;
+}
+/* gleichmäßiger weißer Rand: Logo-Maske einmal „aufgedickt“ vorberechnen */
+const MU_P=12;let MU_OUT=null;
+function muOutline(){
+  if(MU_OUT)return Promise.resolve(MU_OUT);
+  return new Promise(res=>{const img=new Image();img.onload=()=>{
+    const c=document.createElement('canvas');c.width=img.width+2*MU_P;c.height=img.height+2*MU_P;const x=c.getContext('2d');
+    for(let r=1;r<=9;r++)for(let i=0;i<24;i++){const t=i/24*2*Math.PI;x.drawImage(img,MU_P+Math.cos(t)*r,MU_P+Math.sin(t)*r);}
+    x.drawImage(img,MU_P,MU_P);MU_OUT={url:c.toDataURL(),w:img.width};res(MU_OUT);};img.src=ZOOM_MUSTACHE;});
+}
+function muMaskOut(el,mw,fx,fy,cx,cy){
+  const k=mw/MU_OUT.w,ow=mw+2*MU_P*k,oh=mw*MU_AR+2*MU_P*k,v=`url(${MU_OUT.url})`;
+  for(const n of ['maskImage','webkitMaskImage'])el.style[n]=v;
+  for(const n of ['maskRepeat','webkitMaskRepeat'])el.style[n]='no-repeat';
+  el.style.maskSize=el.style.webkitMaskSize=`${ow*u}px ${oh*u}px`;
+  el.style.maskPosition=el.style.webkitMaskPosition=`${(cx-fx*mw-MU_P*k)*u}px ${(cy-fy*mw*MU_AR-MU_P*k)*u}px`;
+}
+function muClear(el){for(const k of ['maskImage','webkitMaskImage','maskSize','webkitMaskSize','maskPosition','webkitMaskPosition','maskRepeat','webkitMaskRepeat'])el.style[k]='';}
+async function mustacheTo(ci){
+  await muOutline();colorIdx=ci;const L=await makeLayer(ci);
+  const Wt=document.createElement('div');Wt.className='layer';Wt.style.background='#fff';layersEl.insertBefore(Wt,L);
+  const cx=W/2,cy=H*0.52,small=760;
+  const step=(mw,k)=>{const fx=.5+(MU_ANCHOR.x-.5)*k,fy=.5+(MU_ANCHOR.y-.5)*k;     // Bezugspunkt wandert vom Logo-Mittelpunkt zum dicksten Teil
+    muMask(L,mw,fx,fy,cx,cy);muMaskOut(Wt,mw,fx,fy,cx,cy);};
+  step(0.1,0);sfx('iris');
+  const easeOut=t=>1-Math.pow(1-t,3);
+  await tween(1500,(e,p)=>{
+    let mw,k;
+    if(p<.32){const q=easeOut(p/.32);mw=small*(q<.85?q/.85*1.08:1.08-(q-.85)/.15*.08);k=0;}      // aufploppen mit kleinem Nachfedern
+    else if(p<.46){mw=small*(1+(p-.32)/.14*.06);k=0;}                                              // kurz stehen lassen
+    else{const q=(p-.46)/.54,qe=q*q*(3-2*q);mw=small*1.06*Math.pow(MU_COVER/(small*1.06),qe);k=qe;}  // groß aufziehen
+    step(mw,k);
+  });
+  Wt.remove();muClear(L);stage.classList.toggle('key',ci==='key');
+  while(layersEl.children.length>1)layersEl.firstChild.remove();
+}
+
 /* ---------- Sounds: werden live erzeugt (Web Audio), keine Dateien, keine Lizenzfragen ---------- */
 const SND={ctx:null,master:null,noise:null};
+/* iOS-Besonderheiten:
+   - Ein AudioContext darf nur innerhalb eines Tippens gestartet/fortgesetzt werden.
+   - Er wird von iOS unterbrochen (Zustand „interrupted“/„suspended“), z. B. beim Starten der Bildschirmaufnahme
+     über das Kontrollzentrum, bei Anrufen, Siri, App-/Tab-Wechsel oder Sperrbildschirm.
+   Deshalb: bei jedem Tippen in der Auslese prüfen und ggf. fortsetzen, plus kurzer stiller Ton zum Freischalten. */
 function audio(){
-  if(!SND.ctx){
-    try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}   // iPad: auch bei Stummschalter hörbar
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){}   // auch bei Stummschalter hörbar (ab iOS 17)
+  if(!SND.ctx||SND.ctx.state==='closed'){
     const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
     SND.ctx=new C();SND.master=SND.ctx.createGain();SND.master.connect(SND.ctx.destination);
     const b=SND.ctx.createBuffer(1,SND.ctx.sampleRate*2,SND.ctx.sampleRate),d=b.getChannelData(0);
     for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;SND.noise=b;
+    SND.ctx.onstatechange=soundState;
   }
-  if(SND.ctx.state==='suspended')SND.ctx.resume();
+  if(SND.ctx.state!=='running'){
+    try{SND.ctx.resume().then(soundState,soundState);}catch(e){}
+    try{const src=SND.ctx.createBufferSource();src.buffer=SND.ctx.createBuffer(1,1,22050);src.connect(SND.ctx.destination);src.start(0);}catch(e){}
+  }
   SND.master.gain.value=+$('sVol').value/100;
+  soundState();
   return SND.ctx;
 }
+function soundState(){
+  const el=$('sState');if(!el)return;
+  const st=SND.ctx?SND.ctx.state:'none';
+  el.textContent=st==='running'?'● Ton bereit':st==='none'?'○ Ton startet beim ersten Tippen':'○ Ton pausiert – einmal irgendwo in die Bedienung tippen';
+  el.style.color=st==='running'?'#2e9d4a':'#d9822b';
+}
+// jedes Tippen in der Auslese schaltet den Ton bei Bedarf wieder frei
+VIEW.addEventListener('pointerdown',()=>{if(active&&$('sOn').checked&&(!SND.ctx||SND.ctx.state!=='running'))audio();},true);
+VIEW.addEventListener('touchend',()=>{if(active&&$('sOn').checked&&(!SND.ctx||SND.ctx.state!=='running'))audio();},true);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')soundState();});
 function env(g,t,a,d,peak){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+a+d);}
 function tone(t,f,dur,{type='sine',vol=.3,to=null,a=.005,dest=null}={}){
   const c=SND.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
@@ -14350,6 +14417,7 @@ const SOUNDS={
 };
 function sfx(kind,arg){
   if(!$('sOn').checked)return;const c=audio();if(!c)return;
+  if(c.state!=='running')setTimeout(()=>{if(SND.ctx&&SND.ctx.state!=='running')status('Ton ist von iOS pausiert worden – einmal in die Bedienung tippen, dann geht er wieder.');},400);
   const sel=$('s_'+kind);if(!sel||sel.value==='off')return;
   try{SOUNDS[kind].v[+sel.value][1](c.currentTime+.01,arg);}catch(e){}
 }
@@ -14431,7 +14499,7 @@ async function doStep(s){
     if(s.intro){                                              // Silhouetten fallen weg, roter Kreis öffnet sich über der Kamera
       const old=introEls;introEls=[];showIntroLabel('');
       if(old.length)sfx('fall');old.forEach((m,i)=>fall(m,i*40));
-      await irisTo(0);clearIntro();
+      await mustacheTo(0);clearIntro();
     }
     tilesEl.innerHTML='';mons=group.map(makeTile);if(!s.intro)await setColorNow(0);
     mons.forEach(m=>m.el.style.visibility='hidden');layout(false);
@@ -14630,6 +14698,7 @@ const updNew=()=>{$('gNew').disabled=!$('gName').value.trim();};
 $('gName').addEventListener('input',updNew);updNew();
 $('gDel').onclick=()=>{const k=$('gSel').value,g=getG();if(!(k in g))return;if(!confirm(`„${k}“ löschen?`))return;delete g[k];setG(g);refreshG();};
 refreshG();loadDraft();renderChips();bindLive();
+soundState();
 (function(){const K='auslese-countdown';try{const c=JSON.parse(localStorage.getItem(K)||'null');if(c){$('cdOn').checked=c.on;$('cdSpeed').value=c.speed;if(c.intro!=null)$('introOn').checked=c.intro;}}catch(e){}
   const sv=()=>{try{localStorage.setItem(K,JSON.stringify({on:$('cdOn').checked,speed:$('cdSpeed').value,intro:$('introOn').checked}));}catch(e){}
     if(stepIdx>=0&&!busy){const cur=steps[stepIdx];steps=buildSteps();stepIdx=Math.max(0,steps.findIndex(x=>x.t===cur.t&&x.r===cur.r));updUI();}};
@@ -14661,7 +14730,7 @@ setColorNow(0);updUI();
 window.auslSetActive=function(on){
   active=on;
   if(on){if(!started){started=true;startNames();}fitStage();if(mode==='game'&&stepIdx<0&&!busy)setColorNow(idleBg());}
-  else if(SND.ctx&&SND.ctx.state==='running')SND.ctx.suspend();
+  else if(SND.ctx&&SND.ctx.state==='running')SND.ctx.suspend().then(soundState,soundState);
 };
 })();
 })();
