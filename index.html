@@ -394,7 +394,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 9</div>
+  <div id="verTag">Version 10</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -2069,26 +2069,29 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const BASE='translate(-50%,-50%)';
   // Kippen Richtung Feld: Spitze auf der getippten Seite hebt sich (oben) bzw. senkt sich (unten), leichter Schubs zur Ecke
-  const TILT={1:[24,-3,-3],2:[-24,3,-3],3:[-24,-3,3],4:[24,3,3]};
+  const TILT={1:[30,-3,-3],2:[-30,3,-3],3:[-30,-3,3],4:[30,3,3]};
   function nudge(q){
     const [r,x,y]=TILT[q];
     if(anim)anim.cancel();
+    // gut sichtbar: langsam hinkippen, kurz halten, sanft zurückschwingen
     anim=logoEl.animate([
-      {transform:`${BASE} rotate(0deg)`},
-      {transform:`${BASE} translate(${x}%,${y}%) rotate(${r}deg)`,offset:.32,easing:'cubic-bezier(.3,1.5,.5,1)'},
+      {transform:`${BASE} rotate(0deg)`,easing:'cubic-bezier(.33,0,.2,1)'},
+      {transform:`${BASE} translate(${x}%,${y}%) rotate(${r}deg)`,offset:.38},
+      {transform:`${BASE} translate(${x}%,${y}%) rotate(${r}deg)`,offset:.5,easing:'cubic-bezier(.45,0,.25,1)'},
+      {transform:`${BASE} rotate(${-r*0.08}deg)`,offset:.86,easing:'ease-in-out'},
       {transform:`${BASE} rotate(0deg)`}
-    ],{duration:520,easing:'ease-out'});
+    ],{duration:1300});
   }
   function resetGlows(){glows.forEach(g=>g.classList.remove('on','flash'));}
   function wrong(){
     step=0;resetGlows();
     if(anim)anim.cancel();
-    anim=logoEl.animate([0,-9,8,-6,4,-2,0].map(d=>({transform:`${BASE} rotate(${d}deg)`})),{duration:550,easing:'ease-out'});
+    anim=logoEl.animate([0,-9,8,-6,4,-2,0].map(d=>({transform:`${BASE} rotate(${d}deg)`})),{duration:750,easing:'ease-out'});
   }
   async function success(){
     busy=true;
     try{sessionStorage.setItem('hbUnlocked','1');}catch(e){}
-    await sleep(560);                                   // Kippbewegung ausklingen lassen
+    await sleep(1350);                                  // Kippbewegung ausklingen lassen
     for(const g of glows){g.classList.add('flash');await sleep(130);}   // einmal von außen nach innen aufleuchten
     await sleep(350);
     unlocked=true;hint.hidden=false;busy=false;
