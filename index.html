@@ -397,7 +397,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 7</div>
+  <div id="verTag">Version 8</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -2030,7 +2030,7 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
   const bgs=[...document.querySelectorAll('#startView .bg,#toolsView .bg')];let lastSz=0;
   (function loop(t){const sz=Math.round(Math.max(260,Math.min(innerWidth,innerHeight)*0.42)),o=((t/1000)%SEC)/SEC*sz;
     if(sz!==lastSz){lastSz=sz;bgs.forEach(b=>{b.style.backgroundSize=sz+'px '+sz+'px';b.style.inset=`-${sz}px 0 0 -${sz}px`;});}
-    for(const b of bgs)if(b.offsetParent!==null||b.closest('.app-view:not(.hidden-view)'))b.style.transform=`translate3d(${o}px,${o}px,0)`;
+    const v=window.hbView||'start';if(v==='start'||v==='tools')for(const b of bgs)b.style.transform=`translate3d(${o}px,${o}px,0)`;
     requestAnimationFrame(loop);})(0);
 
   /* Übergang: die Tool-Auswahl wächst in Form des Schnurrbarts aus dem Logo */
@@ -2085,26 +2085,29 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
     await openTools();
     resetGlows();step=0;
   }
-  let ctr={x:0,y:0};
-  const angAt=e=>Math.atan2(e.clientY-ctr.y,e.clientX-ctr.x)*180/Math.PI;
+  let ctr={x:0,y:0},rMin=40;
+  // Winkel um die Mitte; sehr nah an der Mitte wird der Punkt auf einen Mindestradius geschoben,
+  // damit kleine Fingerbewegungen dort nicht zu riesigen Drehsprüngen werden
+  const angAt=e=>{let dx=e.clientX-ctr.x,dy=e.clientY-ctr.y;const r=Math.hypot(dx,dy);
+    if(r<rMin){if(r<1){dx=rMin;dy=0;}else{dx*=rMin/r;dy*=rMin/r;}}return Math.atan2(dy,dx)*180/Math.PI;};
   logoEl.addEventListener('pointerdown',e=>{
     if(busy)return;
     if(unlocked)return;                                // entsperrt: normales Antippen (click)
     e.preventDefault();
-    {const r=logoEl.getBoundingClientRect();ctr={x:r.left+r.width/2,y:r.top+r.height/2};}
+    {const r=logoEl.getBoundingClientRect();ctr={x:r.left+r.width/2,y:r.top+r.height/2};rMin=r.width*0.22;}
     try{logoEl.setPointerCapture(e.pointerId);}catch(_){}
     logoEl.classList.remove('spring','wrong');logoEl.classList.add('lockDrag');
-    drag={id:e.pointerId,a0:angAt(e),last:0,done:false};
+    drag={id:e.pointerId,prev:angAt(e),acc:0,done:false};
   });
   logoEl.addEventListener('pointermove',e=>{
     if(!drag||e.pointerId!==drag.id)return;
-    let d=angAt(e)-drag.a0;d=((d+540)%360)-180;
-    // ruckartige Sprünge (Finger über die Mitte) ignorieren
-    if(Math.abs(d-drag.last)>90)return;drag.last=d;
+    // alle Zwischenschritte mitnehmen (auch bei sehr schnellem Ziehen) und aufsummieren
+    const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+    for(const ev of evs){const a=angAt(ev);let step=a-drag.prev;step=((step+540)%360)-180;drag.acc+=step;drag.prev=a;}
+    const d=drag.acc;
     // weicher Anschlag: über 30° hinaus nur noch gebremst weiter
     const sg=Math.sign(d),ad=Math.abs(d),shown=ad<=TRIG?ad:TRIG+(MAXR-TRIG)*(1-Math.exp(-(ad-TRIG)/12));
-    if(drag.raf)cancelAnimationFrame(drag.raf);
-    drag.raf=requestAnimationFrame(()=>setRot(sg*shown));
+    setRot(sg*shown);
     if(drag.done)return;
     if(Math.abs(d)>=TRIG){
       drag.done=true;
@@ -2160,6 +2163,7 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
 
 function showMainAppView(view){
   if(view==='menu')view='tools';
+  window.hbView=view;
   const map={start:'startView',tools:'toolsView',pokemonRinge:'pokemonRingeView',auslese:'ausleseView'};
   for(const[k,id]of Object.entries(map)){const el=document.getElementById(id);if(el)el.classList.toggle('hidden-view',k!==view);}
   if(view!=='pokemonRinge'&&typeof window.pringSetRec==='function')window.pringSetRec(false);
