@@ -34,9 +34,7 @@ body{background:#15171c;color:#eceef2;font:15px/1.4 system-ui,-apple-system,"Seg
 #ringGlows,#ringGlows .gl,#ringGlows svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #ringGlows svg{overflow:visible}
 #ringGlows .gl{opacity:0;transition:opacity .7s ease;will-change:opacity;transform:translateZ(0)}
-#ringGlows .gl.on{opacity:1;animation:glowPulse 1.6s ease-in-out infinite}
-@keyframes glowPulse{0%,100%{opacity:.8}50%{opacity:1}}
-#ringGlows .gl.flash{animation:none;opacity:1}
+#ringGlows .gl.on,#ringGlows .gl.flash{opacity:1}
 #startLogo{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #startView{touch-action:manipulation;-webkit-user-select:none;user-select:none}
 #startHint[hidden]{display:none}
@@ -394,7 +392,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 10</div>
+  <div id="verTag">Version 11</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -2023,12 +2021,17 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
     x.globalCompositeOperation='source-in';x.fillStyle='#8a8d96';x.fillRect(0,0,T,T);c.globalAlpha=.32;c.drawImage(ic,0,0);
     const url=tc.toDataURL();document.documentElement.style.setProperty('--muPat',`url(${url})`);document.querySelectorAll('#startView .bg,#toolsView .bg').forEach(b=>b.style.backgroundImage=`url(${url})`);
   });
-  /* Muster nur verschieben (GPU), nicht jedes Bild neu zeichnen */
-  const bgs=[...document.querySelectorAll('#startView .bg,#toolsView .bg')];let lastSz=0;
-  (function loop(t){const sz=Math.round(Math.max(260,Math.min(innerWidth,innerHeight)*0.42)),o=((t/1000)%SEC)/SEC*sz;
-    if(sz!==lastSz){lastSz=sz;bgs.forEach(b=>{b.style.backgroundSize=sz+'px '+sz+'px';b.style.inset=`-${sz}px 0 0 -${sz}px`;});}
-    const v=window.hbView||'start';if(v==='start'||v==='tools')for(const b of bgs)b.style.transform=`translate3d(${o}px,${o}px,0)`;
-    requestAnimationFrame(loop);})(0);
+  /* Muster-Bewegung als Browser-Animation: läuft auf der Grafikeinheit weiter,
+     auch wenn das Skript gerade beschäftigt ist (kein Ruckeln mehr bei Klassenwechseln) */
+  const bgs=[...document.querySelectorAll('#startView .bg,#toolsView .bg')];let lastSz=0,bgAnims=[];
+  function setupBg(){
+    const sz=Math.round(Math.max(260,Math.min(innerWidth,innerHeight)*0.42));
+    if(sz===lastSz)return;lastSz=sz;
+    bgAnims.forEach(x=>x.cancel());
+    bgAnims=bgs.map(b=>{b.style.backgroundSize=sz+'px '+sz+'px';b.style.inset=`-${sz}px 0 0 -${sz}px`;
+      return b.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(${sz}px,${sz}px,0)`}],{duration:SEC*1000,iterations:Infinity,easing:'linear'});});
+  }
+  setupBg();addEventListener('resize',setupBg);
 
   /* Übergang: die Tool-Auswahl wächst in Form des Schnurrbarts aus dem Logo */
   const AR=533/1200,ANC={x:.6258,y:.3039},PADX=60/1320;   // Logo-Bild hat einen Rand von 60/1320 links/rechts
