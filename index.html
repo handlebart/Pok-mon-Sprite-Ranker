@@ -487,7 +487,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 19</div>
+  <div id="verTag">Version 20</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -1492,7 +1492,14 @@ function applyBg(){
   wrap.classList.toggle('loopbg',loop);
   wrap.style.background=loop?'#26272c':v;
   midC.setAttribute('fill',loop?'#eeeeee':'rgba(128,128,128,.10)');
-  midC.setAttribute('stroke',loop?'#bdbdbd':'#888');
+  // Shorts: Bühne wird stark verkleinert -> feine gestrichelte Linie wirkt pixelig. Stattdessen eine kräftige, glatte Kontur.
+  if(FMT==='shorts'){
+    midC.setAttribute('stroke',loop?'#ffffff':'#9a9a9a');midC.setAttribute('stroke-width','9');midC.removeAttribute('stroke-dasharray');
+    midC.style.filter=loop?'drop-shadow(0 0 10px rgba(0,0,0,.55))':'';
+  }else{
+    midC.setAttribute('stroke',loop?'#bdbdbd':'#888');midC.setAttribute('stroke-width','3');midC.setAttribute('stroke-dasharray','10 8');
+    midC.style.filter='';
+  }
   bgSize();
   if(bgAnim){bgAnim.cancel();bgAnim=null;}
   if(v==='loop'){const t=+pbg.dataset.tile||200;
