@@ -456,7 +456,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 16</div>
+  <div id="verTag">Version 17</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -1293,7 +1293,7 @@ function swell(t,dur,f0,f1,{q=1.2,vol=.5}={}){   // Luftzug, der an- und abschwi
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+dur*.55);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   src.connect(fl);fl.connect(g);g.connect(RS.master);src.start(t,Math.random());src.stop(t+dur+.05);}
 /* Objektiv-Knattern: viele kleine Mechanik-Klicks + leises Motorsurren */
-function knatter(t,dur,{r0=28,r1=28,f=3200,vol=.22,motor=true,up=true}={}){
+function knatter(t,dur,{r0=28,r1=28,f=3200,vol=.22,motor=false,up=true}={}){
   let x=0,i=0;
   while(x<dur){const k=x/dur,rate=r0+(r1-r0)*k,acc=Math.sin(Math.PI*Math.min(1,k*1.15));
     noise(t+x,.007,{type:'bandpass',f:f*(.9+Math.random()*.2),q:4,vol:vol*(.45+.55*acc),a:.0008});
@@ -1301,6 +1301,15 @@ function knatter(t,dur,{r0=28,r1=28,f=3200,vol=.22,motor=true,up=true}={}){
     x+=1/rate;i++;}
   if(motor){const c=RS.ctx,fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=900;fl.connect(RS.master);
     glide(t,up?[110,150,135]:[150,110,100],dur,{type:'sawtooth',vol:.045,a:.08,dest:fl});}
+}
+/* Cartoon-Tippeln: schnelle, gezupfte Schritte auf Zehenspitzen, abwechselnd zwei Töne, leicht hüpfend */
+function tippel(t,dur){
+  const n=Math.max(8,Math.round(dur*8.5)),notes=[[784,659],[880,698],[784,659],[988,784]];
+  for(let i=0;i<n;i++){const k=i/n,x=t+.05+k*(dur-.2),pair=notes[Math.floor(i/2)%notes.length],f=pair[i%2];
+    const lift=1+.12*Math.sin(Math.PI*k);                                   // in der Mitte etwas höher (Hüpfer)
+    tone(x,f*lift,.07,{type:'triangle',vol:.16,a:.002});                     // Zupfen
+    tone(x,f*2*lift,.03,{type:'sine',vol:.04,a:.001});
+    noise(x,.012,{type:'bandpass',f:2400,q:3,vol:.12,a:.0008});}             // leiser Tritt
 }
 const PENTA=[0,2,4,7,9,12,14,16,19,21,24,26,28,31,33,36];
 const RINGF=[196,247,294,349];
@@ -1361,6 +1370,8 @@ const RSOUNDS={
     ['Vorhang (verspielt)',(t,on=1)=>{swell(t,1,on?300:2400,on?2400:300,{q:.8,vol:.4});}],
     ['Magie (comic)',(t,on=1)=>{for(let k=0;k<8;k++){const s=on?k:7-k;tone(t+k*.09,659*Math.pow(2,PENTA[s]/12),.3,{vol:.08});}noise(t,1,{type:'highpass',f:6500,vol:.04,a:.2});}]]},
   partner:{name:'Partner-Reise',v:[
+    ['Tippeln + Knattern',(t,d=1.7)=>{tippel(t,d);knatter(t,d*.5,{r0:34,r1:22,vol:.12});knatter(t+d*.5,d*.5,{r0:22,r1:34,vol:.12});}],
+    ['Tippeln (Tom & Jerry)',(t,d=1.7)=>{tippel(t,d);}],
     ['Knattern-Fahrt',(t,d=1.7)=>{knatter(t,d*.5,{r0:34,r1:22,vol:.18,up:false});knatter(t+d*.5,d*.5,{r0:22,r1:34,vol:.18});}],
     ['Hüpfer (verspielt)',(t,d=1.7)=>{glide(t,[300,700,300],d,{type:'triangle',vol:.12,a:.1});swell(t,d,600,1800,{vol:.3});}],
     ['Swoosh (dezent)',(t,d=1.7)=>{swell(t,d*.5,2000,500,{vol:.33});swell(t+d*.45,d*.55,500,2200,{vol:.35});}]]},
@@ -1369,12 +1380,19 @@ const RSOUNDS={
     ['Swap (verspielt)',t=>{tone(t,500,.3,{to:900,vol:.13,a:.02});tone(t,900,.3,{to:500,vol:.1,a:.02});}],
     ['Klick-Klack (comic)',t=>{tone(t,1200,.04,{type:'square',vol:.07,a:.001});tone(t+.35,900,.05,{type:'square',vol:.07,a:.001});swell(t,.4,600,1600,{vol:.22});}]]},
   slam:{name:'Text-Einschlag',v:[
+    ['Kräftiger Punch',t=>{const T=t+.27;
+      tone(T,62,.35,{to:32,vol:.75,a:.002});                        // tiefer Wumms
+      tone(T,170,.16,{to:55,vol:.5,a:.001});                        // Körper
+      noise(T,.09,{type:'lowpass',f:3200,to:600,vol:.6,a:.001});    // Aufprall
+      noise(T,.04,{type:'highpass',f:4000,vol:.35,a:.0005});        // Knack
+      noise(T+.02,.35,{type:'bandpass',f:500,to:180,q:.8,vol:.12,a:.01});  // kurzer Nachhall
+      swell(t,.27,700,2600,{vol:.16});}],
     ['Punch',t=>{tone(t+.25,150,.18,{to:45,vol:.45,a:.002});noise(t+.25,.06,{type:'lowpass',f:2500,vol:.36,a:.001});noise(t+.26,.05,{type:'highpass',f:3500,vol:.18,a:.001});swell(t,.26,800,2500,{vol:.18});}],
     ['Stempel-Slam',t=>{swell(t,.27,600,2800,{vol:.22});tone(t+.27,95,.25,{to:38,vol:.48,a:.002});tone(t+.27,190,.08,{to:80,type:'square',vol:.12,a:.002});noise(t+.27,.14,{type:'bandpass',f:1200,to:500,q:1,vol:.32,a:.001});}],
     ['Comic-Bam + Boing',t=>{tone(t+.25,130,.2,{to:50,vol:.45,a:.002});noise(t+.25,.08,{type:'lowpass',f:3000,vol:.35,a:.001});glide(t+.3,[220,330,240,300,260],.45,{type:'triangle',vol:.09,a:.01});}]]},
 };
 const RS_ORDER=['seq','kreisRaus','ring','ringBack','team','teamOut','ringOn','ringOff','teamer','reveal','zoomIn','partner','iris','swap','slam','zoomOut'];
-const RS_DEFAULT={zoomIn:0,zoomOut:0,partner:0};
+const RS_DEFAULT={zoomIn:0,zoomOut:0,partner:0,slam:0};
 const RS_ARG={seq:3,kreisRaus:1,ring:1,ringBack:1,ringOn:0,ringOff:0,teamer:1,reveal:1,zoomIn:1.3,zoomOut:1.2,iris:1,partner:1.7};
 function rs(kind,arg){
   try{
