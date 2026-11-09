@@ -354,6 +354,33 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 @media (max-width:600px){.toolHead{justify-content:flex-end;padding-right:16px;top:18px}.toolHead img{display:none}.toolHead span{font-size:18px}}
 #ausleseView #au-root.portrait #au-ctrl{padding-top:6px}
 
+/* ---------- Ringe: Stichpunkte an den Karten ---------- */
+#pringRoot .card .nhead{display:flex;align-items:center;gap:8px;justify-content:space-between}
+#pokemonRingeView #pringRoot .card .ntog{padding:3px 9px;font-size:12px;border-radius:999px;background:#14161b;color:#a9adb8}
+#pokemonRingeView #pringRoot .card .ntog.has{color:#fff;border-color:#fb8c00}
+#pringRoot .card.open{grid-column:1/-1}
+#pringRoot .card.open .notes{max-width:640px}
+#pringRoot .card .notes{width:100%;display:flex;flex-direction:column;gap:6px;padding-top:6px;border-top:1px solid #2c303a}
+#pringRoot .card .notes[hidden]{display:none}
+#pringRoot .card .nrow{display:flex;gap:4px;align-items:center}
+#pokemonRingeView #pringRoot .card .nrow input{flex:1;min-width:0;padding:6px 10px}
+#pokemonRingeView #pringRoot .card .nrow button{padding:5px 8px;font-size:12px}
+#pokemonRingeView #pringRoot .card .nadd{align-self:flex-start}
+#pringRoot .card .nhint{font-size:11.5px;color:#8f94a0;line-height:1.35}
+#pokemonRingeView #pringRoot #pSaveDirty{}
+#pokemonRingeView #pringRoot #pringPSave.dirty::after{content:' •';color:#fff}
+/* ---------- Ringe: Stichpunkte im Zoom (rechte Hälfte) ---------- */
+#pringRoot #pringZText{position:absolute;left:860px;top:70px;width:690px;height:760px;z-index:5;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none}
+#pringRoot #pringZText .zn{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:900;line-height:1.05;white-space:nowrap;color:#fff;
+  opacity:0;transform:translateX(70px);transition:opacity .45s ease,transform .55s cubic-bezier(.2,.8,.2,1);
+  text-shadow:4px 0 0 #101216,-4px 0 0 #101216,0 4px 0 #101216,0 -4px 0 #101216,3px 3px 0 #101216,-3px 3px 0 #101216,3px -3px 0 #101216,-3px -3px 0 #101216,0 6px 18px rgba(0,0,0,.55)}
+#pringRoot #pringZText .zn.in{opacity:1;transform:none}
+#pringRoot #pringZText.out .zn{opacity:0;transition:opacity .35s ease}
+#pringRoot #pringZText .zn .s{margin-left:.12em;font-size:1.12em;letter-spacing:.02em}
+#pringRoot #pringZText .zn.pos{color:#5dff7a}
+#pringRoot #pringZText .zn.neg{color:#ff6f66}
+#pringRoot #pringZText .zn.head{color:#fff;text-decoration:underline;text-decoration-thickness:.08em;text-underline-offset:.16em}
+
 </style>
 </head>
 <body>
@@ -400,7 +427,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 12</div>
+  <div id="verTag">Version 13</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -429,10 +456,10 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <svg width="1600" height="900" viewBox="0 0 1600 900">
 <circle cx="800" cy="450" r="140" fill="rgba(128,128,128,.10)" stroke="#888" stroke-width="3" stroke-dasharray="10 8"/>
 <defs id="pringTdefs"></defs><g id="pringRings"></g><g id="pringTeamer"></g></svg>
-</div><div id="pringZoom"><canvas id="pringZBg" width="1600" height="900"></canvas><div id="pringZRing"></div><img id="pringZArt" alt=""></div></div>
+</div><div id="pringZoom"><canvas id="pringZBg" width="1600" height="900"></canvas><div id="pringZRing"></div><img id="pringZArt" alt=""><div id="pringZText"></div></div></div>
 
 <div id="pringCtrl">
-<div class="pgZoom"><button id="pringZoomEnd" class="pri" hidden>Zoom beenden</button>
+<div class="pgZoom"><button id="pringZPrev" hidden>‹ Zurück</button><button id="pringZNext" class="pri" hidden>Weiter ›</button><button id="pringZoomEnd" class="pri" hidden>Zoom beenden</button>
 <button id="pringZoomSwap" hidden>Partner nach vorne</button></div>
 <div class="grp-grid">
 <section class="grp"><h3>Aufnahme</h3><div class="bar"><button id="pringRecBtn" title="Bühne bleibt fest stehen, nur die Bedienung darunter scrollt">● Aufnahme-Modus</button><label>Hintergrund
@@ -693,7 +720,7 @@ function addMon(id,name,ring){
 function makeCard(m){
   const c=document.createElement('div');c.className='card';
   const opts=RINGS.map((o,i)=>`<option value="${i}"${i===m.ring?' selected':''}>${o.n}</option>`).join('');
-  c.innerHTML=`<img src="${m.src}" alt=""><div class="f"><b>${m.name}</b><select data-a="ring">${opts}</select><select data-a="partner" title="Partner auf demselben Ring – wird beim Zoom mit aufgesammelt"></select></div>
+  c.innerHTML=`<img src="${m.src}" alt=""><div class="f"><div class="nhead"><b>${m.name}</b><button class="ntog" data-a="ntog" title="Stichpunkte für den Steckbrief">▾ <span>0</span></button></div><select data-a="ring">${opts}</select><select data-a="partner" title="Partner auf demselben Ring – wird beim Zoom mit aufgesammelt"></select></div>
   <div class="r"><button data-a="circ">Aus Kreis</button><button data-a="go">→ Ring</button><button data-a="team">Ins Team</button><button data-a="col">Einfärben</button><button data-a="pix">Pixel: Auto</button><button data-a="zoom" title="Zoom in die Steckbrief-Ansicht">Zoom</button><button data-a="del">Entfernen</button></div>`;
   const go=c.querySelector('[data-a=go]'),col=c.querySelector('[data-a=col]'),pix=c.querySelector('[data-a=pix]'),team=c.querySelector('[data-a=team]'),circ=c.querySelector('[data-a=circ]');
   m.ui={go,col,pix,team,circ};m.card=c;paint(m);
@@ -709,8 +736,34 @@ function makeCard(m){
   circ.onclick=()=>m.mode==='out'?circleIn(m):circleOut(m);
   c.querySelector('[data-a=zoom]').onclick=()=>zoomToggle(m);
   c.querySelector('[data-a=del]').onclick=()=>{unlinkPartner(m);releaseSlot(m);m.el.remove();c.remove();mons.splice(mons.indexOf(m),1);refreshPartners();};
+  m.notes=m.notes||[];
+  const np=document.createElement('div');np.className='notes';np.hidden=true;c.appendChild(np);m.ui.np=np;
+  c.querySelector('[data-a=ntog]').onclick=()=>{np.hidden=!np.hidden;c.classList.toggle('open',!np.hidden);if(!np.hidden)renderNotes(m);};
+  noteCount(m);
   refreshPartners();
   $('list').appendChild(c);sortList();
+}
+/* ---------- Steckbrief-Stichpunkte je Pokémon ---------- */
+function noteCount(m){const n=m.notes.filter(s=>s.trim()).length;const b=m.card.querySelector('.ntog');b.querySelector('span').textContent=n;b.classList.toggle('has',n>0);}
+function notesDirty(){const b=$('pSave');if(!b.classList.contains('dirty')){b.classList.add('dirty');}$('status').textContent='Stichpunkte geändert – zum Behalten „Vorauswahl speichern“.';}
+function renderNotes(m){
+  const np=m.ui.np;np.innerHTML='';
+  m.notes.forEach((t,i)=>{
+    const r=document.createElement('div');r.className='nrow';
+    r.innerHTML=`<input type="text" placeholder="z. B. Miraculix+++"><button data-n="up" title="nach oben">▲</button><button data-n="dn" title="nach unten">▼</button><button data-n="x" title="löschen">✕</button>`;
+    const inp=r.querySelector('input');inp.value=t;
+    inp.oninput=()=>{m.notes[i]=inp.value;noteCount(m);notesDirty();};
+    r.querySelector('[data-n=up]').onclick=()=>{if(i>0){[m.notes[i-1],m.notes[i]]=[m.notes[i],m.notes[i-1]];renderNotes(m);notesDirty();}};
+    r.querySelector('[data-n=dn]').onclick=()=>{if(i<m.notes.length-1){[m.notes[i+1],m.notes[i]]=[m.notes[i],m.notes[i+1]];renderNotes(m);notesDirty();}};
+    r.querySelector('[data-n=x]').onclick=()=>{m.notes.splice(i,1);renderNotes(m);noteCount(m);notesDirty();};
+    np.appendChild(r);
+  });
+  const add=document.createElement('button');add.className='nadd';add.textContent='+ Stichpunkt';
+  add.onclick=()=>{m.notes.push('');renderNotes(m);const ins=np.querySelectorAll('input');ins[ins.length-1].focus();};
+  np.appendChild(add);
+  const h=document.createElement('div');h.className='nhint';
+  h.innerHTML='+ am Ende = grün, − am Ende = rot (z. B. <b>Weisheit+</b>, <b>Größe−−</b>). Zeile mit <b>#</b> am Anfang = Überschrift.';
+  np.appendChild(h);
 }
 // Gleichmäßige Verteilung: Alle Pokémon eines Rings werden pro Frame auf gleich große Winkelabstände (360°/Anzahl) gesetzt.
 // Die Reihenfolge auf dem Ring folgt einer Bit-Umkehr-Folge (0, ½, ¼, ¾, ⅛ …) des Beitrittszählers: aufeinanderfolgend
@@ -781,14 +834,14 @@ $('pSave').onclick=()=>{
   const name=$('pName').value.trim();
   if(!name){$('status').textContent='Bitte einen Namen für die Vorauswahl eingeben.';return;}
   if(!mons.length){$('status').textContent='Es sind keine Pokémon zum Speichern vorhanden.';return;}
-  const p=getP();p[name]=mons.map(m=>{const o={id:m.id,name:m.name,ring:m.ring};if(m.partner)o.partner=mons.indexOf(m.partner);return o;});
-  if(setP(p)){refreshP(name);$('status').textContent=`Vorauswahl „${name}“ gespeichert (${mons.length} Pokémon).`;}
+  const p=getP();p[name]=mons.map(m=>{const o={id:m.id,name:m.name,ring:m.ring};if(m.partner)o.partner=mons.indexOf(m.partner);const nt=m.notes.filter(s=>s.trim());if(nt.length)o.notes=nt;return o;});
+  if(setP(p)){$('pSave').classList.remove('dirty');refreshP(name);$('status').textContent=`Vorauswahl „${name}“ gespeichert (${mons.length} Pokémon).`;}
 };
 $('pLoad').onclick=()=>{
   const k=$('pSel').value,list=getP()[k];
   if(!list){$('status').textContent='Keine Vorauswahl ausgewählt.';return;}
   if(zoomBlocked())return;
-  clearAll();list.forEach(x=>addMon(x.id,x.name,x.ring));
+  clearAll();list.forEach(x=>{addMon(x.id,x.name,x.ring);const mm=mons[mons.length-1];mm.notes=Array.isArray(x.notes)?x.notes.map(String):[];noteCount(mm);});$('pSave').classList.remove('dirty');
   list.forEach((x,i)=>{const a=mons[i],b=mons[x.partner];if(x.partner!=null&&a&&b&&a.ring===b.ring)linkPartner(a,b);});
   refreshPartners();
   $('pName').value=k;$('status').textContent=`Vorauswahl „${k}“ geladen.`;
@@ -809,7 +862,7 @@ $('pFile').onchange=e=>{
     const j=JSON.parse(t),p=getP();let n=0;
     for(const k in j){if(Array.isArray(j[k])){
       const ok=j[k].map(x=>!!(x&&+x.id>0&&x.name&&x.ring>=0&&x.ring<4)),idx=[];let c=0;ok.forEach((v,i)=>idx[i]=v?c++:-1);
-      p[k]=j[k].filter((x,i)=>ok[i]).map(x=>{const o={id:+x.id,name:x.name,ring:+x.ring};
+      p[k]=j[k].filter((x,i)=>ok[i]).map(x=>{const o={id:+x.id,name:x.name,ring:+x.ring};if(Array.isArray(x.notes))o.notes=x.notes.map(String);
         if(x.partner!=null&&idx[x.partner]>=0)o.partner=idx[x.partner];return o;});n++;}}
     setP(p);refreshP();$('status').textContent=`${n} Vorauswahl(en) importiert.`;
   }).catch(()=>{$('status').textContent='Datei konnte nicht gelesen werden.';});
@@ -989,6 +1042,7 @@ function zoomBtns(){
   mons.forEach(x=>{const b=x.card.querySelector('[data-a=zoom]');b.textContent=(Z.on&&Z.items.some(i=>i.m===x))?'Zoom zurück':'Zoom';b.disabled=Z.busy;});
   const e=$('zoomEnd');e.hidden=!Z.on;e.disabled=Z.busy;
   const w=$('zoomSwap');w.hidden=!(Z.on&&Z.items.length>1);w.disabled=Z.busy;
+  notesBtns();
 }
 const IRIS_R=Math.hypot(800,450)+20;
 async function irisOpen(){
@@ -1039,11 +1093,12 @@ async function zoomIn(m){
   }
   // 3) Iris in Ringfarbe, Gruppe wandert nach links
   await irisOpen();
-  Z.on=true;Z.busy=false;zoomBtns();
+  Z.on=true;Z.busy=false;notesPrepare();zoomBtns();
   $('status').textContent=(B?m.name+' & '+pt.name:m.name)+': Steckbrief-Ansicht';
 }
 async function zoomOut(){
   const m=Z.m;if(!m)return;Z.busy=true;zoomBtns();
+  await notesHide();
   await irisClose();
   const names=Z.items.map(i=>i.m.name).join(' & ');
   const pair=Z.items.length>1,anc=Z.anchor;
@@ -1083,6 +1138,53 @@ function zoomToggle(m){
   if(Z.on){if(Z.items.some(i=>i.m===m))zoomOut();else $('status').textContent='Erst den aktuellen Zoom beenden.';return;}
   zoomIn(m);
 }
+/* ---------- Steckbrief-Texte im Zoom: jeder Tipp blendet den nächsten Stichpunkt ein, danach zurückzoomen ---------- */
+const zText=document.getElementById('pringZText');
+Z.step=0;Z.notes=[];
+function parseNote(s){
+  s=s.trim();
+  if(s.startsWith('#'))return{head:true,txt:s.replace(/^#+\s*/,''),sig:'',cls:'head'};
+  const mm=s.match(/^(.*?)\s*([+\-−–]+)$/);
+  if(!mm||!mm[1])return{txt:s,sig:'',cls:'neu'};
+  const sig=mm[2].replace(/[-–]/g,'−'),p=(sig.match(/\+/g)||[]).length,n=sig.length-p;
+  return{txt:mm[1],sig,cls:p>n?'pos':n>p?'neg':'neu'};
+}
+const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function notesPrepare(){
+  const m=Z.m;Z.step=0;
+  Z.notes=(m&&m.notes?m.notes:[]).map(s=>s.trim()).filter(Boolean).map(parseNote);
+  zText.innerHTML='';zText.classList.remove('out');
+  const n=Z.notes.length;if(!n)return;
+  const base=Math.min(82,Math.max(42,700/(n*1.55)));
+  Z.notes.forEach(o=>{const d=document.createElement('div');d.className='zn '+o.cls;
+    d.innerHTML=`<span class="t">${esc(o.txt)}</span>${o.sig?`<span class="s">${o.sig}</span>`:''}`;
+    d.style.fontSize=(o.head?base*1.18:base)+'px';zText.appendChild(d);});
+  // zu lange Zeilen verkleinern, damit nichts übersteht
+  zText.querySelectorAll('.zn').forEach(d=>{let fs=parseFloat(d.style.fontSize);while(fs>26&&d.scrollWidth>zText.clientWidth){fs-=3;d.style.fontSize=fs+'px';}});
+}
+function notesNext(){
+  if(!Z.on||Z.busy)return;
+  if(Z.step<Z.notes.length){zText.children[Z.step].classList.add('in');Z.step++;notesBtns();return;}
+  zoomOut();
+}
+function notesPrev(){
+  if(!Z.on||Z.busy||Z.step<=0)return;
+  Z.step--;zText.children[Z.step].classList.remove('in');notesBtns();
+}
+function notesHide(){
+  if(!zText.querySelector('.zn.in')){zText.innerHTML='';return Promise.resolve();}
+  zText.classList.add('out');
+  return new Promise(r=>setTimeout(()=>{zText.innerHTML='';zText.classList.remove('out');r();},450));
+}
+function notesBtns(){
+  const nx=$('zNext'),pv=$('zPrev');if(!nx)return;
+  nx.hidden=!Z.on;pv.hidden=!Z.on||Z.step===0;nx.disabled=pv.disabled=Z.busy;
+  const n=Z.notes.length;
+  nx.textContent=(Z.on&&Z.step<n)?`Weiter › (Text ${Z.step+1}/${n})`:'Zurückzoomen ›';
+}
+$('zNext').onclick=notesNext;$('zPrev').onclick=notesPrev;
+// Tippen auf die Bühne = Weiter (nur in der Steckbrief-Ansicht)
+wrap.addEventListener('click',()=>{if(Z.on&&!Z.busy)notesNext();});
 $('zoomEnd').onclick=()=>{if(Z.on&&!Z.busy)zoomOut();};
 $('zoomSwap').onclick=zoomSwap;
 
