@@ -551,7 +551,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <button id="pringAllPixOn">Alle verpixeln</button>
 <button id="pringAllPixOff">Alle scharf</button>
 <button id="pringAllPixAuto">Alle Pixel: Auto</button>
-<label title="Pixel pro Bildseite – kleiner = gröber">Pixelstärke <input type="range" id="pringPixSize" min="5" max="20" step="1" value="9"> <b id="pringPixVal">9</b></label></div><div class="bar"><label>Steckbrief-Schrift <select id="pringZFont"><option value="Bangers">Bangers</option><option value="Luckiest Guy">Luckiest Guy</option><option value="Lilita One">Lilita One</option><option value="Titan One">Titan One</option><option value="Bowlby One">Bowlby One</option><option value="Anton">Anton</option><option value="system-ui">Schlicht (bisher)</option></select></label><button id="pringZFontTest" title="Zeigt die Schrift kurz als Vorschau">Vorschau</button><span class="hint" id="pringZFontPrev" style="font-size:22px;opacity:1;color:#fff">Weisheit+++</span></div></section>
+<label title="Pixel pro Bildseite – kleiner = gröber">Pixelstärke <input type="range" id="pringPixSize" min="5" max="20" step="1" value="9"> <b id="pringPixVal">9</b></label></div><div class="bar"><label title="Hintergrund, wenn du ein Pokémon im Teamer zoomst">Steckbrief aus dem Teamer <select id="pringZBgMode"><option value="type">Typfarbe</option><option value="ring">Ringfarbe</option></select></label><label>Steckbrief-Schrift <select id="pringZFont"><option value="Bangers">Bangers</option><option value="Luckiest Guy">Luckiest Guy</option><option value="Lilita One">Lilita One</option><option value="Titan One">Titan One</option><option value="Bowlby One">Bowlby One</option><option value="Anton">Anton</option><option value="system-ui">Schlicht (bisher)</option></select></label><button id="pringZFontTest" title="Zeigt die Schrift kurz als Vorschau">Vorschau</button><span class="hint" id="pringZFontPrev" style="font-size:22px;opacity:1;color:#fff">Weisheit+++</span></div></section>
 </div>
 <section class="grp mgr"><h3>Kader</h3>
 <div class="bar">
@@ -1095,7 +1095,8 @@ const LOOP_T=467,LOOP_SEC=8;let loopPat=null,loopCol='';
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src;});}
 const loopImgs=Promise.all([loadImg(ZOOM_MUSTACHE),loadImg(ZOOM_BALL)]);
 function shade(hex,f){const n=parseInt(hex.slice(1),16);return `rgb(${(n>>16&255)*f|0},${(n>>8&255)*f|0},${(n&255)*f|0})`;}
-async function buildPattern(col){
+async function buildPattern(col,col2){
+  loopPat2=col2?await makeLoopTile(col2):null;
   const[mu,ba]=await loopImgs;const T=LOOP_T;
   const tc=document.createElement('canvas');tc.width=tc.height=T;const c=tc.getContext('2d');
   c.fillStyle=col;c.fillRect(0,0,T,T);
@@ -1108,6 +1109,16 @@ async function buildPattern(col){
   c.globalAlpha=.55;c.drawImage(ic,0,0);
   loopPat=zx.createPattern(tc,'repeat');loopCol=col;
 }
+let loopPat2=null;
+async function makeLoopTile(col){
+  const[mu,ba]=await loopImgs;const T=LOOP_T;
+  const tc=document.createElement('canvas');tc.width=tc.height=T;const c=tc.getContext('2d');c.fillStyle=col;c.fillRect(0,0,T,T);
+  const ic=document.createElement('canvas');ic.width=ic.height=T;const x=ic.getContext('2d');
+  for(const[img,fx,fy,rot,w]of[[mu,.22,.18,-14,192],[ba,.72,.30,0,137],[ba,.30,.70,0,137],[mu,.80,.80,9,192]]){const h=img.height*w/img.width;
+    for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++){x.save();x.translate((ox+fx)*T,(oy+fy)*T);x.rotate(rot*Math.PI/180);x.drawImage(img,-w/2,-h/2,w,h);x.restore();}}
+  x.globalCompositeOperation='source-in';x.fillStyle=shade(col,.82);x.fillRect(0,0,T,T);c.globalAlpha=.55;c.drawImage(ic,0,0);
+  return zx.createPattern(tc,'repeat');
+}
 function drawLoop(t){
   if(!loopPat)return;
   const o=((t/1000)%LOOP_SEC)/LOOP_SEC*LOOP_T;
@@ -1115,6 +1126,8 @@ function drawLoop(t){
   zx.beginPath();zx.arc(Z.ix,Z.iy,Math.max(0,Z.iris),0,Math.PI*2);zx.clip();
   zx.translate(o,o);zx.fillStyle=loopPat;zx.fillRect(-LOOP_T,-LOOP_T,SW+LOOP_T,SH+LOOP_T);
   zx.setTransform(1,0,0,1,0,0);
+  if(loopPat2){zx.save();zx.beginPath();zx.moveTo(SW,0);zx.lineTo(SW,SH);zx.lineTo(0,SH);zx.closePath();zx.clip();   // zweiter Typ: diagonal geteilt wie das Teamer-Feld
+    zx.translate(o,o);zx.fillStyle=loopPat2;zx.fillRect(-LOOP_T,-LOOP_T,SW+LOOP_T,SH+LOOP_T);zx.restore();}
   const g=zx.createRadialGradient(SW/2,SH/2,200,SW/2,SH/2,Math.hypot(SW,SH)*.55);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.18)');
   zx.fillStyle=g;zx.fillRect(0,0,SW,SH);zx.restore();
   const r=Math.max(0,Z.iris);
@@ -1123,6 +1136,7 @@ function drawLoop(t){
 }
 function zLoop(t){drawLoop(t);floatStep(t);Z.raf=requestAnimationFrame(zLoop);}
 function curQ(m){
+  if(m.mode==='team')return 0;
   if(m.pix==='on')return 1;if(m.pix==='off')return 0;
   const rr=RINGS[m.ring].r,dd=Math.hypot(m.x-CX,m.y-CY);return Math.max(0,Math.min(1,(rr-dd)/(rr-100)));
 }
@@ -1194,10 +1208,13 @@ async function irisClose(){
   for(const it of Z.items)it.art.style.transform='';Z.amp=0;
 }
 async function zoomIn(m){
-  if(m.mode!=='ring'){$('status').textContent='Zoom geht nur, wenn das Pokémon auf seinem Ring ist.';return;}
-  const pt=m.partner&&m.partner.mode==='ring'&&m.partner.ring===m.ring?m.partner:null;
+  if(m.mode!=='ring'&&m.mode!=='team'){$('status').textContent='Zoom geht nur, wenn das Pokémon auf seinem Ring oder im Teamer ist.';return;}
+  const inTeam=m.mode==='team';
+  const pt=!inTeam&&m.partner&&m.partner.mode==='ring'&&m.partner.ring===m.ring?m.partner:null;
   Z.busy=true;Z.m=m;Z.anchor=pt||m;zoomBtns();
-  await buildPattern(RINGS[m.ring].c);
+  {const useType=inTeam&&$('zBgMode').value==='type'&&m.types&&m.types.length;
+   const cols=useType?m.types.slice(0,2).map(t=>TYPE_EDGE[t]||RINGS[m.ring].c):[RINGS[m.ring].c];
+   await buildPattern(cols[0],cols[1]);}
   const A=makeZoomItem(m),B=pt?makeZoomItem(pt):null;
   Z.items=B?[A,B]:[A];
   if(B)scene.appendChild(B.wrap);scene.appendChild(A.wrap);       // A liegt vorne
@@ -1254,7 +1271,7 @@ async function zoomOut(){
   for(const it of Z.items){it.m.el.style.visibility='';it.wrap.remove();}
   Z.items=[];applyCam(1,800,450,0);
   Z.on=false;Z.busy=false;Z.m=null;zoomBtns();last=performance.now();
-  $('status').textContent=names+(pair?' sind':' ist')+' zurück im Ring';
+  $('status').textContent=names+(pair?' sind':' ist')+(m.mode==='team'?' zurück im Teamer':' zurück im Ring');
 }
 /* In der Steckbrief-Ansicht: Reihenfolge des Paars tauschen (wer steht vorne) */
 async function zoomSwap(){
@@ -1295,7 +1312,7 @@ function notesPrepare(){
   Z.notes=(m&&m.notes?m.notes:[]).map(s=>s.trim()).filter(Boolean).map(parseNote);
   zText.innerHTML='';zText.classList.remove('out');zText.style.setProperty('--zfont',zFontFam());zText.classList.toggle('sys',(document.getElementById('pringZFont')||{}).value==='system-ui');
   const n=Z.notes.length;if(!n)return;
-  const base=Math.min(96,Math.max(46,zText.clientHeight/(n*1.5)));
+  const base=Math.min(FMT==='shorts'?140:96,Math.max(46,zText.clientHeight/(n*1.5)));
   let k=0;
   Z.notes.forEach(o=>{const d=document.createElement('div');d.className='zn '+o.cls;
     d.innerHTML=`<span class="t">${esc(o.txt)}</span>${o.sig?`<span class="s">${o.sig}</span>`:''}`;
@@ -1582,6 +1599,7 @@ function setFormat(f){
 function syncFmtBtns(){document.querySelectorAll('#pringFmt button').forEach(b=>b.classList.toggle('on',b.dataset.f===FMT));
   document.getElementById('pringSafeRow').hidden=FMT!=='shorts';safeEl.hidden=FMT!=='shorts'||!$('safeChk').checked;}
 document.querySelectorAll('#pringFmt button').forEach(b=>b.onclick=()=>setFormat(b.dataset.f));
+{const s=$('zBgMode');try{const v=localStorage.getItem('pring-zbg');if(v)s.value=v;}catch(e){}s.onchange=()=>{try{localStorage.setItem('pring-zbg',s.value);}catch(e){}};}
 {const c=$('tGlow');try{const v=localStorage.getItem('pring-tglow');if(v!==null)c.checked=v==='1';}catch(e){}
   const u=()=>{wrap.classList.toggle('tglow',c.checked);try{localStorage.setItem('pring-tglow',c.checked?'1':'0');}catch(e){}};c.onchange=u;u();}
 $('safeChk').onchange=()=>{safeEl.hidden=FMT!=='shorts'||!$('safeChk').checked;};
