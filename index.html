@@ -668,12 +668,12 @@ for(let i=0;i<6;i++){
 }
 // weiße bzw. graue Trennlinien noch einmal obendrauf, damit sie über der Typ-Kontur liegen
 for(let i=0;i<6;i++){const l=document.createElementNS(SVGNS,'path');l.setAttribute('d',sectorPath(TEAM_R_IN,TEAM_R_OUT,i*60,i*60+60));l.setAttribute('class','sliceline');tg.appendChild(l);}
-function deep(hex){ // gleicher Farbton, kräftiger und dunkler als das Pastell-Feld
-  const n=parseInt(hex.slice(1),16);let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
-  const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0;const d=mx-mn;
-  if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360;}
-  const s0=d?d/(1-Math.abs(mx+mn-1)):0;
-  return `hsl(${h.toFixed(0)},${Math.min(100,Math.max(38,s0*100*1.25)).toFixed(0)}%,46%)`;}
+// Linienfarbe je Typ: von Hand abgestimmt, gleicher Farbton wie das Pastell-Feld, nur kräftiger/dunkler
+const TYPE_EDGE={normal:'#8f8a74',fighting:'#c0392f',flying:'#6f8fd6',poison:'#9b45aa',ground:'#b8913a',
+  rock:'#9c8a45',bug:'#8ea01c',ghost:'#6a55a0',steel:'#7f8696',fire:'#e8701f',water:'#2f86d0',grass:'#4ea63a',
+  electric:'#d8b10f',psychic:'#e04c88',ice:'#3fb3b3',dragon:'#5a3fd0',dark:'#6b5a49',fairy:'#d9689a'};
+const EDGE_OF={};for(const k in TYPE_COLORS)EDGE_OF[TYPE_COLORS[k].toLowerCase()]=TYPE_EDGE[k];
+function deep(hex){return EDGE_OF[(hex||'').toLowerCase()]||'#888888';}
 function sliceBox(i){const[a,b]=[i*60,i*60+60],pts=[polar(TEAM_R_OUT,a),polar(TEAM_R_OUT,b),polar(TEAM_R_IN,a),polar(TEAM_R_IN,b)];
   for(let d=a;d<=b;d+=5)pts.push(polar(TEAM_R_OUT,d));
   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);return{x0:Math.min(...xs),y0:Math.min(...ys),x1:Math.max(...xs),y1:Math.max(...ys)};}
