@@ -445,6 +445,10 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
   filter:drop-shadow(0 0 7px rgba(0,0,0,.6))}
 #pringRoot #pringWrap.loopbg .qmark{fill:#ffffff;opacity:.95;paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:5px;font-weight:900}
 
+#pringRoot #pringWrap.loopbg.tglow #pringTeamer{filter:drop-shadow(0 0 14px rgba(255,255,255,.55)) drop-shadow(0 0 34px rgba(255,255,255,.28))}
+
+#pringRoot .tedge{transition:stroke .4s;pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -491,7 +495,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 22</div>
+  <div id="verTag">Version 24</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -527,7 +531,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <button id="pringZoomSwap" hidden>Partner nach vorne</button></div>
 <div class="grp-grid">
 <section class="grp"><h3>Aufnahme</h3><div class="bar"><div class="fmt" id="pringFmt"><button data-f="video">▭ Video 16:9</button><button data-f="shorts">▯ Shorts 9:16</button></div></div><div class="bar" id="pringSafeRow" hidden><label><input type="checkbox" id="pringSafeChk"> Shorts-Oberfläche einblenden (nur zur Kontrolle)</label></div><div class="bar"><button id="pringRecBtn" title="Bühne bleibt fest stehen, nur die Bedienung darunter scrollt">● Aufnahme-Modus</button><label>Hintergrund
-<select id="pringBg"><option value="#eeeeee">Hell</option><option value="#9aa0aa">Grau</option><option value="#0047ff">Blau (Key)</option><option value="#ffffff">Weiß</option><option value="loop">Schwarz-Weiß-Loop (bewegt)</option><option value="loopStill">Schwarz-Weiß-Loop (still)</option></select></label><label><input type="checkbox" id="pringSpin" checked> Kreisen</label></div></section>
+<select id="pringBg"><option value="#eeeeee">Hell</option><option value="#9aa0aa">Grau</option><option value="#0047ff">Blau (Key)</option><option value="#ffffff">Weiß</option><option value="loop">Schwarz-Weiß-Loop (bewegt)</option><option value="loopStill">Schwarz-Weiß-Loop (still)</option></select></label><label><input type="checkbox" id="pringSpin" checked> Kreisen</label><label title="Weißer Glow außen um den Teamer (nur bei Schwarz-Weiß-Loop)"><input type="checkbox" id="pringTGlow" checked> Teamer-Glow</label></div></section>
 <section class="grp"><h3>Ringe &amp; Teamer</h3><div class="bar"><button class="pri" id="pringRingPlus">Ring einblenden (0/4)</button>
 <button id="pringRingMinus">Ring ausblenden</button>
 <button id="pringRingOff">Alle Ringe ausblenden</button>
@@ -646,14 +650,39 @@ for(let i=0;i<6;i++){
   p.setAttribute('d',sectorPath(TEAM_R_IN,TEAM_R_OUT,i*60,i*60+60));
   p.setAttribute('class','slice');tg.appendChild(p);sliceEls.push(p);
 }
-function resetSlice(i){sliceEls[i].setAttribute('fill','');sliceEls[i].style.fill='';}
+// Außenkante je Feld (Bogen), eingefärbt in einem tieferen Ton der Typfarbe
+const TEDGE_W=20,TEDGE_R=TEAM_R_OUT-13;
+const edgeEls=[];
+for(let i=0;i<6;i++){
+  const[x0,y0]=polar(TEDGE_R,i*60+.6),[x1,y1]=polar(TEDGE_R,i*60+59.4);
+  const p=document.createElementNS(SVGNS,'path');
+  p.setAttribute('d',`M ${x0} ${y0} A ${TEDGE_R} ${TEDGE_R} 0 0 1 ${x1} ${y1}`);
+  p.setAttribute('class','tedge');p.setAttribute('fill','none');p.setAttribute('stroke-width',TEDGE_W);p.setAttribute('stroke-linecap','butt');
+  p.style.stroke='none';tg.appendChild(p);edgeEls.push(p);
+}
+function deep(hex){ // gleicher Farbton, kräftiger und dunkler als das Pastell-Feld
+  const n=parseInt(hex.slice(1),16);let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
+  const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0;const d=mx-mn;
+  if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360;}
+  const s0=d?d/(1-Math.abs(mx+mn-1)):0;
+  return `hsl(${h.toFixed(0)},${Math.min(100,Math.max(38,s0*100*1.25)).toFixed(0)}%,46%)`;}
+function sliceBox(i){const[a,b]=[i*60,i*60+60],pts=[polar(TEAM_R_OUT,a),polar(TEAM_R_OUT,b),polar(TEAM_R_IN,a),polar(TEAM_R_IN,b)];
+  for(let d=a;d<=b;d+=5)pts.push(polar(TEAM_R_OUT,d));
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);return{x0:Math.min(...xs),y0:Math.min(...ys),x1:Math.max(...xs),y1:Math.max(...ys)};}
+function resetSlice(i){sliceEls[i].setAttribute('fill','');sliceEls[i].style.fill='';edgeEls[i].style.stroke='none';}
 function applySliceColor(i,types){
   if(!types||!types.length){resetSlice(i);return;}
-  if(types.length===1){sliceEls[i].style.fill=TYPE_COLORS[types[0]]||'';return;}
+  if(types.length===1){sliceEls[i].style.fill=TYPE_COLORS[types[0]]||'';edgeEls[i].style.stroke=deep(TYPE_COLORS[types[0]]||'#cccccc');return;}
   let g=document.getElementById('pringSg'+i);
   if(!g){
-    g=document.createElementNS(SVGNS,'linearGradient');g.id='pringSg'+i;
-    g.setAttribute('x1','0%');g.setAttribute('y1','0%');g.setAttribute('x2','100%');g.setAttribute('y2','100%');
+    // Fläche und Außenkante teilen dieselbe Trennlinie (gleiche Koordinaten im Bühnenraum)
+    const bx=sliceBox(i);
+    g=document.createElementNS(SVGNS,'linearGradient');g.id='pringSg'+i;g.setAttribute('gradientUnits','userSpaceOnUse');
+    g.setAttribute('x1',bx.x0);g.setAttribute('y1',bx.y0);g.setAttribute('x2',bx.x1);g.setAttribute('y2',bx.y1);
+    const ge=g.cloneNode(false);ge.id='pringSe'+i;
+    const e1=document.createElementNS(SVGNS,'stop');e1.setAttribute('offset','50%');
+    const e2=document.createElementNS(SVGNS,'stop');e2.setAttribute('offset','50%');
+    ge.appendChild(e1);ge.appendChild(e2);TDEFS.appendChild(ge);
     const s1=document.createElementNS(SVGNS,'stop');s1.setAttribute('offset','50%');
     const s2=document.createElementNS(SVGNS,'stop');s2.setAttribute('offset','50%');
     g.appendChild(s1);g.appendChild(s2);TDEFS.appendChild(g);
@@ -661,6 +690,10 @@ function applySliceColor(i,types){
   g.children[0].setAttribute('stop-color',TYPE_COLORS[types[0]]||'#ccc');
   g.children[1].setAttribute('stop-color',TYPE_COLORS[types[1]]||'#ccc');
   sliceEls[i].style.fill='url(#pringSg'+i+')';
+  const ge=document.getElementById('pringSe'+i);
+  ge.children[0].setAttribute('stop-color',deep(TYPE_COLORS[types[0]]||'#cccccc'));
+  ge.children[1].setAttribute('stop-color',deep(TYPE_COLORS[types[1]]||'#cccccc'));
+  edgeEls[i].style.stroke='url(#pringSe'+i+')';
 }
 async function fetchTypes(m){
   try{
@@ -1541,6 +1574,8 @@ function setFormat(f){
 function syncFmtBtns(){document.querySelectorAll('#pringFmt button').forEach(b=>b.classList.toggle('on',b.dataset.f===FMT));
   document.getElementById('pringSafeRow').hidden=FMT!=='shorts';safeEl.hidden=FMT!=='shorts'||!$('safeChk').checked;}
 document.querySelectorAll('#pringFmt button').forEach(b=>b.onclick=()=>setFormat(b.dataset.f));
+{const c=$('tGlow');try{const v=localStorage.getItem('pring-tglow');if(v!==null)c.checked=v==='1';}catch(e){}
+  const u=()=>{wrap.classList.toggle('tglow',c.checked);try{localStorage.setItem('pring-tglow',c.checked?'1':'0');}catch(e){}};c.onchange=u;u();}
 $('safeChk').onchange=()=>{safeEl.hidden=FMT!=='shorts'||!$('safeChk').checked;};
 {let f='video';try{f=localStorage.getItem('pring-format')||'video';}catch(e){}setFormat(f);}
 
