@@ -447,7 +447,11 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 
 #pringRoot #pringWrap.loopbg.tglow #pringTeamer{filter:drop-shadow(0 0 14px rgba(255,255,255,.55)) drop-shadow(0 0 34px rgba(255,255,255,.28))}
 
-#pringRoot .tedge{transition:stroke .4s;pointer-events:none}
+#pringRoot .tedge{transition:stroke .4s;pointer-events:none;stroke-width:calc((3.5px + 8px) * 2)}
+#pringRoot #pringWrap.loopbg .tedge{stroke-width:calc((3.5px + 8px) * 2)}
+#pringRoot .sliceline{fill:none;stroke:#4b4f5b;stroke-width:6;stroke-linejoin:round;pointer-events:none}
+#pringRoot #pringWrap.loopbg .sliceline{stroke:rgba(255,255,255,.92);stroke-width:7}
+#pringRoot #pringWrap.loopbg .slice{stroke:none}
 
 </style>
 </head>
@@ -651,15 +655,19 @@ for(let i=0;i<6;i++){
   p.setAttribute('class','slice');tg.appendChild(p);sliceEls.push(p);
 }
 // Außenkante je Feld (Bogen), eingefärbt in einem tieferen Ton der Typfarbe
-const TEDGE_W=20,TEDGE_R=TEAM_R_OUT-13;
+const TEDGE_VIS=8;   // sichtbare Breite der Typ-Kontur innerhalb des Feldes
 const edgeEls=[];
 for(let i=0;i<6;i++){
-  const[x0,y0]=polar(TEDGE_R,i*60+.6),[x1,y1]=polar(TEDGE_R,i*60+59.4);
-  const p=document.createElementNS(SVGNS,'path');
-  p.setAttribute('d',`M ${x0} ${y0} A ${TEDGE_R} ${TEDGE_R} 0 0 1 ${x1} ${y1}`);
-  p.setAttribute('class','tedge');p.setAttribute('fill','none');p.setAttribute('stroke-width',TEDGE_W);p.setAttribute('stroke-linecap','butt');
+  const d=sectorPath(TEAM_R_IN,TEAM_R_OUT,i*60,i*60+60);
+  const cp=document.createElementNS(SVGNS,'clipPath');cp.id='pringSc'+i;
+  const cpp=document.createElementNS(SVGNS,'path');cpp.setAttribute('d',d);cp.appendChild(cpp);TDEFS.appendChild(cp);
+  // Kontur des ganzen Feldes (außen, innen und die Trennlinien), nach außen abgeschnitten -> liegt sauber innen am Rand
+  const p=document.createElementNS(SVGNS,'path');p.setAttribute('d',d);p.setAttribute('class','tedge');
+  p.setAttribute('fill','none');p.setAttribute('stroke-linejoin','round');p.setAttribute('clip-path',`url(#pringSc${i})`);
   p.style.stroke='none';tg.appendChild(p);edgeEls.push(p);
 }
+// weiße bzw. graue Trennlinien noch einmal obendrauf, damit sie über der Typ-Kontur liegen
+for(let i=0;i<6;i++){const l=document.createElementNS(SVGNS,'path');l.setAttribute('d',sectorPath(TEAM_R_IN,TEAM_R_OUT,i*60,i*60+60));l.setAttribute('class','sliceline');tg.appendChild(l);}
 function deep(hex){ // gleicher Farbton, kräftiger und dunkler als das Pastell-Feld
   const n=parseInt(hex.slice(1),16);let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
   const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0;const d=mx-mn;
