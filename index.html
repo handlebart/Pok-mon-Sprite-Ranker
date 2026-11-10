@@ -487,7 +487,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 20</div>
+  <div id="verTag">Version 21</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -1164,7 +1164,7 @@ async function zoomIn(m){
   if(B){
     // 2) Sprung zum Partner: kurz rauszoomen, rüber, wieder rein. A wird "aufgesammelt" und reist in der Bildmitte mit.
     const zA=ZOOM_SIZE/m.size,zB=ZOOM_SIZE/pt.size,d=Math.hypot(pt.x-m.x,pt.y-m.y);
-    const zMid=Math.min(zA,zB,1600/(d+520)),dip=Math.log(Math.min(zA,zB))-Math.log(zMid);
+    const zMid=Math.min(zA,zB,SW/(d+520)),dip=Math.log(Math.min(zA,zB))-Math.log(zMid);
     rs('partner',1.7);
     await tween(1700,(e,p)=>{
       const cx=m.x+(pt.x-m.x)*e,cy=m.y+(pt.y-m.y)*e;
@@ -1174,7 +1174,7 @@ async function zoomIn(m){
       const sA=ZOOM_SIZE*A.o.s*hop;                                 // Bildschirmgröße von A
       A.pos={x:cx+A.o.dx*hop/z,y:cy+A.o.dy*hop/z+(1-hop)*60/z,size:sA/z};
       B.pos={x:pt.x+B.o.dx/z,y:pt.y+B.o.dy/z,size:pt.size*B.o.s};
-      B.reveal(p);applyCam(z,cx,cy,1);
+      B.reveal(p);applyCam(z,cx-(SW/2-SCX)/z,cy-(SH/2-SCY)/z,1);   // (cx,cy) in der Bildmitte halten
     });
   }
   // 3) Iris in Ringfarbe, Gruppe wandert nach links
