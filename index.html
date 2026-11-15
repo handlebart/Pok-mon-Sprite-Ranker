@@ -453,6 +453,29 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot #pringWrap.loopbg .sliceline{stroke:rgba(255,255,255,.92);stroke-width:7}
 #pringRoot #pringWrap.loopbg .slice{stroke:none}
 
+/* ---------- Ringe: Ablauf-Takt ---------- */
+#pringRoot details.takt{grid-column:1/-1}
+#pringRoot details.takt summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#pringRoot details.takt summary::-webkit-details-marker{display:none}
+#pringRoot details.takt summary h3{margin:2px 0}
+#pringRoot details.takt summary h3::after{content:' ▸';color:#a9adb8}
+#pringRoot details.takt[open] summary h3::after{content:' ▾'}
+#pokemonRingeView #pringRoot #pringTkRec{border-color:#e53935;color:#ffb4b0}
+#pokemonRingeView #pringRoot #pringTkRec.on{background:#d92d2d;color:#fff}
+#pokemonRingeView #pringRoot #pringTkSave.dirty{border-color:#f0a13a;color:#ffd08a}
+#pringRoot #pringTkOff{width:150px;vertical-align:middle}
+#pringRoot #pringTkName{min-width:220px}
+#pringRoot #pringTkList{max-height:300px;overflow-y:auto;margin-top:6px;-webkit-overflow-scrolling:touch}
+#pringRoot .tkrow{display:flex;align-items:center;gap:6px;padding:4px 2px;border-top:1px solid rgba(255,255,255,.07);font-size:13.5px}
+#pringRoot .tkrow .n{width:26px;color:#8a8f99;text-align:right}
+#pringRoot .tkrow .t{width:62px;font-variant-numeric:tabular-nums;color:#ffd08a;font-weight:600}
+#pringRoot .tkrow .a{flex:1;color:#d6d9e0}
+#pokemonRingeView #pringRoot .tkrow button{padding:4px 8px;font-size:12.5px}
+#pringTkOv{position:absolute;inset:0;z-index:50;pointer-events:none;display:flex;align-items:center;justify-content:center}
+#pringTkOv.block{pointer-events:auto}
+#pringTkOv.cd{pointer-events:auto;font:800 min(22vw,180px)/1 system-ui,sans-serif;color:rgba(255,255,255,.85);text-shadow:0 6px 30px rgba(0,0,0,.6)}
+#pringTkOv.flash{background:#fff}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -523,7 +546,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 47</div>
+  <div id="verTag">Version 48</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -565,6 +588,13 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <button id="pringRingOff">Alle Ringe ausblenden</button>
 <button id="pringAllSend">Alle zum Ring</button><button id="pringTeamBtn" class="pri">Teamer anzeigen</button></div></section>
 <section class="grp"><h3>Mittelkreis</h3><div class="bar"><button id="pringAllBack">Alle zurück in den Kreis</button><button id="pringAllOut">Alle aus Kreis</button><button id="pringAllSeq" class="pri">Alle nacheinander in den Kreis</button><select id="pringSeqGap" title="Zeitabstand zwischen den Pokémon"><option value="100">Abstand 0,1 s</option><option value="200">Abstand 0,2 s</option><option value="300">Abstand 0,3 s</option><option value="600" selected>Abstand 0,6 s</option><option value="1000">Abstand 1 s</option><option value="1500">Abstand 1,5 s</option></select></div></section>
+<details class="grp wide takt" id="pringTakt" open><summary><h3>Ablauf-Takt</h3><span class="hint">Voiceover am Handy abspielen, hier mitklicken – danach läuft alles automatisch synchron</span></summary>
+<div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button></div>
+<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkStop" hidden>■ Stopp</button>
+<label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label></div>
+<p class="hint" id="pringTkState">Ablauf: Kader oben auswählen → „Takt einklopfen“ → bei „1“ Voiceover am Handy starten → Tool bedienen → beenden. Zum Aufnehmen: Bildschirmaufnahme an, „Abspielen“.</p>
+<div id="pringTkList"></div>
+</details>
 <details class="grp wide sounds"><summary><h3>Sounds</h3><span class="hint" id="pringSState"></span></summary>
 <div class="bar"><label><input type="checkbox" id="pringSOn" checked> Sounds an</label><label>Lautstärke <input type="range" id="pringSVol" min="0" max="100" value="70"></label></div>
 <div id="pringSList"></div>
@@ -1631,6 +1661,141 @@ $('safeChk').onchange=()=>{safeEl.hidden=FMT!=='shorts'||!$('safeChk').checked;}
 
 $('zoomEnd').onclick=()=>{if(Z.on&&!Z.busy)zoomOut();};
 $('zoomSwap').onclick=zoomSwap;
+
+
+/* ===================== ABLAUF-TAKT ===================== */
+const TK_KEY='pring-takt';
+const TK={rec:false,play:false,t0:0,ev:[],kader:'',set:null,timers:[],stop:false,replaying:false};
+const tkGet=()=>{try{return JSON.parse(localStorage.getItem(TK_KEY)||'{}')||{};}catch(e){return {};}};
+const tkPut=o=>{try{localStorage.setItem(TK_KEY,JSON.stringify(o));return true;}catch(e){return false;}};
+const TK_BTN={zPrev:'Steckbrief zurück',zNext:'Steckbrief weiter',zoomEnd:'Zoom beenden',zoomSwap:'Partner nach vorne',
+  ringPlus:'Ring einblenden',ringMinus:'Ring ausblenden',ringOff:'Alle Ringe aus',allSend:'Alle zum Ring',teamBtn:'Teamer an/aus',
+  allBack:'Alle zurück in den Kreis',allOut:'Alle aus Kreis',allSeq:'Alle nacheinander in den Kreis',allRev:'Alle einfärben',
+  allHide:'Alle Silhouette',allPixOn:'Alle verpixeln',allPixOff:'Alle scharf',allPixAuto:'Alle Pixel: Auto'};
+const TK_CHK={spin:'Kreisen',tGlow:'Teamer-Glow'};
+const TK_CARD={circ:'Kreis rein/raus',go:'Ring hin/zurück',team:'Team rein/raus',col:'Einfärben/Silhouette',pix:'Pixel',zoom:'Zoom'};
+const tkZoomy=k=>k==='tap'||k==='b:zPrev'||k==='b:zNext'||k==='b:zoomEnd'||k==='b:zoomSwap'||k==='c:zoom';
+function tkFmt(ms){ms=Math.max(0,ms);const s=ms/1000,m=Math.floor(s/60);return m+':'+(s-m*60).toFixed(1).padStart(4,'0');}
+function tkStatus(t){$('tkState').textContent=t;}
+/* Ereignis -> ausführbar? (blockierte Klicks werden beim Abspielen abgewartet, beim Einklopfen gar nicht erst gemerkt) */
+function tkReady(e){
+  const key=e.k==='b'?'b:'+e.id:e.k==='c'?'c:'+e.a:e.k;
+  if(tkZoomy(key)&&Z.busy)return false;
+  if((e.k==='tap'||key==='b:zNext'||key==='b:zPrev')&&!Z.on)return false;
+  if(e.k==='b'){const el=$(e.id);return !!el&&!el.disabled&&!el.hidden;}
+  if(e.k==='c'){const m=mons[e.i];return !!m&&!!m.card;}
+  return true;
+}
+function tkExec(e){
+  TK.replaying=true;
+  try{
+    if(e.k==='b')$(e.id).click();
+    else if(e.k==='chk'){const el=$(e.id);if(el.checked!==e.v)el.click();}
+    else if(e.k==='c')mons[e.i].card.querySelector('[data-a='+e.a+']').click();
+    else if(e.k==='tap')wrap.click();
+  }finally{TK.replaying=false;}
+}
+function tkLabel(e){
+  if(e.k==='b')return TK_BTN[e.id]||e.id;
+  if(e.k==='chk')return TK_CHK[e.id]+(e.v?' an':' aus');
+  if(e.k==='c'){const m=mons[e.i];return (m?m.name:'#'+(e.i+1))+': '+(TK_CARD[e.a]||e.a);}
+  return 'Tippen auf Bühne (Steckbrief weiter)';
+}
+/* ---------- Einklopfen: Klicks im Ringe-Tool mitschreiben ---------- */
+const TK_VIEW=document.getElementById('pokemonRingeView');
+TK_VIEW.addEventListener('click',ev=>{
+  if(!TK.rec||TK.replaying)return;
+  const t=ev.target;if(t.closest('#pringTakt'))return;
+  let e=null;
+  const b=t.closest('button');
+  if(b&&b.id&&b.id.startsWith('pring')){const id=b.id.slice(5,6).toLowerCase()+b.id.slice(6);if(TK_BTN[id])e={k:'b',id};}
+  else if(b&&b.dataset.a&&TK_CARD[b.dataset.a]){const card=b.closest('.card'),i=mons.findIndex(m=>m.card===card);if(i>=0)e={k:'c',i,a:b.dataset.a};}
+  else if(!b&&t.closest('#pringWrap')&&Z.on&&!Z.busy)e={k:'tap'};
+  if(!e||!tkReady(e))return;
+  e.t=Math.round(performance.now()-TK.t0);TK.ev.push(e);tkStatus('Einklopfen läuft – '+TK.ev.length+' Klicks · '+tkFmt(e.t));
+},true);
+TK_VIEW.addEventListener('change',ev=>{
+  if(!TK.rec||TK.replaying)return;const t=ev.target;if(t.closest('#pringTakt')||!t.id)return;
+  const id=t.id.slice(5,6).toLowerCase()+t.id.slice(6);if(!TK_CHK[id])return;
+  TK.ev.push({k:'chk',id,v:t.checked,t:Math.round(performance.now()-TK.t0)});
+},true);
+/* ---------- gleicher Ausgangszustand für Einklopfen und Abspielen ---------- */
+const tkWait=ms=>new Promise(r=>setTimeout(r,ms));
+async function tkReset(kader,set){
+  for(let n=0;(Z.on||Z.busy)&&n<400;n++){if(Z.on&&!Z.busy)zoomOut();await tkWait(25);}
+  seqCancel();
+  if(set){if($('spin').checked!==set.spin)$('spin').checked=set.spin;
+    if($('tGlow').checked!==set.tGlow){$('tGlow').checked=set.tGlow;$('tGlow').onchange();}}
+  $('pSel').value=kader;TK.replaying=true;try{$('pLoad').click();}finally{TK.replaying=false;}
+  shown=0;updRing();
+  if(tg.classList.contains('on')){tg.classList.remove('on');$('teamBtn').textContent='Teamer anzeigen';}
+  const t0=performance.now();while(mons.some(m=>!m.img.complete)&&performance.now()-t0<4000)await tkWait(50);
+  await tkWait(400);
+}
+let tkOv=null;
+function tkOverlay(){if(!tkOv){tkOv=document.createElement('div');tkOv.id='pringTkOv';tkOv.addEventListener('click',e=>e.stopPropagation());wrap.appendChild(tkOv);}return tkOv;}
+async function tkCountdown(){const o=tkOverlay();o.className='cd';for(const n of ['3','2','1']){if(TK.stop)return;o.textContent=n;await tkWait(700);}o.textContent='';}
+function tkFlash(){const o=tkOverlay();o.textContent='';o.className='flash';setTimeout(()=>{o.className=TK.play?'block':'';},90);}
+function tkUI(){
+  $('tkRec').textContent=TK.rec?'■ Einklopfen beenden':'● Takt einklopfen';$('tkRec').classList.toggle('on',TK.rec);
+  $('tkRec').disabled=TK.play;$('tkPlay').disabled=TK.rec||!TK.ev.length;$('tkStop').hidden=!TK.play;$('tkPlay').hidden=TK.play;
+  $('tkSave').disabled=TK.rec||TK.play||!TK.ev.length;
+}
+/* ---------- Liste zum Feinschieben ---------- */
+function tkList(){
+  const L=$('tkList');L.innerHTML='';const off=+$('tkOff').value;
+  if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks. „Takt einklopfen“ drücken, Voiceover am Handy starten und das Tool wie gewohnt bedienen.</p>';return;}
+  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow';
+    r.innerHTML=`<span class="n">${i+1}</span><span class="t">${tkFmt(e.t-off)}</span><span class="a">${tkLabel(e)}</span>`+
+      ['−1','−0,1','+0,1','+1'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button>`;
+    r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;
+      e.t=Math.max(0,e.t+d);TK.ev.sort((a,b)=>a.t-b.t);tkDirty();tkList();});
+    r.querySelector('[data-x]').onclick=()=>{TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
+    L.appendChild(r);});
+}
+function tkDirty(){$('tkSave').classList.add('dirty');}
+/* ---------- Einklopfen starten / beenden ---------- */
+$('tkRec').onclick=async()=>{
+  if(TK.rec){TK.rec=false;tkOverlay().className='';tkStatus(TK.ev.length+' Klicks gemerkt – unten fein verschieben, dann speichern.');tkDirty();tkList();tkUI();return;}
+  const kader=$('pSel').value;if(!kader){tkStatus('Bitte zuerst oben eine Kader-Vorauswahl auswählen (die wird jedes Mal frisch geladen).');return;}
+  if(TK.ev.length&&!confirm('Die bisherigen Klicks werden ersetzt. Weiter?'))return;
+  TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked};TK.ev=[];TK.stop=false;
+  $('tkRec').disabled=true;tkStatus('Kader „'+kader+'“ wird frisch geladen …');
+  await tkReset(kader,TK.set);
+  tkStatus('Bei „1“ das Voiceover am Handy starten …');await tkCountdown();
+  TK.t0=performance.now();TK.rec=true;tkFlash();tkStatus('Einklopfen läuft – Tool wie gewohnt bedienen.');tkUI();tkList();
+};
+/* ---------- Abspielen ---------- */
+$('tkPlay').onclick=async()=>{
+  if(!TK.ev.length||TK.play)return;
+  if(!getP()[TK.kader]){tkStatus('Kader „'+TK.kader+'“ gibt es nicht mehr.');return;}
+  TK.play=true;TK.stop=false;tkUI();tkStatus('Ausgangszustand wird hergestellt …');
+  await tkReset(TK.kader,TK.set);if(TK.stop)return tkEnd('Abgebrochen.');
+  tkOverlay().className='block';await tkCountdown();if(TK.stop)return tkEnd('Abgebrochen.');
+  const off=+$('tkOff').value,t0=performance.now();tkFlash();let late=0;
+  for(let i=0;i<TK.ev.length;i++){const e=TK.ev[i];
+    const due=t0+Math.max(0,e.t-off);while(performance.now()<due){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(Math.min(20,due-performance.now()));}
+    let w=0;while(!tkReady(e)&&w<10000){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(15);w+=15;}
+    if(w>=10000){tkStatus('Klick '+(i+1)+' ging nicht ('+tkLabel(e)+') – übersprungen.');continue;}
+    if(performance.now()-due>250)late++;
+    tkExec(e);tkStatus('Wiedergabe: Klick '+(i+1)+'/'+TK.ev.length+' · '+tkFmt(performance.now()-t0));
+  }
+  tkEnd(late?`Fertig. ${late} Klick(s) kamen verspätet, weil eine Animation noch lief – dort die Zeit etwas nach hinten schieben.`:'Fertig – Bildschirmaufnahme beenden. In CapCut die Tonspur am weißen Blitz anlegen.');
+};
+function tkEnd(msg){TK.play=false;tkOverlay().className='';tkStatus(msg);tkUI();}
+$('tkStop').onclick=()=>{TK.stop=true;};
+$('tkOff').oninput=()=>{$('tkOffV').textContent=(+$('tkOff').value/1000).toFixed(2).replace('.',',')+' s';tkDirty();tkList();};
+/* ---------- Presets ---------- */
+function tkRefresh(sel){const o=tkGet(),s=$('tkSel');s.innerHTML='<option value="">– Ablauf wählen –</option>';
+  Object.keys(o).forEach(k=>s.add(new Option(`${k} (${o[k].ev.length} Klicks)`,k)));if(sel&&o[sel])s.value=sel;}
+$('tkSel').onchange=()=>{const k=$('tkSel').value,o=tkGet()[k];if(!o)return;
+  TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
+  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();};
+$('tkSave').onclick=()=>{const n=$('tkName').value.trim();if(!n){tkStatus('Bitte einen Namen für den Ablauf eingeben.');return;}
+  const o=tkGet();o[n]={kader:TK.kader,set:TK.set,off:+$('tkOff').value,ev:TK.ev};
+  if(tkPut(o)){tkRefresh(n);$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+n+'“ gespeichert.');}else tkStatus('Speichern nicht möglich.');};
+$('tkDel').onclick=()=>{const k=$('tkSel').value,o=tkGet();if(!o[k])return;if(!confirm('Ablauf „'+k+'“ löschen?'))return;delete o[k];tkPut(o);tkRefresh();tkStatus('„'+k+'“ gelöscht.');};
+tkRefresh();$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkList();tkUI();
 
 /* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
 let rafId=0,started=false;
