@@ -468,7 +468,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot #pringTkList{max-height:300px;overflow-y:auto;margin-top:6px;-webkit-overflow-scrolling:touch}
 #pringRoot .tkrow{display:flex;align-items:center;gap:6px;padding:4px 2px;border-top:1px solid rgba(255,255,255,.07);font-size:13.5px}
 #pringRoot .tkrow .n{width:26px;color:#8a8f99;text-align:right}
-#pringRoot .tkrow .t{width:62px;font-variant-numeric:tabular-nums;color:#ffd08a;font-weight:600}
+#pokemonRingeView #pringRoot .tkrow input.t{width:78px;min-width:0;padding:4px 6px;font-variant-numeric:tabular-nums;color:#ffd08a;font-weight:600;font-size:14px;text-align:center}
 #pringRoot .tkrow .a{flex:1;color:#d6d9e0}
 #pokemonRingeView #pringRoot .tkrow button{padding:4px 8px;font-size:12.5px}
 #pringTkOv{position:absolute;inset:0;z-index:50;pointer-events:none;display:flex;align-items:center;justify-content:center}
@@ -546,7 +546,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 48</div>
+  <div id="verTag">Version 49</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -1676,6 +1676,7 @@ const TK_CHK={spin:'Kreisen',tGlow:'Teamer-Glow'};
 const TK_CARD={circ:'Kreis rein/raus',go:'Ring hin/zurück',team:'Team rein/raus',col:'Einfärben/Silhouette',pix:'Pixel',zoom:'Zoom'};
 const tkZoomy=k=>k==='tap'||k==='b:zPrev'||k==='b:zNext'||k==='b:zoomEnd'||k==='b:zoomSwap'||k==='c:zoom';
 function tkFmt(ms){ms=Math.max(0,ms);const s=ms/1000,m=Math.floor(s/60);return m+':'+(s-m*60).toFixed(1).padStart(4,'0');}
+function tkParse(v){v=String(v).trim().replace(',','.');let m=v.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/);if(m)return +m[1]*60+ +m[2];m=v.match(/^\d+(?:\.\d+)?$/);return m?+v:null;}
 function tkStatus(t){$('tkState').textContent=t;}
 /* Ereignis -> ausführbar? (blockierte Klicks werden beim Abspielen abgewartet, beim Einklopfen gar nicht erst gemerkt) */
 function tkReady(e){
@@ -1746,8 +1747,13 @@ function tkList(){
   const L=$('tkList');L.innerHTML='';const off=+$('tkOff').value;
   if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks. „Takt einklopfen“ drücken, Voiceover am Handy starten und das Tool wie gewohnt bedienen.</p>';return;}
   TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow';
-    r.innerHTML=`<span class="n">${i+1}</span><span class="t">${tkFmt(e.t-off)}</span><span class="a">${tkLabel(e)}</span>`+
-      ['−1','−0,1','+0,1','+1'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button>`;
+    r.innerHTML=`<span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="a">${tkLabel(e)}</span>`+
+      ['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button>`;
+    const ti=r.querySelector('input.t');
+    const apply=()=>{const v=tkParse(ti.value);if(v==null){ti.value=tkFmt(e.t-off).replace('.',',');tkStatus('Zeit nicht erkannt – Format z. B. 1:23,4 oder 83,4');return;}
+      const nt=Math.round(v*1000+off);if(nt===e.t)return;e.t=Math.max(0,nt);TK.ev.sort((a,b)=>a.t-b.t);tkDirty();tkList();};
+    ti.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();ti.blur();}else if(k.key==='Escape'){ti.value=tkFmt(e.t-off).replace('.',',');ti.blur();}};
+    ti.onchange=apply;ti.onfocus=()=>ti.select();
     r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;
       e.t=Math.max(0,e.t+d);TK.ev.sort((a,b)=>a.t-b.t);tkDirty();tkList();});
     r.querySelector('[data-x]').onclick=()=>{TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
