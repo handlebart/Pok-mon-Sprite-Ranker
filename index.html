@@ -546,7 +546,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 50</div>
+  <div id="verTag">Version 51</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -637,16 +637,17 @@ window.muLoop=function(host,opt){
   const cv=document.createElement('canvas');cv.className='muLoopCv';
   cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none';
   host.style.backgroundImage='none';host.appendChild(cv);
-  const ctx=cv.getContext('2d');let pat=null,img=new Image(),W=0,H=0,dpr=1;
+  const ctx=cv.getContext('2d');let lastKey='',pat=null,img=new Image(),W=0,H=0,dpr=1;
   const src=getComputedStyle(document.documentElement).getPropertyValue('--muPat').trim().replace(/^url\(["']?|["']?\)$/g,'');
   img.onload=()=>{pat=ctx.createPattern(img,'repeat');};img.src=src;
   function size(){const r=host.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);
-    const w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;}}
-  new ResizeObserver(size).observe(host);size();
-  let lastKey='';
+    const w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;lastKey='';}}
+  img.onerror=()=>{cv.remove();host.style.backgroundImage='var(--muPat)';};   // Notfall: statisches Muster statt leerer Fläche
   function frame(t){
     requestAnimationFrame(frame);
-    if(!pat||!host.offsetParent||document.hidden)return;
+    if(!pat||document.hidden)return;
+    const r=host.getBoundingClientRect();if(r.width<2||r.height<2)return;   // unsichtbar
+    size();                                                               // Größe jedes Bild prüfen (Safari meldet Größenwechsel nach display:none nicht zuverlässig)
     if(opt.active&&!opt.active())return;
     const tile=opt.tile()*dpr,moving=!opt.still||!opt.still();
     const off=moving?((t/(opt.sec*1000))%1)*tile:0;
