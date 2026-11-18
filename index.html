@@ -25,7 +25,7 @@ body{background:#15171c;color:#eceef2;font:15px/1.4 system-ui,-apple-system,"Seg
 
 /* ===== START: Logo auf den Ringen ===== */
 #startView{opacity:0;transition:opacity .45s ease;position:fixed;inset:0;overflow:hidden;background:#15171c;display:flex;align-items:center;justify-content:center}
-#startView .bg,#toolsView .bg{position:absolute;inset:0;background-color:#26272c;background-image:var(--muPat);background-repeat:repeat;will-change:transform}
+#startView .bg,#toolsView .bg{position:absolute;inset:0;background-color:#26272c;overflow:hidden}
 #startView .vig,#toolsView .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 40%,rgba(0,0,0,.45) 100%)}
 #startRings{position:relative;width:min(86vmin,760px);height:min(86vmin,760px)}
 #ringShadow{position:absolute;inset:0;border-radius:50%;box-shadow:0 20px 40px rgba(0,0,0,.5);z-index:-1}
@@ -414,7 +414,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot .fmt{display:flex;gap:4px;background:#14161b;border-radius:999px;padding:4px;box-shadow:inset 0 0 0 1px #2c303a}
 #pokemonRingeView #pringRoot .fmt button{border:0;border-radius:999px;background:transparent;color:#c9ccd4;padding:7px 14px}
 #pokemonRingeView #pringRoot .fmt button.on{background:linear-gradient(135deg,#e53935,#fb8c00);color:#fff;font-weight:800;text-shadow:0 1px 0 rgba(0,0,0,.35)}
-#pringRoot #pringPbg{position:absolute;inset:0;background-image:var(--muPat);background-repeat:repeat;background-color:#26272c;display:none;will-change:transform;pointer-events:none}
+#pringRoot #pringPbg{position:absolute;inset:0;background-color:#26272c;display:none;pointer-events:none;overflow:hidden}
 #pringRoot #pringWrap.loopbg #pringPbg{display:block}
 #pringRoot #pringWrap.loopbg::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 45%,rgba(0,0,0,.35) 100%);z-index:0}
 #pringRoot #pringScene{z-index:1}
@@ -546,7 +546,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 49</div>
+  <div id="verTag">Version 50</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -632,6 +632,32 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 </div>
 
 <script>
+/* Muster-Loop als Canvas (gegen Kachel-Flackern in Safari) */
+window.muLoop=function(host,opt){
+  const cv=document.createElement('canvas');cv.className='muLoopCv';
+  cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none';
+  host.style.backgroundImage='none';host.appendChild(cv);
+  const ctx=cv.getContext('2d');let pat=null,img=new Image(),W=0,H=0,dpr=1;
+  const src=getComputedStyle(document.documentElement).getPropertyValue('--muPat').trim().replace(/^url\(["']?|["']?\)$/g,'');
+  img.onload=()=>{pat=ctx.createPattern(img,'repeat');};img.src=src;
+  function size(){const r=host.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);
+    const w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;}}
+  new ResizeObserver(size).observe(host);size();
+  let lastKey='';
+  function frame(t){
+    requestAnimationFrame(frame);
+    if(!pat||!host.offsetParent||document.hidden)return;
+    if(opt.active&&!opt.active())return;
+    const tile=opt.tile()*dpr,moving=!opt.still||!opt.still();
+    const off=moving?((t/(opt.sec*1000))%1)*tile:0;
+    const key=W+'x'+H+':'+tile+':'+off.toFixed(2);if(key===lastKey)return;lastKey=key;
+    const s=tile/img.width;
+    ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=opt.bg||'#26272c';ctx.fillRect(0,0,W,H);
+    ctx.setTransform(s,0,0,s,off-tile,off-tile);ctx.fillStyle=pat;ctx.fillRect(0,0,(W+2*tile)/s,(H+2*tile)/s);
+  }
+  requestAnimationFrame(frame);
+};
+</script><script>
 /* ===== POKEMON-RINGE Aufnahme-Modus ===== */
 (function(){
   const view=document.getElementById('pokemonRingeView');
@@ -1617,18 +1643,16 @@ function applyBg(){
     midC.style.filter='';
   }
   bgSize();
-  if(bgAnim){bgAnim.cancel();bgAnim=null;}
-  if(v==='loop'){const t=+pbg.dataset.tile||200;
-    bgAnim=pbg.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(${t}px,${t}px,0)`}],{duration:8000,iterations:Infinity,easing:'linear'});}
   try{localStorage.setItem('pring-bg-'+FMT,v);}catch(e){}
 }
 function bgSize(){
   const w=wrap.clientWidth||1,t=Math.round(w*(FMT==='shorts'?.42:.24));
-  if(+pbg.dataset.tile!==t){pbg.dataset.tile=t;pbg.style.backgroundSize=t+'px '+t+'px';pbg.style.inset=`-${t}px 0 0 -${t}px`;
-    if(bgAnim){bgAnim.cancel();bgAnim=null;if($('bg').value==='loop')applyBgAnimOnly(t);}}
+  pbg.dataset.tile=t;
 }
 function applyBgAnimOnly(t){bgAnim=pbg.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(${t}px,${t}px,0)`}],{duration:8000,iterations:Infinity,easing:'linear'});}
 new ResizeObserver(bgSize).observe(wrap);
+pbg.style.inset='0';pbg.style.transform='none';
+window.muLoop(pbg,{tile:()=>+pbg.dataset.tile||200,sec:8,active:()=>wrap.classList.contains('loopbg'),still:()=>$('bg').value==='loopStill'});
 function setFormat(f){
   if(typeof Z!=='undefined'&&(Z.on||Z.busy)){$('status').textContent='Erst den Zoom beenden, dann das Format wechseln.';syncFmtBtns();return;}
   FMT=f==='shorts'?'shorts':'video';
@@ -2756,10 +2780,10 @@ const MENU_LOGO_MASK='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAIVCAYA
     const sz=Math.round(Math.max(260,Math.min(innerWidth,innerHeight)*0.42));
     if(sz===lastSz)return;lastSz=sz;
     bgAnims.forEach(x=>x.cancel());
-    bgAnims=bgs.map(b=>{b.style.backgroundSize=sz+'px '+sz+'px';b.style.inset=`-${sz}px 0 0 -${sz}px`;
-      return b.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(${sz}px,${sz}px,0)`}],{duration:SEC*1000,iterations:Infinity,easing:'linear'});});
+    bgs.forEach(b=>{b.style.inset='0';b.style.transform='none';});
   }
   setupBg();addEventListener('resize',setupBg);
+  bgs.forEach(b=>window.muLoop(b,{tile:()=>lastSz||300,sec:SEC}));
 
   /* Übergang: die Tool-Auswahl wächst in Form des Schnurrbarts aus dem Logo */
   const AR=533/1200,ANC={x:.6258,y:.3039},PADX=60/1320;   // Logo-Bild hat einen Rand von 60/1320 links/rechts
