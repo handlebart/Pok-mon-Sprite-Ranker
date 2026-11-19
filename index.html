@@ -476,6 +476,16 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringTkOv.cd{pointer-events:auto;font:800 min(22vw,180px)/1 system-ui,sans-serif;color:rgba(255,255,255,.85);text-shadow:0 6px 30px rgba(0,0,0,.6)}
 #pringTkOv.flash{background:#fff}
 
+#pringRoot .tkrow .ck{width:18px;height:18px;margin:0 2px}
+#pringRoot .tkrow.sel{background:rgba(240,161,58,.14)}
+#pringRoot .tkrow.mon .a{color:#ffd08a;font-weight:600}
+#pringRoot .tkrow .g{width:46px;color:#8a8f99;font-size:12px;font-variant-numeric:tabular-nums}
+#pokemonRingeView #pringRoot #pringTkFromN,#pokemonRingeView #pringRoot #pringTkMoveN{width:64px;min-width:0;padding:5px 6px;text-align:center}
+#pringRoot .tkfrom,#pringRoot .tkmove{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+#pringRoot .tkedit{gap:10px 16px}
+#pokemonRingeView #pringRoot #pringTkPause.on{background:#f0a13a;color:#1b1b1f}
+#pringRoot #pringTkMarkOut{width:100%;margin-top:6px;font:13px/1.5 ui-monospace,monospace;background:#1b1c21;color:#e8e8e8;border:1px solid #3a3b42;border-radius:8px;padding:8px}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -546,7 +556,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 53</div>
+  <div id="verTag">Version 397</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -589,10 +599,15 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <button id="pringAllSend">Alle zum Ring</button><button id="pringTeamBtn" class="pri">Teamer anzeigen</button></div></section>
 <section class="grp"><h3>Mittelkreis</h3><div class="bar"><button id="pringAllBack">Alle zurück in den Kreis</button><button id="pringAllOut">Alle aus Kreis</button><button id="pringAllSeq" class="pri">Alle nacheinander in den Kreis</button><select id="pringSeqGap" title="Zeitabstand zwischen den Pokémon"><option value="100">Abstand 0,1 s</option><option value="200">Abstand 0,2 s</option><option value="300">Abstand 0,3 s</option><option value="600" selected>Abstand 0,6 s</option><option value="1000">Abstand 1 s</option><option value="1500">Abstand 1,5 s</option></select></div></section>
 <details class="grp wide takt" id="pringTakt" open><summary><h3>Ablauf-Takt</h3><span class="hint">Voiceover am Handy abspielen, hier mitklicken – danach läuft alles automatisch synchron</span></summary>
-<div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button></div>
-<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkStop" hidden>■ Stopp</button>
+<div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden></div>
+<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
+<span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
 <label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label></div>
 <p class="hint" id="pringTkState">Ablauf: Kader oben auswählen → „Takt einklopfen“ → bei „1“ Voiceover am Handy starten → Tool bedienen → beenden. Zum Aufnehmen: Bildschirmaufnahme an, „Abspielen“.</p>
+<div class="bar tkedit"><label><input type="checkbox" id="pringTkFollow" checked> Folgende Klicks mitschieben</label>
+<span class="tkmove">Markierte vor Klick Nr. <input type="number" id="pringTkMoveN" min="1" value="1" inputmode="numeric"> <button id="pringTkMove">verschieben</button> <button id="pringTkSelNone">Markierung aufheben</button> <b id="pringTkSelInfo"></b></span>
+<button id="pringTkMarks">Zeitmarken für CapCut</button></div>
+<textarea id="pringTkMarkOut" hidden readonly rows="6"></textarea>
 <div id="pringTkList"></div>
 </details>
 <details class="grp wide sounds"><summary><h3>Sounds</h3><span class="hint" id="pringSState"></span></summary>
@@ -1705,7 +1720,7 @@ $('zoomSwap').onclick=zoomSwap;
 
 /* ===================== ABLAUF-TAKT ===================== */
 const TK_KEY='pring-takt';
-const TK={rec:false,play:false,t0:0,ev:[],kader:'',set:null,timers:[],stop:false,replaying:false};
+const TK={rec:false,play:false,pause:false,t0:0,ev:[],kader:'',set:null,timers:[],stop:false,replaying:false,sel:new Set()};
 const tkGet=()=>{try{return JSON.parse(localStorage.getItem(TK_KEY)||'{}')||{};}catch(e){return {};}};
 const tkPut=o=>{try{localStorage.setItem(TK_KEY,JSON.stringify(o));return true;}catch(e){return false;}};
 const TK_BTN={zPrev:'Steckbrief zurück',zNext:'Steckbrief weiter',zoomEnd:'Zoom beenden',zoomSwap:'Partner nach vorne',
@@ -1780,67 +1795,145 @@ function tkFlash(){const o=tkOverlay();o.textContent='';o.className='flash';setT
 function tkUI(){
   $('tkRec').textContent=TK.rec?'■ Einklopfen beenden':'● Takt einklopfen';$('tkRec').classList.toggle('on',TK.rec);
   $('tkRec').disabled=TK.play;$('tkPlay').disabled=TK.rec||!TK.ev.length;$('tkStop').hidden=!TK.play;$('tkPlay').hidden=TK.play;
+  $('tkPause').hidden=!TK.play;$('tkPause').textContent=TK.pause?'▶ Weiter':'❚❚ Pause';$('tkPause').classList.toggle('on',TK.pause);
+  $('tkFrom').disabled=TK.rec||TK.play||!TK.ev.length;$('tkFromN').max=Math.max(1,TK.ev.length);
+  $('tkMove').disabled=TK.rec||TK.play||!TK.sel.size;$('tkSelInfo').textContent=TK.sel.size?TK.sel.size+' markiert':'';
   $('tkSave').disabled=TK.rec||TK.play||!TK.ev.length;
 }
 /* ---------- Liste zum Feinschieben ---------- */
 function tkList(){
   const L=$('tkList');L.innerHTML='';const off=+$('tkOff').value;
   if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks. „Takt einklopfen“ drücken, Voiceover am Handy starten und das Tool wie gewohnt bedienen.</p>';return;}
-  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow';
-    r.innerHTML=`<span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="a">${tkLabel(e)}</span>`+
+  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow'+(TK.sel.has(e)?' sel':'')+(e.k==='c'&&e.a==='zoom'?' mon':'');
+    const gap=i?e.t-TK.ev[i-1].t:0;
+    r.innerHTML=`<input type="checkbox" class="ck" ${TK.sel.has(e)?'checked':''} title="markieren"><span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="g">${i?'+'+(gap/1000).toFixed(1).replace('.',','):''}</span><span class="a">${tkLabel(e)}</span>`+
       ['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button>`;
     const ti=r.querySelector('input.t');
     const apply=()=>{const v=tkParse(ti.value);if(v==null){ti.value=tkFmt(e.t-off).replace('.',',');tkStatus('Zeit nicht erkannt – Format z. B. 1:23,4 oder 83,4');return;}
-      const nt=Math.round(v*1000+off);if(nt===e.t)return;e.t=Math.max(0,nt);TK.ev.sort((a,b)=>a.t-b.t);tkDirty();tkList();};
+      const nt=Math.max(0,Math.round(v*1000+off));if(nt===e.t)return;tkShift(i,nt-e.t);};
     ti.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();ti.blur();}else if(k.key==='Escape'){ti.value=tkFmt(e.t-off).replace('.',',');ti.blur();}};
     ti.onchange=apply;ti.onfocus=()=>ti.select();
-    r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;
-      e.t=Math.max(0,e.t+d);TK.ev.sort((a,b)=>a.t-b.t);tkDirty();tkList();});
-    r.querySelector('[data-x]').onclick=()=>{TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
+    r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;tkShift(i,d);});
+    r.querySelector('[data-x]').onclick=()=>{TK.sel.delete(e);TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
+    r.querySelector('.ck').onchange=ev=>{if(ev.target.checked)TK.sel.add(e);else TK.sel.delete(e);r.classList.toggle('sel',ev.target.checked);tkUI();};
     L.appendChild(r);});
 }
 function tkDirty(){$('tkSave').classList.add('dirty');}
+/* Zeit eines Klicks ändern – mit „Folgende mitschieben“ wandern alle späteren Klicks um denselben Betrag mit */
+function tkShift(i,d){
+  const e=TK.ev[i];if(!e)return;
+  if($('tkFollow').checked){
+    d=Math.max(d,-e.t);if(i>0)d=Math.max(d,TK.ev[i-1].t-e.t);       // nicht vor den vorherigen Klick rutschen
+    for(let k=i;k<TK.ev.length;k++)TK.ev[k].t=Math.max(0,TK.ev[k].t+d);
+  }else{e.t=Math.max(0,e.t+d);TK.ev.sort((a,b)=>a.t-b.t);}
+  tkDirty();tkList();
+}
+/* Markierte Klicks als Block vor Klick Nr. X setzen – Abstände im Block bleiben, alles danach rückt nach hinten */
+function tkMoveSel(target){
+  const ev=TK.ev,n=ev.length;if(!TK.sel.size)return;
+  const gap=ev.map((e,i)=>i?e.t-ev[i-1].t:e.t);
+  const blockIdx=ev.map((e,i)=>i).filter(i=>TK.sel.has(ev[i]));
+  const tgtEv=target>=1&&target<=n?ev[target-1]:null;
+  if(tgtEv&&TK.sel.has(tgtEv)){tkStatus('Das Ziel darf nicht selbst markiert sein.');return;}
+  const block=blockIdx.map(i=>({e:ev[i],g:gap[i]}));
+  const rest=ev.map((e,i)=>({e,g:gap[i]})).filter(x=>!TK.sel.has(x.e));
+  // Lücke schließen, wo der Block herausgenommen wurde: Abstände der Block-Klicks gehen an den nächsten verbleibenden Klick über? Nein –
+  // der Block lag bisher meist am Ende; die Zeit dazwischen bleibt einfach unverändert.
+  let at=tgtEv?rest.findIndex(x=>x.e===tgtEv):rest.length;
+  if(tgtEv){const gT=rest[at].g;block[0].g=gT;rest[at].g=Math.max(1500,gT);}
+  else block[0].g=Math.max(1500,block[0].g);
+  const out=[...rest.slice(0,at),...block,...rest.slice(at)];
+  let t=0;out.forEach((x,i)=>{t=i?t+x.g:x.g;x.e.t=Math.round(t);});
+  TK.ev=out.map(x=>x.e);TK.sel.clear();tkDirty();tkList();tkUI();
+  tkStatus(block.length+' Klick(s) verschoben'+(tgtEv?' – alles danach ist entsprechend später.':' ans Ende.'));
+}
+$('tkMove').onclick=()=>{const x=parseInt($('tkMoveN').value,10);if(!(x>=1&&x<=TK.ev.length+1)){tkStatus('Bitte eine gültige Klick-Nummer angeben.');return;}tkMoveSel(x);};
+$('tkSelNone').onclick=()=>{TK.sel.clear();tkList();tkUI();};
+/* Zeitmarken für CapCut: Beginn jedes Pokémon-Zooms */
+$('tkMarks').onclick=()=>{const off=+$('tkOff').value;
+  const lines=TK.ev.filter(e=>e.k==='c'&&(e.a==='zoom'||e.a==='go')).map(e=>tkFmt(e.t-off).replace('.',',')+'  '+tkLabel(e));
+  const ta=$('tkMarkOut');ta.hidden=false;ta.value=lines.join('\n')||'Keine Pokémon-Aktionen im Ablauf.';ta.focus();ta.select();
+  try{navigator.clipboard&&navigator.clipboard.writeText(ta.value).then(()=>tkStatus('Zeitmarken kopiert.'),()=>{});}catch(e){}};
 /* ---------- Einklopfen starten / beenden ---------- */
 $('tkRec').onclick=async()=>{
   if(TK.rec){TK.rec=false;tkOverlay().className='';tkStatus(TK.ev.length+' Klicks gemerkt – unten fein verschieben, dann speichern.');tkDirty();tkList();tkUI();return;}
   const kader=$('pSel').value;if(!kader){tkStatus('Bitte zuerst oben eine Kader-Vorauswahl auswählen (die wird jedes Mal frisch geladen).');return;}
   if(TK.ev.length&&!confirm('Die bisherigen Klicks werden ersetzt. Weiter?'))return;
-  TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked};TK.ev=[];TK.stop=false;
+  TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked};TK.ev=[];TK.sel.clear();TK.stop=false;
   $('tkRec').disabled=true;tkStatus('Kader „'+kader+'“ wird frisch geladen …');
   await tkReset(kader,TK.set);
   tkStatus('Bei „1“ das Voiceover am Handy starten …');await tkCountdown();
   TK.t0=performance.now();TK.rec=true;tkFlash();tkStatus('Einklopfen läuft – Tool wie gewohnt bedienen.');tkUI();tkList();
 };
 /* ---------- Abspielen ---------- */
-$('tkPlay').onclick=async()=>{
+function tkPlan(from){ // Zoom-Sitzungen, die vollständig vor dem Startklick liegen, beim Vorspulen überspringen
+  const skip=new Set();let open=-1;
+  for(let i=0;i<from;i++){const e=TK.ev[i];
+    if(e.k==='c'&&e.a==='zoom'){open=i;}
+    if(open>=0&&tkZoomy(e.k==='b'?'b:'+e.id:e.k==='c'?'c:'+e.a:e.k)){skip.add(i);}
+    if(e.k==='b'&&e.id==='zoomEnd'){open=-1;}}
+  // offene Sitzung (Startklick liegt mitten im Zoom) doch ausführen
+  if(open>=0)for(let i=open;i<from;i++)skip.delete(i);
+  return skip;
+}
+async function tkRun(from){
   if(!TK.ev.length||TK.play)return;
   if(!getP()[TK.kader]){tkStatus('Kader „'+TK.kader+'“ gibt es nicht mehr.');return;}
-  TK.play=true;TK.stop=false;tkUI();tkStatus('Ausgangszustand wird hergestellt …');
+  TK.play=true;TK.stop=false;TK.pause=false;tkUI();tkStatus('Ausgangszustand wird hergestellt …');
   await tkReset(TK.kader,TK.set);if(TK.stop)return tkEnd('Abgebrochen.');
-  tkOverlay().className='block';await tkCountdown();if(TK.stop)return tkEnd('Abgebrochen.');
-  const off=+$('tkOff').value,t0=performance.now();tkFlash();let late=0;
-  for(let i=0;i<TK.ev.length;i++){const e=TK.ev[i];
-    const due=t0+Math.max(0,e.t-off);while(performance.now()<due){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(Math.min(20,due-performance.now()));}
+  tkOverlay().className='block';
+  if(from>0){tkStatus('Vorspulen bis Klick '+(from+1)+' …');const skip=tkPlan(from);
+    for(let i=0;i<from;i++){if(TK.stop)return tkEnd('Abgebrochen.');if(skip.has(i))continue;const e=TK.ev[i];
+      let w=0;while(!tkReady(e)&&w<8000){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(15);w+=15;}if(w<8000)tkExec(e);await tkWait(30);}
+    const t1=performance.now();while((Z.busy||seqBusy())&&performance.now()-t1<8000)await tkWait(30);await tkWait(600);}
+  await tkCountdown();if(TK.stop)return tkEnd('Abgebrochen.');
+  const off=+$('tkOff').value,base=from>0?TK.ev[from].t-1000:0;let t0=performance.now();if(from===0)tkFlash();let late=0;
+  const clock=()=>performance.now()-t0+base;
+  for(let i=from;i<TK.ev.length;i++){const e=TK.ev[i];
+    const due=Math.max(0,e.t-off);
+    while(clock()<due||TK.pause){
+      if(TK.stop)return tkEnd('Abgebrochen.');
+      if(TK.pause){const p0=performance.now();tkStatus('Pausiert bei '+tkFmt(clock())+' – nächster Klick '+(i+1)+': '+tkLabel(e));
+        while(TK.pause&&!TK.stop)await tkWait(40);t0+=performance.now()-p0;continue;}
+      await tkWait(Math.min(20,due-clock()));}
     let w=0;while(!tkReady(e)&&w<10000){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(15);w+=15;}
     if(w>=10000){tkStatus('Klick '+(i+1)+' ging nicht ('+tkLabel(e)+') – übersprungen.');continue;}
-    if(performance.now()-due>250)late++;
-    tkExec(e);tkStatus('Wiedergabe: Klick '+(i+1)+'/'+TK.ev.length+' · '+tkFmt(performance.now()-t0));
+    if(clock()-due>250)late++;
+    tkExec(e);tkStatus('Wiedergabe: Klick '+(i+1)+'/'+TK.ev.length+' · '+tkFmt(clock())+' · '+tkLabel(e));
   }
-  tkEnd(late?`Fertig. ${late} Klick(s) kamen verspätet, weil eine Animation noch lief – dort die Zeit etwas nach hinten schieben.`:'Fertig – Bildschirmaufnahme beenden. In CapCut die Tonspur am weißen Blitz anlegen.');
-};
-function tkEnd(msg){TK.play=false;tkOverlay().className='';tkStatus(msg);tkUI();}
-$('tkStop').onclick=()=>{TK.stop=true;};
+  tkEnd(late?`Fertig. ${late} Klick(s) kamen verspätet, weil eine Animation noch lief – dort die Zeit etwas nach hinten schieben.`:(from>0?'Fertig.':'Fertig – Bildschirmaufnahme beenden. In CapCut die Tonspur am weißen Blitz anlegen.'));
+}
+function seqBusy(){try{return seqT.length>0;}catch(e){return false;}}
+$('tkPlay').onclick=()=>tkRun(0);
+$('tkFrom').onclick=()=>{const x=parseInt($('tkFromN').value,10);if(!(x>=1&&x<=TK.ev.length)){tkStatus('Bitte eine gültige Klick-Nummer angeben.');return;}tkRun(x-1);};
+$('tkPause').onclick=()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();if(!TK.pause)tkStatus('Weiter …');};
+function tkEnd(msg){TK.play=false;TK.pause=false;tkOverlay().className='';tkStatus(msg);tkUI();}
+$('tkStop').onclick=()=>{TK.stop=true;TK.pause=false;};
 $('tkOff').oninput=()=>{$('tkOffV').textContent=(+$('tkOff').value/1000).toFixed(2).replace('.',',')+' s';tkDirty();tkList();};
 /* ---------- Presets ---------- */
 function tkRefresh(sel){const o=tkGet(),s=$('tkSel');s.innerHTML='<option value="">– Ablauf wählen –</option>';
   Object.keys(o).forEach(k=>s.add(new Option(`${k} (${o[k].ev.length} Klicks)`,k)));if(sel&&o[sel])s.value=sel;}
 $('tkSel').onchange=()=>{const k=$('tkSel').value,o=tkGet()[k];if(!o)return;
-  TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
+  TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));TK.sel.clear();$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
   $('tkName').value=k;$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();};
 $('tkSave').onclick=()=>{const n=$('tkName').value.trim();if(!n){tkStatus('Bitte einen Namen für den Ablauf eingeben.');return;}
   const o=tkGet();o[n]={kader:TK.kader,set:TK.set,off:+$('tkOff').value,ev:TK.ev};
   if(tkPut(o)){tkRefresh(n);$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+n+'“ gespeichert.');}else tkStatus('Speichern nicht möglich.');};
 $('tkDel').onclick=()=>{const k=$('tkSel').value,o=tkGet();if(!o[k])return;if(!confirm('Ablauf „'+k+'“ löschen?'))return;delete o[k];tkPut(o);tkRefresh();tkStatus('„'+k+'“ gelöscht.');};
+
+/* ---------- Ablauf importieren (z. B. automatisch aus dem Voiceover erzeugt) ---------- */
+$('tkImp').onclick=()=>$('tkImpF').click();
+$('tkImpF').onchange=async()=>{const f=$('tkImpF').files[0];$('tkImpF').value='';if(!f)return;
+  let j;try{j=JSON.parse(await f.text());}catch(e){tkStatus('Datei konnte nicht gelesen werden.');return;}
+  if(!j||!j.handlebartTakt||!Array.isArray(j.ev)||!j.name){tkStatus('Das ist keine Ablauf-Datei.');return;}
+  const P=getP(),list=P[j.kader];if(!list){tkStatus('Kader „'+j.kader+'“ fehlt in den Vorauswahlen – bitte zuerst anlegen.');return;}
+  let pn=0;if(j.patch)for(const i in j.patch){const x=list[+i],q=j.patch[i];if(x&&x.name===q.name&&JSON.stringify(x.notes||[])!==JSON.stringify(q.notes)){x.notes=q.notes.slice();pn++;}}
+  if(pn){setP(P);try{refreshP(j.kader);}catch(e){}}
+  const o=tkGet();if(o[j.name]&&!confirm('Ablauf „'+j.name+'“ gibt es schon – überschreiben?'))return;
+  o[j.name]={kader:j.kader,set:j.set||null,off:j.off!=null?j.off:0,ev:j.ev};
+  if(!tkPut(o)){tkStatus('Speichern nicht möglich.');return;}
+  tkRefresh(j.name);$('tkSel').onchange();
+  tkStatus('Ablauf „'+j.name+'“ importiert ('+j.ev.length+' Klicks)'+(pn?' · Stichpunkte bei '+pn+' Pokémon ergänzt':'')+'.');};
 tkRefresh();$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkList();tkUI();
 
 /* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
