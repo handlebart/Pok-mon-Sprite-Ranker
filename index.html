@@ -478,13 +478,18 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 
 #pringRoot .tkrow .ck{width:18px;height:18px;margin:0 2px}
 #pringRoot .tkrow.sel{background:rgba(240,161,58,.14)}
-#pringRoot .tkrow.mon .a{color:#ffd08a;font-weight:600}
+#pringRoot .tkrow.tkmon .a{color:#ffd08a;font-weight:600}
 #pringRoot .tkrow .g{width:46px;color:#8a8f99;font-size:12px;font-variant-numeric:tabular-nums}
 #pokemonRingeView #pringRoot #pringTkFromN,#pokemonRingeView #pringRoot #pringTkMoveN{width:64px;min-width:0;padding:5px 6px;text-align:center}
 #pringRoot .tkfrom,#pringRoot .tkmove{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 #pringRoot .tkedit{gap:10px 16px}
 #pokemonRingeView #pringRoot #pringTkPause.on{background:#f0a13a;color:#1b1b1f}
 #pringRoot #pringTkMarkOut{width:100%;margin-top:6px;font:13px/1.5 ui-monospace,monospace;background:#1b1c21;color:#e8e8e8;border:1px solid #3a3b42;border-radius:8px;padding:8px}
+
+#pringRoot .tkadd{gap:8px 10px;align-items:center}
+#pokemonRingeView #pringRoot #pringTkAddT{width:78px;min-width:0;padding:5px 6px;text-align:center;color:#ffd08a;font-weight:600}
+#pokemonRingeView #pringRoot #pringTkAddSh{width:46px;min-width:0;padding:5px 6px;text-align:center}
+#pokemonRingeView #pringRoot .tkrow button[data-p]{color:#9fe0a5}
 
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
@@ -556,7 +561,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 397</div>
+  <div id="verTag">Version 398</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -607,6 +612,9 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <div class="bar tkedit"><label><input type="checkbox" id="pringTkFollow" checked> Folgende Klicks mitschieben</label>
 <span class="tkmove">Markierte vor Klick Nr. <input type="number" id="pringTkMoveN" min="1" value="1" inputmode="numeric"> <button id="pringTkMove">verschieben</button> <button id="pringTkSelNone">Markierung aufheben</button> <b id="pringTkSelInfo"></b></span>
 <button id="pringTkMarks">Zeitmarken für CapCut</button></div>
+<div class="bar tkadd" id="pringTkAddBar"><b>Klick einfügen:</b> bei <input type="text" id="pringTkAddT" inputmode="decimal" placeholder="1:23,4">
+<select id="pringTkAddWho"></select><select id="pringTkAddAct"><option value="go">zum Ring / zurück</option><option value="zoom">Zoom</option><option value="team">ins Team / raus</option><option value="circ">Kreis rein/raus</option><option value="col">Einfärben/Silhouette</option><option value="pix">Pixel</option></select>
+<label>folgende Klicks später um <input type="text" id="pringTkAddSh" inputmode="decimal" value="0"> s</label><button id="pringTkAddGo">einfügen</button></div>
 <textarea id="pringTkMarkOut" hidden readonly rows="6"></textarea>
 <div id="pringTkList"></div>
 </details>
@@ -1754,7 +1762,7 @@ function tkExec(e){
 function tkLabel(e){
   if(e.k==='b')return TK_BTN[e.id]||e.id;
   if(e.k==='chk')return TK_CHK[e.id]+(e.v?' an':' aus');
-  if(e.k==='c'){const m=mons[e.i];return (m?m.name:'#'+(e.i+1))+': '+(TK_CARD[e.a]||e.a);}
+  if(e.k==='c'){const m=mons[e.i],pl=TK.kader&&getP()[TK.kader],nm=pl&&pl[e.i]?pl[e.i].name:(m?m.name:'#'+(e.i+1));return nm+': '+(TK_CARD[e.a]||e.a);}
   return 'Tippen auf Bühne (Steckbrief weiter)';
 }
 /* ---------- Einklopfen: Klicks im Ringe-Tool mitschreiben ---------- */
@@ -1804,16 +1812,17 @@ function tkUI(){
 function tkList(){
   const L=$('tkList');L.innerHTML='';const off=+$('tkOff').value;
   if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks. „Takt einklopfen“ drücken, Voiceover am Handy starten und das Tool wie gewohnt bedienen.</p>';return;}
-  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow'+(TK.sel.has(e)?' sel':'')+(e.k==='c'&&e.a==='zoom'?' mon':'');
+  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow'+(TK.sel.has(e)?' sel':'')+(e.k==='c'&&e.a==='zoom'?' tkmon':'');
     const gap=i?e.t-TK.ev[i-1].t:0;
     r.innerHTML=`<input type="checkbox" class="ck" ${TK.sel.has(e)?'checked':''} title="markieren"><span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="g">${i?'+'+(gap/1000).toFixed(1).replace('.',','):''}</span><span class="a">${tkLabel(e)}</span>`+
-      ['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button>`;
+      ['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button><button data-p="1" title="Danach einen Klick einfügen">＋</button>`;
     const ti=r.querySelector('input.t');
     const apply=()=>{const v=tkParse(ti.value);if(v==null){ti.value=tkFmt(e.t-off).replace('.',',');tkStatus('Zeit nicht erkannt – Format z. B. 1:23,4 oder 83,4');return;}
       const nt=Math.max(0,Math.round(v*1000+off));if(nt===e.t)return;tkShift(i,nt-e.t);};
     ti.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();ti.blur();}else if(k.key==='Escape'){ti.value=tkFmt(e.t-off).replace('.',',');ti.blur();}};
     ti.onchange=apply;ti.onfocus=()=>ti.select();
     r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;tkShift(i,d);});
+    r.querySelector('[data-p]').onclick=()=>tkAddAt(e.t-off+500);
     r.querySelector('[data-x]').onclick=()=>{TK.sel.delete(e);TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
     r.querySelector('.ck').onchange=ev=>{if(ev.target.checked)TK.sel.add(e);else TK.sel.delete(e);r.classList.toggle('sel',ev.target.checked);tkUI();};
     L.appendChild(r);});
@@ -1915,7 +1924,7 @@ function tkRefresh(sel){const o=tkGet(),s=$('tkSel');s.innerHTML='<option value=
   Object.keys(o).forEach(k=>s.add(new Option(`${k} (${o[k].ev.length} Klicks)`,k)));if(sel&&o[sel])s.value=sel;}
 $('tkSel').onchange=()=>{const k=$('tkSel').value,o=tkGet()[k];if(!o)return;
   TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));TK.sel.clear();$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
-  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();};
+  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();if(typeof tkAddFill==='function')tkAddFill();};
 $('tkSave').onclick=()=>{const n=$('tkName').value.trim();if(!n){tkStatus('Bitte einen Namen für den Ablauf eingeben.');return;}
   const o=tkGet();o[n]={kader:TK.kader,set:TK.set,off:+$('tkOff').value,ev:TK.ev};
   if(tkPut(o)){tkRefresh(n);$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+n+'“ gespeichert.');}else tkStatus('Speichern nicht möglich.');};
@@ -1934,6 +1943,31 @@ $('tkImpF').onchange=async()=>{const f=$('tkImpF').files[0];$('tkImpF').value=''
   if(!tkPut(o)){tkStatus('Speichern nicht möglich.');return;}
   tkRefresh(j.name);$('tkSel').onchange();
   tkStatus('Ablauf „'+j.name+'“ importiert ('+j.ev.length+' Klicks)'+(pn?' · Stichpunkte bei '+pn+' Pokémon ergänzt':'')+'.');};
+
+/* ---------- Klick nachträglich einfügen ---------- */
+function tkAddNames(){const l=(TK.kader&&getP()[TK.kader])||null;
+  return l?l.map(x=>x.name):mons.map(m=>m.name);}
+function tkAddFill(){const w=$('tkAddWho'),keep=w.value;w.innerHTML='';
+  const g1=document.createElement('optgroup');g1.label='Pokémon';
+  tkAddNames().forEach((n,i)=>g1.appendChild(new Option(n,'c:'+i)));
+  const g2=document.createElement('optgroup');g2.label='Knöpfe';
+  Object.keys(TK_BTN).forEach(id=>g2.appendChild(new Option(TK_BTN[id],'b:'+id)));
+  w.append(g1,g2);if(keep&&[...w.options].some(o=>o.value===keep))w.value=keep;tkAddWhoCh();}
+function tkAddWhoCh(){$('tkAddAct').hidden=!$('tkAddWho').value.startsWith('c:');}
+function tkAddAt(sec){$('tkAddT').value=tkFmt(Math.max(0,sec)).replace('.',',');tkAddFill();
+  $('tkAddBar').scrollIntoView({block:'nearest',behavior:'smooth'});$('tkAddWho').focus();}
+$('tkAddWho').onchange=tkAddWhoCh;
+$('tkAddGo').onclick=()=>{const v=tkParse($('tkAddT').value);if(v==null){tkStatus('Zeit für den neuen Klick fehlt – z. B. 1:23,4');return;}
+  const w=$('tkAddWho').value;if(!w){tkStatus('Bitte auswählen, was geklickt werden soll.');return;}
+  const off=+$('tkOff').value,t=Math.max(0,Math.round(v*1000+off));
+  const e=w.startsWith('c:')?{k:'c',i:+w.slice(2),a:$('tkAddAct').value,t}:{k:'b',id:w.slice(2),t};
+  let i=TK.ev.findIndex(x=>x.t>t);if(i<0)i=TK.ev.length;TK.ev.splice(i,0,e);
+  const sh=Math.round(parseFloat(($('tkAddSh').value||'0').replace(',','.'))*1000)||0;
+  if(sh>0)for(let j=i+1;j<TK.ev.length;j++)TK.ev[j].t+=sh;
+  tkDirty();tkList();tkUI();
+  const row=$('tkList').children[i];if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest'});setTimeout(()=>row.classList.remove('sel'),1500);}
+  tkStatus('Klick Nr. '+(i+1)+' eingefügt: '+tkLabel(e)+' bei '+tkFmt(t-off).replace('.',',')+(sh>0?' · alle folgenden um '+(sh/1000).toString().replace('.',',')+' s später':'')+'. Speichern nicht vergessen.');};
+tkAddFill();
 tkRefresh();$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkList();tkUI();
 
 /* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
