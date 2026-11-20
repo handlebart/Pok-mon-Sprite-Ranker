@@ -561,7 +561,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 398</div>
+  <div id="verTag">Version 399</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -607,6 +607,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden></div>
 <div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
 <span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
+<label>Zoom-Tempo <select id="pringTkZs"><option value="1">normal</option><option value="0.8">etwas schneller</option><option value="0.6">schnell</option></select></label>
 <label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label></div>
 <p class="hint" id="pringTkState">Ablauf: Kader oben auswählen → „Takt einklopfen“ → bei „1“ Voiceover am Handy starten → Tool bedienen → beenden. Zum Aufnehmen: Bildschirmaufnahme an, „Abspielen“.</p>
 <div class="bar tkedit"><label><input type="checkbox" id="pringTkFollow" checked> Folgende Klicks mitschieben</label>
@@ -1306,22 +1307,23 @@ function zoomBtns(){
   notesBtns();
 }
 let IRIS_R=Math.hypot(800,450)+20;
+var ZS=(()=>{try{return +localStorage.getItem('pring-zs')||1}catch(e){return 1}})();
 async function irisOpen(){
   Z.iris=0;Z.ix=SW/2;Z.iy=SH/2;zArt.style.display='none';
   for(const it of Z.items.slice().reverse())zoomEl.appendChild(it.wrap);   // gleiche Elemente, gleiche Stelle -> nahtlos (items[0] liegt vorne)
   setGroup(SW/2,SH/2,ZOOM_SIZE);
   zoomEl.classList.add('on');cancelAnimationFrame(Z.raf);Z.raf=requestAnimationFrame(zLoop);rs('iris',1);
   const F=groupFinal(),pair=Z.items.length>1,o0=Z.items.map(i=>i.o),o1=[PAIR_FINAL_FRONT,PAIR_FINAL_BACK];
-  await tween(1100,(e,p)=>{Z.iris=IRIS_R*e;const k=ease(clamp01((p-.25)/.75));
+  await tween(1100*ZS,(e,p)=>{Z.iris=IRIS_R*e;const k=ease(clamp01((p-.25)/.75));
     if(pair)Z.items.forEach((it,i)=>it.o=lerpO(o0[i],o1[i],k));
     setGroup(SW/2+(F.x-SW/2)*k,SH/2+(F.y-SH/2)*k,ZOOM_SIZE+(F.s-ZOOM_SIZE)*k);});
   Z.f0=performance.now();Z.ampT=1;
 }
 async function irisClose(){
-  Z.ampT=0;await new Promise(r=>setTimeout(r,450));             // Schweben sanft auslaufen lassen
+  Z.ampT=0;await new Promise(r=>setTimeout(r,450*ZS));             // Schweben sanft auslaufen lassen
   rs('iris',0);
   const F=groupFinal(),pair=Z.items.length>1,o0=Z.items.map(i=>i.o),o1=[PAIR_FRONT,PAIR_BACK];
-  await tween(1000,(e,p)=>{Z.iris=IRIS_R*(1-e);const k=1-ease(Math.min(1,p/.75));
+  await tween(1000*ZS,(e,p)=>{Z.iris=IRIS_R*(1-e);const k=1-ease(Math.min(1,p/.75));
     if(pair)Z.items.forEach((it,i)=>it.o=lerpO(o1[i],o0[i],k));
     setGroup(SW/2+(F.x-SW/2)*k,SH/2+(F.y-SH/2)*k,ZOOM_SIZE+(F.s-ZOOM_SIZE)*k);});
   for(const it of Z.items)it.art.style.transform='';Z.amp=0;
@@ -1340,14 +1342,14 @@ async function zoomIn(m){
   applyCam(1,800,450,0);m.el.style.visibility='hidden';reveal(m,true);
   if(B){pt.el.style.visibility='hidden';reveal(pt,true);}
   // 1) Reinzoomen auf das erste Pokémon
-  rs('zoomIn',1.3);
-  await tween(1300,(e,p)=>{A.reveal(p);camLerp(e,m);});
+  rs('zoomIn',(1.3)*ZS);
+  await tween(1300*ZS,(e,p)=>{A.reveal(p);camLerp(e,m);});
   if(B){
     // 2) Sprung zum Partner: kurz rauszoomen, rüber, wieder rein. A wird "aufgesammelt" und reist in der Bildmitte mit.
     const zA=ZOOM_SIZE/m.size,zB=ZOOM_SIZE/pt.size,d=Math.hypot(pt.x-m.x,pt.y-m.y);
     const zMid=Math.min(zA,zB,SW/(d+520)),dip=Math.log(Math.min(zA,zB))-Math.log(zMid);
-    rs('partner',1.7);
-    await tween(1700,(e,p)=>{
+    rs('partner',(1.7)*ZS);
+    await tween(1700*ZS,(e,p)=>{
       const cx=m.x+(pt.x-m.x)*e,cy=m.y+(pt.y-m.y)*e;
       const lzl=Math.log(zA)+(Math.log(zB)-Math.log(zA))*e,z=Math.exp(lzl-dip*Math.sin(Math.PI*e)),hop=z/Math.exp(lzl);
       const k=ease(clamp01((p-.6)/.4));
@@ -1373,14 +1375,14 @@ async function zoomOut(){
   for(const it of Z.items.slice().reverse()){it.bri=1;scene.appendChild(it.wrap);}  // zurück auf die Bühne, exakt an derselben Stelle
   zoomEl.classList.remove('on');cancelAnimationFrame(Z.raf);Z.raf=0;
   for(const it of Z.items){setPix(it.m,'off');drawPix(it.m,192);}
-  rs('zoomOut',B?1.4:1.2);
+  rs('zoomOut',(B?1.4:1.2)*ZS);
   if(!B){
-    camLerp(1,m);await tween(1200,(e)=>{camLerp(1-e,m);});
+    camLerp(1,m);await tween(1200*ZS,(e)=>{camLerp(1-e,m);});
   }else{
     // Rauszoomen vom Partner aus; beide fliegen auf ihre eigenen Plätze zurück
     const zB=ZOOM_SIZE/pt.size,oA=A.o,oB=B.o;
     const a0={x:pt.x+oA.dx/zB,y:pt.y+oA.dy/zB,size:ZOOM_SIZE*oA.s/zB};
-    await tween(1400,(e)=>{
+    await tween(1400*ZS,(e)=>{
       const c=camAt(1-e,pt),k=e;
       const am=A.m;A.pos={x:a0.x+(am.x-a0.x)*k,y:a0.y+(am.y-a0.y)*k,size:a0.size+(am.size-a0.size)*k};
       const o=lerpO(oB,SOLO,k);B.pos={x:pt.x+o.dx/c.z,y:pt.y+o.dy/c.z,size:pt.size*o.s};
@@ -1396,7 +1398,7 @@ async function zoomOut(){
 async function zoomSwap(){
   if(!Z.on||Z.busy||Z.items.length<2)return;Z.busy=true;zoomBtns();rs('swap');
   const[A,B]=Z.items,oa=A.o,ob=B.o,F=PAIR_POS;let swapped=false;
-  await tween(700,(e,p)=>{A.o=lerpO(oa,ob,e);B.o=lerpO(ob,oa,e);
+  await tween(700*ZS,(e,p)=>{A.o=lerpO(oa,ob,e);B.o=lerpO(ob,oa,e);
     if(!swapped&&p>.5){swapped=true;zoomEl.appendChild(oa.dy>ob.dy?B.wrap:A.wrap);}
     setGroup(F.x,F.y,F.s);});
   Z.items=[B,A];Z.busy=false;zoomBtns();
@@ -1454,7 +1456,7 @@ function notesHide(){
   const shown=[...zText.querySelectorAll('.zn.in')];
   if(!shown.length){zText.innerHTML='';return Promise.resolve();}
   // sanft nacheinander wegschweben und ausblenden (die Einschlag-Animation bleibt dabei unangetastet)
-  const D=520,ST=70;
+  const D=520*ZS,ST=70*ZS;
   shown.forEach((d,i)=>{const r=getComputedStyle(d).getPropertyValue('--r').trim()||'0deg';
     d.animate([{opacity:1,transform:`rotate(${r}) scale(1)`},{opacity:0,transform:`translate(40px,14px) rotate(${r}) scale(.92)`}],
       {duration:D,delay:i*ST,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});});
@@ -1789,7 +1791,8 @@ async function tkReset(kader,set){
   for(let n=0;(Z.on||Z.busy)&&n<400;n++){if(Z.on&&!Z.busy)zoomOut();await tkWait(25);}
   seqCancel();
   if(set){if($('spin').checked!==set.spin)$('spin').checked=set.spin;
-    if($('tGlow').checked!==set.tGlow){$('tGlow').checked=set.tGlow;$('tGlow').onchange();}}
+    if($('tGlow').checked!==set.tGlow){$('tGlow').checked=set.tGlow;$('tGlow').onchange();}
+    tkZsSet(set.zs||1);}
   $('pSel').value=kader;TK.replaying=true;try{$('pLoad').click();}finally{TK.replaying=false;}
   shown=0;updRing();
   if(tg.classList.contains('on')){tg.classList.remove('on');$('teamBtn').textContent='Teamer anzeigen';}
@@ -1868,7 +1871,7 @@ $('tkRec').onclick=async()=>{
   if(TK.rec){TK.rec=false;tkOverlay().className='';tkStatus(TK.ev.length+' Klicks gemerkt – unten fein verschieben, dann speichern.');tkDirty();tkList();tkUI();return;}
   const kader=$('pSel').value;if(!kader){tkStatus('Bitte zuerst oben eine Kader-Vorauswahl auswählen (die wird jedes Mal frisch geladen).');return;}
   if(TK.ev.length&&!confirm('Die bisherigen Klicks werden ersetzt. Weiter?'))return;
-  TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked};TK.ev=[];TK.sel.clear();TK.stop=false;
+  TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked,zs:ZS};TK.ev=[];TK.sel.clear();TK.stop=false;
   $('tkRec').disabled=true;tkStatus('Kader „'+kader+'“ wird frisch geladen …');
   await tkReset(kader,TK.set);
   tkStatus('Bei „1“ das Voiceover am Handy starten …');await tkCountdown();
@@ -1924,7 +1927,7 @@ function tkRefresh(sel){const o=tkGet(),s=$('tkSel');s.innerHTML='<option value=
   Object.keys(o).forEach(k=>s.add(new Option(`${k} (${o[k].ev.length} Klicks)`,k)));if(sel&&o[sel])s.value=sel;}
 $('tkSel').onchange=()=>{const k=$('tkSel').value,o=tkGet()[k];if(!o)return;
   TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));TK.sel.clear();$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
-  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();if(typeof tkAddFill==='function')tkAddFill();};
+  $('tkName').value=k;$('tkSave').classList.remove('dirty');if(o.set&&o.set.zs)tkZsSet(o.set.zs);tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();if(typeof tkAddFill==='function')tkAddFill();};
 $('tkSave').onclick=()=>{const n=$('tkName').value.trim();if(!n){tkStatus('Bitte einen Namen für den Ablauf eingeben.');return;}
   const o=tkGet();o[n]={kader:TK.kader,set:TK.set,off:+$('tkOff').value,ev:TK.ev};
   if(tkPut(o)){tkRefresh(n);$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+n+'“ gespeichert.');}else tkStatus('Speichern nicht möglich.');};
@@ -1968,6 +1971,12 @@ $('tkAddGo').onclick=()=>{const v=tkParse($('tkAddT').value);if(v==null){tkStatu
   const row=$('tkList').children[i];if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest'});setTimeout(()=>row.classList.remove('sel'),1500);}
   tkStatus('Klick Nr. '+(i+1)+' eingefügt: '+tkLabel(e)+' bei '+tkFmt(t-off).replace('.',',')+(sh>0?' · alle folgenden um '+(sh/1000).toString().replace('.',',')+' s später':'')+'. Speichern nicht vergessen.');};
 tkAddFill();
+
+/* ---------- Zoom-Tempo ---------- */
+function tkZsSet(v){v=+v||1;ZS=v;const sel=$('tkZs');if(sel){if(![...sel.options].some(o=>+o.value===v))sel.add(new Option(Math.round(v*100)+' %',String(v)));sel.value=String(v);}
+  try{localStorage.setItem('pring-zs',String(v));}catch(e){}}
+$('tkZs').onchange=()=>{tkZsSet($('tkZs').value);if(TK.set){TK.set.zs=ZS;tkDirty();}};
+tkZsSet(ZS);
 tkRefresh();$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkList();tkUI();
 
 /* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
