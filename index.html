@@ -576,6 +576,11 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot .tkrow.ed{background:rgba(242,140,26,.10)}
 #pringRoot .tkrow .tkbtns{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 4px 60px}
 
+#pokemonRingeView #pringRoot #pringTkHud button{padding:10px 12px;min-width:46px;min-height:40px;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#pokemonRingeView #pringRoot #pringTkHud button.hit,#pokemonRingeView #pringRoot #pringTkNext.hit,#pokemonRingeView #pringRoot #pringTkSwap.hit{animation:tkHit .25s}
+@keyframes tkHit{0%{filter:brightness(1.9);transform:scale(.93)}100%{filter:none;transform:none}}
+#pringRoot #pringTkHud .hb{bottom:70px}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -646,7 +651,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 407</div>
+  <div id="verTag">Version 408</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -2228,10 +2233,10 @@ function tkNextUI(){$('tkNext').hidden=!TK.rec;tkSwapUI();}
 /* zweiter Knopf: nur sichtbar, solange ein Partner-Paar gezoomt ist */
 function tkSwapUI(){const b=$('tkSwap');b.hidden=!(TK.rec&&Z.on&&Z.items&&Z.items.length>=2);}
 setInterval(()=>{if(TK.rec||!$('tkSwap').hidden)tkSwapUI();},150);
-$('tkSwap').addEventListener('click',ev=>{ev.stopPropagation();if(!TK.rec)return;
+tkTap($('tkSwap'),()=>{if(!TK.rec)return;
   if(Z.busy){const b=$('tkSwap');b.classList.remove('busy');void b.offsetWidth;b.classList.add('busy');return;}
   tkClick($('zoomSwap'));});
-$('tkNext').addEventListener('click',ev=>{ev.stopPropagation();tkStep();});
+tkTap($('tkNext'),()=>tkStep());
 addEventListener('keydown',ev=>{
   if(!TK.rec)return;const t=ev.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
   if([' ','ArrowRight','ArrowDown','PageDown','Enter'].includes(ev.key)){ev.preventDefault();tkStep();}
@@ -2313,27 +2318,37 @@ function tkHudMarks(){const M=hq('.hmarks');M.innerHTML='';const D=tkHudDur(),of
     const d=document.createElement('i');d.className=e.a==='zoom'?'z':e.id==='ringPlus'?'r':'g';d.style.left=(100*Math.max(0,e.t-off)/D)+'%';M.appendChild(d);});}
 function tkHudUI(){hud.hidden=!(TK.check&&TK.play);if(!hud.hidden){tkHudMarks();tkHudTick();}}
 let tkScrub=false;
-function tkHudInfo(i,el){const e=TK.ev[i];if(!e){el.innerHTML='<span class="hn">–</span>';return;}
+/* iPad: Safari verschluckt Klicks, wenn sich unter dem Zeiger ständig DOM-Inhalt ändert –
+   deshalb feste Elemente, die nur bei echter Änderung neuen Text bekommen */
+function tkSetT(el,v){if(el.textContent!==v)el.textContent=v;}
+function tkHudInfo(i,el){
+  if(!el._p){el.innerHTML='<span class="hn"></span> <b></b> <span class="hm"></span>'+(el.dataset.r?'<span class="hin"></span>':'');
+    el._p={n:el.querySelector('.hn'),t:el.querySelector('b'),m:el.querySelector('.hm'),c:el.querySelector('.hin')};}
+  const P=el._p,e=TK.ev[i];
+  if(!e){tkSetT(P.n,'–');tkSetT(P.t,'');tkSetT(P.m,'');if(P.c)tkSetT(P.c,'');return;}
   const off=+$('tkOff').value,now=TK.clock?TK.clock():0,dt=(e.t-off-now)/1000;
-  el.innerHTML=`<span class="hn">#${i+1}</span> <b>${tkFmt(e.t-off).replace('.',',')}</b> <span class="hm">${tkLabel(e)}</span>`+
-    (el.dataset.r?`<span class="hin">${dt>=0?'in '+dt.toFixed(1).replace('.',',')+' s':'jetzt'}</span>`:'');}
+  tkSetT(P.n,'#'+(i+1));tkSetT(P.t,tkFmt(e.t-off).replace('.',','));tkSetT(P.m,tkLabel(e));
+  if(P.c)tkSetT(P.c,dt>=0?'in '+dt.toFixed(1).replace('.',',')+' s':'jetzt');}
 function tkHudTick(){
   if(hud.hidden)return;const D=tkHudDur(),now=TK.clock?TK.clock():0;
-  if(!tkScrub){hq('.hrange').value=Math.round(1000*now/D);hq('.hc').textContent=tkFmt(now).replace('.',',');}
-  if(!tkScrub)hq('.hfill').style.width=(100*Math.min(1,now/D))+'%';hq('.hd').textContent=tkFmt(D).replace(/\.\d$/,'');
+  if(!tkScrub){const v=String(Math.round(1000*now/D));if(hq('.hrange').value!==v)hq('.hrange').value=v;tkSetT(hq('.hc'),tkFmt(now).replace('.',','));}
+  if(!tkScrub)hq('.hfill').style.width=(100*Math.min(1,now/D))+'%';tkSetT(hq('.hd'),tkFmt(D).replace(/\.\d$/,''));
   const li=TK.lastI!=null&&TK.lastI<TK.curI?TK.lastI:TK.curI-1;
   tkHudInfo(li,hq('[data-l="i"]'));tkHudInfo(TK.curI,hq('[data-r="i"]'));
-  hq('[data-p]').textContent=TK.pause?'▶':'❚❚';
+  tkSetT(hq('[data-p]'),TK.pause?'▶':'❚❚');
 }
 setInterval(()=>{if(TK.check&&TK.play)tkHudTick();},100);
 /* Verschieben: wirkt sofort auf den nächsten Klick, beim letzten Klick ab dem nächsten Durchlauf */
 function tkHudShift(i,d){if(i<0||i>=TK.ev.length)return;tkShift(i,d);tkHudMarks();tkHudTick();
   tkStatus('Klick '+(i+1)+' jetzt bei '+tkFmt(TK.ev[i].t-+$('tkOff').value).replace('.',',')+($('tkFollow').checked?' (folgende mitgeschoben)':'')+' – Speichern nicht vergessen.');}
-hud.querySelectorAll('[data-l]').forEach(b=>{if(b.dataset.l==='i')return;b.onclick=()=>{const li=TK.lastI!=null&&TK.lastI<TK.curI?TK.lastI:TK.curI-1;tkHudShift(li,+b.dataset.l);};});
-hud.querySelectorAll('[data-r]').forEach(b=>{if(b.dataset.r==='i')return;b.onclick=()=>{const i=TK.curI;if(i>=TK.ev.length)return;
-  if(b.dataset.r==='now'){const e=TK.ev[i],now=TK.clock?TK.clock():0;tkHudShift(i,Math.round(now+ +$('tkOff').value-e.t));}else tkHudShift(i,+b.dataset.r);};});
-hq('[data-p]').onclick=()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();tkHudTick();};
-hq('[data-x]').onclick=()=>{TK.stop=true;TK.pause=false;};
+/* Knöpfe lösen beim Drücken aus – zuverlässig mit Finger, Maus und Trackpad */
+function tkTap(b,fn){b.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;ev.preventDefault();ev.stopPropagation();
+  b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');fn();});b.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();});}
+hud.querySelectorAll('[data-l]').forEach(b=>{if(b.dataset.l==='i')return;tkTap(b,()=>{const li=TK.lastI!=null&&TK.lastI<TK.curI?TK.lastI:TK.curI-1;tkHudShift(li,+b.dataset.l);});});
+hud.querySelectorAll('[data-r]').forEach(b=>{if(b.dataset.r==='i')return;tkTap(b,()=>{const i=TK.curI;if(i>=TK.ev.length)return;
+  if(b.dataset.r==='now'){const e=TK.ev[i],now=TK.clock?TK.clock():0;tkHudShift(i,Math.round(now+ +$('tkOff').value-e.t));}else tkHudShift(i,+b.dataset.r);});});
+tkTap(hq('[data-p]'),()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();tkHudTick();});
+tkTap(hq('[data-x]'),()=>{TK.stop=true;TK.pause=false;});
 /* Zeitleiste ziehen: Vorschauzeit anzeigen, beim Loslassen dorthin springen */
 const hr=hq('.hrange');
 hr.addEventListener('input',()=>{tkScrub=true;hq('.hfill').style.width=(hr.value/10)+'%';hq('.hc').textContent='→ '+tkFmt(tkHudDur()*hr.value/1000).replace('.',',');});
