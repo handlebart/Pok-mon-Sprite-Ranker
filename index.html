@@ -544,6 +544,38 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot #pringTkHud .hrange{position:absolute;inset:0;width:100%;height:30px;margin:0;opacity:0;cursor:pointer;touch-action:none}
 #pringRoot #pringTkHud .hrange::-webkit-slider-thumb{width:28px;height:28px}
 
+#pringRoot .tktop{gap:8px}
+#pringRoot .tkmore{position:relative}
+#pringRoot .tkmore>summary{list-style:none;cursor:pointer;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);color:#d6d9e0;font-weight:700;font-size:14px;user-select:none}
+#pringRoot .tkmore>summary::-webkit-details-marker{display:none}
+#pringRoot .tkmore[open]>summary{background:#3a3d46}
+#pringRoot .tkmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:min(560px,86vw);background:#24262c;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+#pringRoot .tkmenu .bar{margin:4px 0}
+#pokemonRingeView #pringRoot .tkmenu .del{border-color:#e53935;color:#ffb4b0}
+#pringRoot .tktabs{display:flex;gap:6px;margin:10px 0 4px;border-bottom:1px solid rgba(255,255,255,.12);flex-wrap:wrap}
+#pokemonRingeView #pringRoot .tktabs button{border-radius:10px 10px 0 0;border:1px solid transparent;border-bottom:none;background:transparent;color:#a9adb8;padding:9px 16px;font-weight:700;font-size:14.5px;margin-bottom:-1px}
+#pokemonRingeView #pringRoot .tktabs button.on{background:#2c2e35;color:#fff;border-color:rgba(255,255,255,.12);box-shadow:inset 0 3px 0 #f28c1a}
+#pringRoot .tktabs b{color:#ffd08a;font-weight:700}
+#pringRoot .tkstate{margin:6px 2px 8px;min-height:18px}
+#pringRoot .tkpane{padding:4px 0}
+#pokemonRingeView #pringRoot .tkpane button.big{padding:12px 22px;font-size:16px}
+#pringRoot .tkfol{margin-left:auto}
+#pringRoot .tksteps{margin:4px 0 10px;padding-left:22px;color:#d6d9e0;font-size:14px;line-height:1.5}
+#pringRoot .tkaddbox{margin:6px 0}
+#pringRoot .tkaddbox>summary{cursor:pointer;color:#9fe0a5;font-weight:700;font-size:14px;padding:4px 0}
+#pringRoot .tklisthead{justify-content:space-between;margin-top:6px}
+#pringRoot #pringTkList{max-height:460px}
+#pringRoot .tkgrp{border-top:1px solid rgba(255,255,255,.08)}
+#pokemonRingeView #pringRoot .tkgh{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;border-radius:8px;padding:9px 6px;color:#d6d9e0;font-size:14px}
+#pokemonRingeView #pringRoot .tkgh:hover{background:rgba(255,255,255,.04)}
+#pringRoot .tkgh .arr{width:14px;color:#a9adb8}#pringRoot .tkgh b{min-width:170px}
+#pringRoot .tkgh .tm{color:#ffd08a;font-variant-numeric:tabular-nums}#pringRoot .tkgh .ct{color:#8a8f99;font-size:12.5px;margin-left:auto}
+#pringRoot .tkgh .wn{color:#ff8a80;font-weight:700}
+#pringRoot .tkgrp.warn>.tkgh b{color:#ff8a80}
+#pringRoot .tkgrp .tkrow{padding-left:26px;flex-wrap:wrap;cursor:pointer}
+#pringRoot .tkrow.ed{background:rgba(242,140,26,.10)}
+#pringRoot .tkrow .tkbtns{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 4px 60px}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -614,7 +646,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 405</div>
+  <div id="verTag">Version 406</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -656,25 +688,39 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <button id="pringRingOff">Alle Ringe ausblenden</button>
 <button id="pringAllSend">Alle zum Ring</button><button id="pringTeamBtn" class="pri">Teamer anzeigen</button></div></section>
 <section class="grp"><h3>Mittelkreis</h3><div class="bar"><button id="pringAllBack">Alle zurück in den Kreis</button><button id="pringAllOut">Alle aus Kreis</button><button id="pringAllSeq" class="pri">Alle nacheinander in den Kreis</button><select id="pringSeqGap" title="Zeitabstand zwischen den Pokémon"><option value="100">Abstand 0,1 s</option><option value="200">Abstand 0,2 s</option><option value="300">Abstand 0,3 s</option><option value="600" selected>Abstand 0,6 s</option><option value="1000">Abstand 1 s</option><option value="1500">Abstand 1,5 s</option></select></div></section>
-<details class="grp wide takt" id="pringTakt" open><summary><h3>Ablauf-Takt</h3><span class="hint">Voiceover laden, mitklopfen – danach läuft alles automatisch synchron</span></summary>
-<div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden></div>
-<div class="bar tkvo"><button id="pringTkVo">🎙 Voiceover laden</button><input type="file" id="pringTkVoF" accept="audio/*,.m4a,.mp3,.wav,.aac" hidden><span id="pringTkVoInfo" class="hint">kein Voiceover geladen</span><button id="pringTkVoTest" hidden>▶ Probehören</button><button id="pringTkVoDel" hidden>entfernen</button></div>
-<details class="tkordbox" id="pringTkOrdBox"><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– so, wie du die Pokémon im Voiceover vorstellst · am ☰ ziehen</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
-<div class="bar"><label><input type="checkbox" id="pringTkAutoZoom"> „Nächster Schritt“ zoomt nach der Landung automatisch (sonst: eigener Tipp für den Zoom)</label></div>
+<details class="grp wide takt" id="pringTakt" open><summary><h3>Ablauf-Takt</h3><span class="hint" id="pringTkHead">Voiceover laden, mitklopfen – danach läuft alles automatisch synchron</span></summary>
+<div class="bar tktop"><select id="pringTkSel"></select><button id="pringTkNew">＋ Neuer Ablauf</button>
+<input type="text" id="pringTkName" placeholder="Name, z. B. Entenhausen – Voiceover"><button id="pringTkSave">Speichern</button>
+<details class="tkmore" id="pringTkMore"><summary>⋯ Mehr</summary><div class="tkmenu">
+ <div class="bar"><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden><button id="pringTkDel" class="del">Ablauf löschen</button></div>
+ <div class="bar"><span class="tkfrom">Abspielen ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span></div>
+ <div class="bar"><label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label><span class="hint">gleicht die Reaktionszeit beim Mitklopfen aus</span></div>
+ <div class="bar tkmove">Markierte Klicks vor Klick Nr. <input type="number" id="pringTkMoveN" min="1" value="1" inputmode="numeric"> <button id="pringTkMove">verschieben</button> <button id="pringTkSelNone">Markierung aufheben</button> <b id="pringTkSelInfo"></b></div>
+</div></details></div>
+<div class="tktabs" role="tablist"><button data-tab="1" class="on">① Vorbereiten</button><button data-tab="2">② Einklopfen</button><button data-tab="3">③ Prüfen &amp; Feinschliff <b id="pringTkCnt"></b></button></div>
+<p class="hint tkstate" id="pringTkState">Neuer Ablauf: Kader wählen → Voiceover laden → Reihenfolge prüfen → ② Einklopfen.</p>
+<div class="tkpane" data-pane="1">
+ <div class="bar"><label>Kader <select id="pringTkKader"></select></label><label>Zoom-Tempo <select id="pringTkZs"><option value="1">normal</option><option value="0.8">etwas schneller</option><option value="0.6">schnell</option></select></label></div>
+ <div class="bar tkvo"><button id="pringTkVo">🎙 Voiceover laden</button><input type="file" id="pringTkVoF" accept="audio/*,.m4a,.mp3,.wav,.aac" hidden><span id="pringTkVoInfo" class="hint">kein Voiceover geladen</span><button id="pringTkVoTest" hidden>▶ Probehören</button><button id="pringTkVoDel" hidden>entfernen</button></div>
+ <details class="tkordbox" id="pringTkOrdBox" open><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– so, wie du die Pokémon im Voiceover vorstellst · am ☰ ziehen</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
+ <div class="bar"><label><input type="checkbox" id="pringTkAutoZoom"> „Nächster Schritt“ zoomt nach der Landung automatisch (sonst: eigener Tipp für den Zoom)</label></div>
+ <div class="bar"><button class="pri" data-gotab="2">Weiter zu ② Einklopfen →</button></div>
+</div>
+<div class="tkpane" data-pane="2" hidden>
+ <ol class="tksteps"><li>„● Takt einklopfen“ tippen – nach dem Countdown startet dein Voiceover.</li><li>Bei jedem Stichwort den grünen Knopf <b>„Nächster Schritt“</b> auf der Bühne tippen (oder Leertaste / Fernbedienung). Wackelt er rot, läuft noch eine Animation.</li><li>Bei Paaren erscheint zusätzlich <b>„⇄ Partner nach vorne“</b>. Team-Pokémon am Ende per Karte ins Team holen.</li><li>Zum Schluss „■ Einklopfen beenden“ – danach geht es mit ③ weiter.</li></ol>
+ <div class="bar"><button id="pringTkRec" class="tkrec big">● Takt einklopfen</button></div>
+</div>
+<div class="tkpane" data-pane="3" hidden>
+ <div class="bar"><button id="pringTkCheck" class="big" title="Abspielen mit Zeitleiste und Bearbeitung direkt auf der Bühne">✎ Prüfen</button><button id="pringTkPlay" class="pri big" title="Sauber abspielen für die Bildschirmaufnahme – schaltet den Aufnahme-Modus ein">● Aufnehmen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
+ <label class="tkfol"><input type="checkbox" id="pringTkFollow" checked> Folgende Klicks mitschieben</label></div>
+ <details class="tkaddbox"><summary>＋ Klick einfügen</summary>
+ <div class="bar tkadd" id="pringTkAddBar">bei <input type="text" id="pringTkAddT" inputmode="decimal" placeholder="1:23,4">
+ <select id="pringTkAddWho"></select><select id="pringTkAddAct"><option value="go">zum Ring / zurück</option><option value="zoom">Zoom</option><option value="team">ins Team / raus</option><option value="circ">Kreis rein/raus</option><option value="col">Einfärben/Silhouette</option><option value="pix">Pixel</option></select>
+ <label>folgende Klicks später um <input type="text" id="pringTkAddSh" inputmode="decimal" value="0"> s</label><button id="pringTkAddGo">einfügen</button></div></details>
+ <div class="bar tklisthead"><span class="hint">Abschnitt antippen zum Aufklappen · Zeile antippen zum Verschieben</span><button id="pringTkOpenAll">alle aufklappen</button></div>
+ <div id="pringTkList"></div>
+</div>
 <button id="pringTkNext" hidden>Nächster Schritt ▶</button><button id="pringTkSwap" hidden>⇄ Partner nach vorne</button>
-<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkCheck" title="Abspielen mit Zeitleiste und Bearbeitung direkt auf der Bühne – nicht für die Aufnahme">✎ Prüfen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
-<span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
-<label>Zoom-Tempo <select id="pringTkZs"><option value="1">normal</option><option value="0.8">etwas schneller</option><option value="0.6">schnell</option></select></label>
-<label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label></div>
-<p class="hint" id="pringTkState">Ablauf: Kader oben auswählen → Voiceover laden → „Takt einklopfen“ → bei jedem Stichwort „Nächster Schritt“ tippen → beenden. Zum Aufnehmen: Bildschirmaufnahme an, „Abspielen“ – der Ton läuft mit.</p>
-<div class="bar tkedit"><label><input type="checkbox" id="pringTkFollow" checked> Folgende Klicks mitschieben</label>
-<span class="tkmove">Markierte vor Klick Nr. <input type="number" id="pringTkMoveN" min="1" value="1" inputmode="numeric"> <button id="pringTkMove">verschieben</button> <button id="pringTkSelNone">Markierung aufheben</button> <b id="pringTkSelInfo"></b></span>
-<button id="pringTkMarks">Zeitmarken für CapCut</button></div>
-<div class="bar tkadd" id="pringTkAddBar"><b>Klick einfügen:</b> bei <input type="text" id="pringTkAddT" inputmode="decimal" placeholder="1:23,4">
-<select id="pringTkAddWho"></select><select id="pringTkAddAct"><option value="go">zum Ring / zurück</option><option value="zoom">Zoom</option><option value="team">ins Team / raus</option><option value="circ">Kreis rein/raus</option><option value="col">Einfärben/Silhouette</option><option value="pix">Pixel</option></select>
-<label>folgende Klicks später um <input type="text" id="pringTkAddSh" inputmode="decimal" value="0"> s</label><button id="pringTkAddGo">einfügen</button></div>
-<textarea id="pringTkMarkOut" hidden readonly rows="6"></textarea>
-<div id="pringTkList"></div>
 </details>
 <details class="grp wide sounds"><summary><h3>Sounds</h3><span class="hint" id="pringSState"></span></summary>
 <div class="bar"><label><input type="checkbox" id="pringSOn" checked> Sounds an</label><label>Lautstärke <input type="range" id="pringSVol" min="0" max="100" value="70"></label></div>
@@ -1867,26 +1913,52 @@ function tkUI(){
   $('tkFrom').disabled=TK.rec||TK.play||!TK.ev.length;$('tkFromN').max=Math.max(1,TK.ev.length);
   $('tkMove').disabled=TK.rec||TK.play||!TK.sel.size;$('tkSelInfo').textContent=TK.sel.size?TK.sel.size+' markiert':'';
   $('tkSave').disabled=TK.rec||TK.play||!TK.ev.length;$('tkCheck').hidden=TK.play;$('tkCheck').disabled=TK.rec||!TK.ev.length;
+  $('tkCnt').textContent=TK.ev.length?'· '+TK.ev.length:'';$('tkNew').disabled=TK.rec||TK.play;
+  const nm=$('tkName').value.trim();$('tkHead').textContent=(nm?'„'+nm+'“':'neuer Ablauf')+(TK.kader?' · Kader „'+TK.kader+'“':'')+(TK.vo?' · 🎙 '+TK.vo.name:'');
 }
 /* ---------- Liste zum Feinschieben ---------- */
 function tkList(){
   const L=$('tkList');L.innerHTML='';const off=+$('tkOff').value;
-  if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks. „Takt einklopfen“ drücken, Voiceover am Handy starten und das Tool wie gewohnt bedienen.</p>';return;}
+  if(!TK.ev.length){L.innerHTML='<p class="hint">Noch keine Klicks – in ② Einklopfen den Takt einklopfen.</p>';return;}
   const W=tkWarn();
-  TK.ev.forEach((e,i)=>{const r=document.createElement('div');r.className='tkrow'+(TK.sel.has(e)?' sel':'')+(e.k==='c'&&e.a==='zoom'?' tkmon':'')+(W.has(i)?' warn':'');if(W.has(i))r.title=W.get(i);
-    const gap=i?e.t-TK.ev[i-1].t:0;
-    r.innerHTML=`<input type="checkbox" class="ck" ${TK.sel.has(e)?'checked':''} title="markieren"><span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="g">${i?'+'+(gap/1000).toFixed(1).replace('.',','):''}</span><span class="a">${tkLabel(e)}${W.has(i)?'<em class="w">⚠ '+W.get(i)+'</em>':''}</span>`+
-      ['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-x="1" title="Klick entfernen">✕</button><button data-p="1" title="Danach einen Klick einfügen">＋</button>`;
-    const ti=r.querySelector('input.t');
-    const apply=()=>{const v=tkParse(ti.value);if(v==null){ti.value=tkFmt(e.t-off).replace('.',',');tkStatus('Zeit nicht erkannt – Format z. B. 1:23,4 oder 83,4');return;}
-      const nt=Math.max(0,Math.round(v*1000+off));if(nt===e.t)return;tkShift(i,nt-e.t);};
-    ti.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();ti.blur();}else if(k.key==='Escape'){ti.value=tkFmt(e.t-off).replace('.',',');ti.blur();}};
-    ti.onchange=apply;ti.onfocus=()=>ti.select();
-    r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;tkShift(i,d);});
-    r.querySelector('[data-p]').onclick=()=>tkAddAt(e.t-off+500);
-    r.querySelector('[data-x]').onclick=()=>{TK.sel.delete(e);TK.ev.splice(i,1);tkDirty();tkList();tkUI();};
-    r.querySelector('.ck').onchange=ev=>{if(ev.target.checked)TK.sel.add(e);else TK.sel.delete(e);r.classList.toggle('sel',ev.target.checked);tkUI();};
-    L.appendChild(r);});
+  // Abschnitte: Ring einblenden + Pokémon (Paar) + Zoom + Stichpunkte … bis zum nächsten Pokémon
+  const G=[];let g=null;
+  TK.ev.forEach((e,i)=>{
+    const isGo=e.k==='c'&&e.a==='go',isRing=e.k==='b'&&e.id==='ringPlus',isTeam=e.k==='b'&&e.id==='teamBtn';
+    const fresh=!g||((isGo||isRing)&&(g.zoomed||g.kind!=='mon'))||isTeam||(isGo&&g.names.length&&e.t-g.goT>3000);
+    if(fresh&&!(isGo&&g&&g.kind==='mon'&&!g.zoomed&&!g.names.length)){g={kind:isTeam?'team':(isGo||isRing)?'mon':'start',names:[],zoomed:false,goT:0,idx:[]};G.push(g);}
+    if(isGo&&g.kind==='mon'&&!g.zoomed){const pl=getP()[TK.kader]||[];g.names.push(pl[e.i]?pl[e.i].name:'#'+(e.i+1));g.goT=e.t;}
+    if(e.k==='c'&&e.a==='zoom')g.zoomed=true;
+    g.idx.push(i);});
+  TK.openG=TK.openG||new WeakSet();
+  G.forEach(g=>{
+    const first=TK.ev[g.idx[0]],last=TK.ev[g.idx[g.idx.length-1]],nw=g.idx.filter(i=>W.has(i)).length;
+    const title=g.kind==='team'?'Team':g.kind==='start'?'Start':(g.names.join(' + ')||'Ring einblenden');
+    const open=TK.openAll||TK.openG.has(first)||g.idx.some(i=>TK.edEv===TK.ev[i]);
+    const box=document.createElement('div');box.className='tkgrp'+(open?' open':'')+(nw?' warn':'');
+    const h=document.createElement('button');h.className='tkgh';
+    h.innerHTML=`<span class="arr">${open?'▾':'▸'}</span><b>${title}</b><span class="tm">${tkFmt(first.t-off).replace('.',',')} – ${tkFmt(last.t-off).replace('.',',')}</span><span class="ct">${g.idx.length} Klicks</span>${nw?`<span class="wn">⚠ ${nw}</span>`:''}`;
+    h.onclick=()=>{if(TK.openG.has(first))TK.openG.delete(first);else TK.openG.add(first);TK.openAll=false;tkList();};
+    box.appendChild(h);
+    if(open)g.idx.forEach(i=>{const e=TK.ev[i],ed=TK.edEv===e;
+      const r=document.createElement('div');r.className='tkrow'+(TK.sel.has(e)?' sel':'')+(e.k==='c'&&e.a==='zoom'?' tkmon':'')+(W.has(i)?' warn':'')+(ed?' ed':'');if(W.has(i))r.title=W.get(i);
+      const gap=i?e.t-TK.ev[i-1].t:0;
+      r.innerHTML=`<input type="checkbox" class="ck" ${TK.sel.has(e)?'checked':''} title="markieren"><span class="n">${i+1}</span><input class="t" type="text" inputmode="decimal" value="${tkFmt(e.t-off).replace('.',',')}" title="Zeit antippen und eintippen, z. B. 1:23,4"><span class="g">${i?'+'+(gap/1000).toFixed(1).replace('.',','):''}</span><span class="a">${tkLabel(e)}${W.has(i)?'<em class="w">⚠ '+W.get(i)+'</em>':''}</span><button data-x="1" title="Klick entfernen">✕</button>`+
+        (ed?`<div class="tkbtns">`+['−5','−1','−0,1','+0,1','+1','+5'].map(s=>`<button data-d="${s}">${s}</button>`).join('')+`<button data-p="1" title="Danach einen Klick einfügen">＋ danach einfügen</button></div>`:'');
+      const ti=r.querySelector('input.t');
+      const apply=()=>{const v=tkParse(ti.value);if(v==null){ti.value=tkFmt(e.t-off).replace('.',',');tkStatus('Zeit nicht erkannt – Format z. B. 1:23,4 oder 83,4');return;}
+        const nt=Math.max(0,Math.round(v*1000+off));if(nt===e.t)return;tkShift(TK.ev.indexOf(e),nt-e.t);};
+      ti.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();ti.blur();}else if(k.key==='Escape'){ti.value=tkFmt(e.t-off).replace('.',',');ti.blur();}};
+      ti.onchange=apply;ti.onfocus=()=>ti.select();
+      r.onclick=ev=>{if(ev.target.closest('input,button'))return;TK.edEv=ed?null:e;tkList();};
+      r.querySelectorAll('button[data-d]').forEach(bt=>bt.onclick=()=>{const d=parseFloat(bt.dataset.d.replace('−','-').replace(',','.'))*1000;tkShift(TK.ev.indexOf(e),d);});
+      const pb=r.querySelector('[data-p]');if(pb)pb.onclick=()=>{$('tkAddBar').closest('details').open=true;tkAddAt(e.t-off+500);};
+      r.querySelector('[data-x]').onclick=()=>{TK.sel.delete(e);TK.ev.splice(TK.ev.indexOf(e),1);if(TK.edEv===e)TK.edEv=null;tkDirty();tkList();tkUI();};
+      r.querySelector('.ck').onchange=ev=>{if(ev.target.checked)TK.sel.add(e);else TK.sel.delete(e);r.classList.toggle('sel',ev.target.checked);tkUI();};
+      box.appendChild(r);});
+    L.appendChild(box);});
+  $('tkOpenAll').textContent=TK.openAll?'alle zuklappen':'alle aufklappen';
+  if(typeof tkUI==='function'&&$('tkCnt'))$('tkCnt').textContent=TK.ev.length?'· '+TK.ev.length:'';
 }
 function tkDirty(){$('tkSave').classList.add('dirty');}
 /* Zeit eines Klicks ändern – mit „Folgende mitschieben“ wandern alle späteren Klicks um denselben Betrag mit */
@@ -1919,15 +1991,10 @@ function tkMoveSel(target){
 }
 $('tkMove').onclick=()=>{const x=parseInt($('tkMoveN').value,10);if(!(x>=1&&x<=TK.ev.length+1)){tkStatus('Bitte eine gültige Klick-Nummer angeben.');return;}tkMoveSel(x);};
 $('tkSelNone').onclick=()=>{TK.sel.clear();tkList();tkUI();};
-/* Zeitmarken für CapCut: Beginn jedes Pokémon-Zooms */
-$('tkMarks').onclick=()=>{const off=+$('tkOff').value;
-  const lines=TK.ev.filter(e=>e.k==='c'&&(e.a==='zoom'||e.a==='go')).map(e=>tkFmt(e.t-off).replace('.',',')+'  '+tkLabel(e));
-  const ta=$('tkMarkOut');ta.hidden=false;ta.value=lines.join('\n')||'Keine Pokémon-Aktionen im Ablauf.';ta.focus();ta.select();
-  try{navigator.clipboard&&navigator.clipboard.writeText(ta.value).then(()=>tkStatus('Zeitmarken kopiert.'),()=>{});}catch(e){}};
 /* ---------- Einklopfen starten / beenden ---------- */
 $('tkRec').onclick=async()=>{
-  if(TK.rec){TK.rec=false;tkAuStop();tkNextUI();tkOverlay().className='';tkStatus(TK.ev.length+' Klicks gemerkt – unten fein verschieben, dann speichern.');tkDirty();tkList();tkUI();return;}
-  const kader=$('pSel').value;if(!kader){tkStatus('Bitte zuerst oben eine Kader-Vorauswahl auswählen (die wird jedes Mal frisch geladen).');return;}
+  if(TK.rec){TK.rec=false;tkAuStop();tkNextUI();tkOverlay().className='';tkStatus(TK.ev.length+' Klicks gemerkt – jetzt „✎ Prüfen“, dann speichern.');tkDirty();tkList();tkUI();tkTab(3);return;}
+  const kader=$('pSel').value;if(!kader){tkStatus('Bitte zuerst in ① Vorbereiten einen Kader auswählen.');tkTab(1);return;}
   if(TK.ev.length&&!confirm('Die bisherigen Klicks werden ersetzt. Weiter?'))return;
   tkAuUnlock();
   TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked,zs:ZS};if(TK.vo)TK.set.vo={id:TK.vo.id,name:TK.vo.name};TK.ev=[];TK.sel.clear();TK.stop=false;
@@ -1981,7 +2048,7 @@ async function tkRun(from,startMs){
   tkEnd(late?`Fertig. ${late} Klick(s) kamen verspätet, weil eine Animation noch lief – dort die Zeit etwas nach hinten schieben.`:(from>0?'Fertig.':(TK.au?'Fertig – Bildschirmaufnahme beenden. Der Ton ist schon mit drin.':'Fertig – Bildschirmaufnahme beenden. In CapCut die Tonspur am weißen Blitz anlegen.')));
 }
 function seqBusy(){try{return seqT.length>0;}catch(e){return false;}}
-$('tkPlay').onclick=()=>{tkAuUnlock();TK.check=false;tkRun(0);};
+$('tkPlay').onclick=()=>{tkAuUnlock();TK.check=false;const rb=$('recBtn');if(rb&&!document.getElementById('pokemonRingeView').classList.contains('pring-rec'))rb.click();tkRun(0);};
 $('tkCheck').onclick=()=>{tkAuUnlock();TK.check=true;tkHudUI();tkRun(0,0);};
 $('tkFrom').onclick=()=>{tkAuUnlock();const x=parseInt($('tkFromN').value,10);if(!(x>=1&&x<=TK.ev.length)){tkStatus('Bitte eine gültige Klick-Nummer angeben.');return;}tkRun(x-1);};
 $('tkPause').onclick=()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();if(!TK.pause)tkStatus('Weiter …');};
@@ -1994,7 +2061,7 @@ function tkRefresh(sel){const o=tkGet(),s=$('tkSel');s.innerHTML='<option value=
   Object.keys(o).forEach(k=>s.add(new Option(`${k} (${o[k].ev.length} Klicks)`,k)));if(sel&&o[sel])s.value=sel;}
 $('tkSel').onchange=()=>{const k=$('tkSel').value,o=tkGet()[k];if(!o)return;
   TK.kader=o.kader;TK.set=o.set||null;TK.ev=o.ev.map(e=>Object.assign({},e));TK.sel.clear();$('tkOff').value=o.off!=null?o.off:250;$('tkOff').oninput();
-  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkZsSet((o.set&&o.set.zs)||1);tkVoFromSet(o.set);tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();if(typeof tkAddFill==='function')tkAddFill();};
+  $('tkName').value=k;$('tkSave').classList.remove('dirty');tkZsSet((o.set&&o.set.zs)||1);tkVoFromSet(o.set);tkStatus('Ablauf „'+k+'“ geladen · Kader „'+o.kader+'“.');tkList();tkUI();tkKaderSync(o.kader);tkTab(TK.ev.length?3:1);if(typeof tkAddFill==='function')tkAddFill();};
 $('tkSave').onclick=()=>{const n=$('tkName').value.trim();if(!n){tkStatus('Bitte einen Namen für den Ablauf eingeben.');return;}
   const o=tkGet();o[n]={kader:TK.kader,set:TK.set,off:+$('tkOff').value,ev:TK.ev};
   if(tkPut(o)){tkRefresh(n);$('tkSave').classList.remove('dirty');tkStatus('Ablauf „'+n+'“ gespeichert.');}else tkStatus('Speichern nicht möglich.');};
@@ -2073,7 +2140,7 @@ $('tkVoF').onchange=async()=>{const f=$('tkVoF').files[0];$('tkVoF').value='';if
   const id=f.name+'|'+f.size;tkVoUse(f,f.name,id);
   try{await tkVoPut(id,f);}catch(e){tkStatus('Voiceover geladen, konnte aber nicht dauerhaft gespeichert werden – nach dem Neuladen der Seite bitte erneut auswählen.');}
   if(TK.set&&TK.ev.length){TK.set.vo={id,name:f.name};tkDirty();}
-  $('tkOrdBox').open=true;tkOrdList();
+  $('tkOrdBox').open=true;tkOrdList();tkUI();
   tkStatus('Voiceover „'+f.name+'“ geladen. Reihenfolge prüfen (☰ ziehen), dann „Takt einklopfen“ – das Voiceover startet automatisch.');};
 $('tkVoDel').onclick=()=>{tkVoClear();if(TK.set&&TK.set.vo){delete TK.set.vo;tkDirty();}tkStatus('Voiceover entfernt.');};
 $('tkVoTest').onclick=()=>{const a=TK.au;if(!a)return;if(a.paused){a.currentTime=0;a.play().catch(()=>{});$('tkVoTest').textContent='■ Probehören';}else{a.pause();$('tkVoTest').textContent='▶ Probehören';}};
@@ -2191,6 +2258,28 @@ function tkWarn(){
   return W;
 }
 tkNextUI();
+
+/* ===================== Reiter ①②③, Neuer Ablauf, Kader-Auswahl ===================== */
+function tkTab(n){document.querySelectorAll('#pringTakt .tktabs button').forEach(b=>b.classList.toggle('on',+b.dataset.tab===n));
+  document.querySelectorAll('#pringTakt .tkpane').forEach(p=>p.hidden=+p.dataset.pane!==n);TK.tab=n;if(n===1)tkOrdList();}
+document.querySelectorAll('#pringTakt .tktabs button').forEach(b=>b.onclick=()=>tkTab(+b.dataset.tab));
+document.querySelectorAll('#pringTakt [data-gotab]').forEach(b=>b.onclick=()=>tkTab(+b.dataset.gotab));
+$('tkOpenAll').onclick=()=>{TK.openAll=!TK.openAll;if(!TK.openAll)TK.openG=new WeakSet();tkList();};
+function tkKaderFill(){const s=$('tkKader'),cur=$('pSel').value;s.innerHTML='<option value="">– Kader wählen –</option>';
+  Object.keys(getP()).forEach(k=>s.add(new Option(k,k)));s.value=cur&&getP()[cur]?cur:'';}
+function tkKaderSync(k){if(k&&getP()[k]){$('pSel').value=k;}tkKaderFill();tkOrdList();}
+$('tkKader').addEventListener('pointerdown',tkKaderFill);$('tkKader').addEventListener('focus',tkKaderFill);
+$('tkKader').onchange=()=>{const k=$('tkKader').value;if(!k)return;$('pSel').value=k;$('pSel').dispatchEvent(new Event('change'));
+  TK.replaying=true;try{$('pLoad').click();}finally{TK.replaying=false;}
+  if(!TK.ev.length)TK.kader=k;tkOrdList();tkUI();tkStatus('Kader „'+k+'“ geladen.');};
+$('pSel').addEventListener('change',tkKaderFill);
+$('tkNew').onclick=()=>{
+  if($('tkSave').classList.contains('dirty')&&TK.ev.length&&!confirm('Der aktuelle Ablauf hat ungespeicherte Änderungen. Trotzdem neu anfangen?'))return;
+  TK.ev=[];TK.sel.clear();TK.set=null;TK.edEv=null;TK.kader=$('pSel').value||'';$('tkSel').value='';$('tkName').value='';
+  $('tkOff').value=250;$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkVoClear();tkList();tkUI();tkKaderFill();tkTab(1);
+  tkStatus('Neuer Ablauf: Kader wählen → Voiceover laden → Reihenfolge prüfen → ② Einklopfen.');};
+$('tkName').addEventListener('input',tkUI);
+tkKaderFill();tkTab(TK.ev.length?3:1);
 
 /* ===================== PRÜF-MODUS: Zeitleiste wie bei YouTube + Klicks direkt auf der Bühne bearbeiten ===================== */
 const hud=document.createElement('div');hud.id='pringTkHud';hud.hidden=true;
