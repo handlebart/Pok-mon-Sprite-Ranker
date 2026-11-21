@@ -592,7 +592,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 403</div>
+  <div id="verTag">Version 404</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -638,6 +638,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden></div>
 <div class="bar tkvo"><button id="pringTkVo">🎙 Voiceover laden</button><input type="file" id="pringTkVoF" accept="audio/*,.m4a,.mp3,.wav,.aac" hidden><span id="pringTkVoInfo" class="hint">kein Voiceover geladen</span><button id="pringTkVoTest" hidden>▶ Probehören</button><button id="pringTkVoDel" hidden>entfernen</button></div>
 <details class="tkordbox" id="pringTkOrdBox"><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– so, wie du die Pokémon im Voiceover vorstellst · am ☰ ziehen</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
+<div class="bar"><label><input type="checkbox" id="pringTkAutoZoom"> „Nächster Schritt“ zoomt nach der Landung automatisch (sonst: eigener Tipp für den Zoom)</label></div>
 <button id="pringTkNext" hidden>Nächster Schritt ▶</button><button id="pringTkSwap" hidden>⇄ Partner nach vorne</button>
 <div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
 <span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
@@ -1910,7 +1911,7 @@ $('tkRec').onclick=async()=>{
   TK.kader=kader;TK.set={spin:$('spin').checked,tGlow:$('tGlow').checked,zs:ZS};if(TK.vo)TK.set.vo={id:TK.vo.id,name:TK.vo.name};TK.ev=[];TK.sel.clear();TK.stop=false;
   $('tkRec').disabled=true;tkStatus('Kader „'+kader+'“ wird frisch geladen …');
   await tkReset(kader,TK.set);
-  TK.stepDone=new Set();
+  TK.stepDone=new Set();TK.stepZoom=null;TK.stepWait=0;
   tkStatus(TK.au?'Gleich startet dein Voiceover …':'Bei „1“ das Voiceover am Handy starten …');await tkCountdown();
   TK.t0=performance.now();TK.rec=true;tkAuStart(0);tkFlash();tkNextUI();
   tkStatus(TK.au?'Einklopfen läuft – bei jedem Stichwort „Nächster Schritt“ tippen (oder Fernbedienung / Leertaste).':'Einklopfen läuft – Tool wie gewohnt bedienen.');tkUI();tkList();
@@ -2097,6 +2098,8 @@ function tkOrdDrag(ev,row,G,save){
     if(to!==from){const [x]=G.splice(from,1);G.splice(to,0,x);}save();};
   row.addEventListener('pointermove',mv);row.addEventListener('pointerup',up);row.addEventListener('pointercancel',up);
 }
+try{$('tkAutoZoom').checked=localStorage.getItem('pring-autozoom')==='1';}catch(e){}
+$('tkAutoZoom').onchange=()=>{try{localStorage.setItem('pring-autozoom',$('tkAutoZoom').checked?'1':'0');}catch(e){}};
 $('tkOrdReset').onclick=()=>{const k=$('pSel').value||TK.kader;tkOrdPut(k,null);tkOrdList();};
 $('pSel').addEventListener('change',()=>{tkOrdList();});
 document.getElementById('pringTkOrdBox').addEventListener('toggle',tkOrdList);
@@ -2107,10 +2110,11 @@ function tkCard(m,a){return m&&m.card&&m.card.querySelector('[data-a='+a+']');}
 function tkStepBusy(){const b=$('tkNext');b.classList.remove('busy');void b.offsetWidth;b.classList.add('busy');}
 function tkStep(){
   if(!TK.rec)return;
-  if(Z.busy){tkStepBusy();return;}
+  if(Z.busy||performance.now()<(TK.stepWait||0)){tkStepBusy();return;}
   if(Z.on){ // Stichpunkt zeigen – oder Zoom beenden, wenn alle Stichpunkte stehen
     if(Z.step<Z.notes.length)tkClick($('zNext'));else tkClick($('zoomEnd'));return;}
   if(seqBusy()){tkStepBusy();return;}
+  if(TK.stepZoom){const z=TK.stepZoom;TK.stepZoom=null;tkClick(tkCard(z,'zoom'));return;}   // eigener Tipp: Zoom
   const ord=tkOrder(TK.kader);
   const idx=ord.find(i=>mons[i]&&!TK.stepDone.has(i)&&mons[i].mode!=='ring'&&mons[i].mode!=='team');
   if(idx==null){ // alle durch → Teamer
@@ -2123,7 +2127,10 @@ function tkStep(){
   tkClick(tkCard(m,'go'));
   const p=m.partner&&m.partner.mode!=='ring'&&m.partner.ring===m.ring?m.partner:null;
   if(p){TK.stepDone.add(mons.indexOf(p));setTimeout(()=>{if(TK.rec)tkClick(tkCard(p,'go'));},300);}
-  setTimeout(()=>{if(TK.rec&&!Z.on&&!Z.busy)tkClick(tkCard(m,'zoom'));},p?600:150);
+  // erst landen lassen (sitzt nach ca. 1,1 s sauber auf dem Ring), dann reinzoomen
+  const land=p?1450:1150;TK.stepWait=performance.now()+land;
+  if(!$('tkAutoZoom').checked){TK.stepZoom=m;return;}   // nächster Tipp zoomt
+  TK.stepWait+=100;setTimeout(()=>{if(TK.rec&&!Z.on&&!Z.busy)tkClick(tkCard(m,'zoom'));},land);
 }
 function tkNextUI(){$('tkNext').hidden=!TK.rec;tkSwapUI();}
 /* zweiter Knopf: nur sichtbar, solange ein Partner-Paar gezoomt ist */
