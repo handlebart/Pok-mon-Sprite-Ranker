@@ -646,7 +646,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 406</div>
+  <div id="verTag">Version 407</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -692,7 +692,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <div class="bar tktop"><select id="pringTkSel"></select><button id="pringTkNew">＋ Neuer Ablauf</button>
 <input type="text" id="pringTkName" placeholder="Name, z. B. Entenhausen – Voiceover"><button id="pringTkSave">Speichern</button>
 <details class="tkmore" id="pringTkMore"><summary>⋯ Mehr</summary><div class="tkmenu">
- <div class="bar"><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden><button id="pringTkDel" class="del">Ablauf löschen</button></div>
+ <div class="bar"><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden><button id="pringTkExp">Ablauf exportieren</button><button id="pringTkDel" class="del">Ablauf löschen</button></div>
  <div class="bar"><span class="tkfrom">Abspielen ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span></div>
  <div class="bar"><label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label><span class="hint">gleicht die Reaktionszeit beim Mitklopfen aus</span></div>
  <div class="bar tkmove">Markierte Klicks vor Klick Nr. <input type="number" id="pringTkMoveN" min="1" value="1" inputmode="numeric"> <button id="pringTkMove">verschieben</button> <button id="pringTkSelNone">Markierung aufheben</button> <b id="pringTkSelInfo"></b></div>
@@ -2280,6 +2280,20 @@ $('tkNew').onclick=()=>{
   tkStatus('Neuer Ablauf: Kader wählen → Voiceover laden → Reihenfolge prüfen → ② Einklopfen.');};
 $('tkName').addEventListener('input',tkUI);
 tkKaderFill();tkTab(TK.ev.length?3:1);
+
+/* ---------- einzelnen Ablauf exportieren (gleiches Format wie der Import) ---------- */
+$('tkExp').onclick=async()=>{
+  if(!TK.ev.length){tkStatus('Kein Ablauf geladen – erst einen Ablauf auswählen.');return;}
+  const name=$('tkName').value.trim()||$('tkSel').value||'Ablauf';
+  const pl=getP()[TK.kader]||[],patch={};pl.forEach((x,i)=>{if(x&&x.notes&&x.notes.length)patch[i]={name:x.name,notes:x.notes.slice()};});
+  const j={handlebartTakt:1,name,kader:TK.kader,set:TK.set||null,off:+$('tkOff').value,ev:TK.ev,patch};
+  const fn=name.replace(/[–—]/g,'-').replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim()+'.json';
+  const blob=new Blob([JSON.stringify(j)],{type:'application/json'});
+  try{const f=new File([blob],fn,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});tkStatus('Ablauf „'+name+'“ exportiert.');return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+  tkStatus('Ablauf „'+name+'“ als „'+fn+'“ gespeichert (Downloads / Dateien). Das Voiceover ist nicht in der Datei – auf dem anderen Gerät einmal neu laden.');};
 
 /* ===================== PRÜF-MODUS: Zeitleiste wie bei YouTube + Klicks direkt auf der Bühne bearbeiten ===================== */
 const hud=document.createElement('div');hud.id='pringTkHud';hud.hidden=true;
