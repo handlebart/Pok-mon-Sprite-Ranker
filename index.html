@@ -509,6 +509,17 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pringRoot .tkrow.warn{background:rgba(229,57,53,.16)}
 #pringRoot .tkrow .a em.w{display:block;color:#ff8a80;font-style:normal;font-size:12px}
 
+#pringRoot .tkord{background:#2a2c33;position:relative;transition:transform .15s}
+#pringRoot .tkord .h{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font-size:20px;line-height:1;color:#a9adb8;padding:6px 10px;margin:-4px 0}
+#pringRoot .tkord.drag{transition:none;z-index:5;background:#3a3d46;box-shadow:0 6px 18px rgba(0,0,0,.5);border-radius:8px}
+#pringRoot .tkord.drag .h{cursor:grabbing;color:#fff}
+#pringRoot #pringTkOrdList{max-height:420px}
+
+#pokemonRingeView #pringRoot #pringTkSwap{position:absolute;right:2.2%;bottom:calc(3% + 66px);z-index:60;padding:11px 18px;font:700 16px/1 system-ui,sans-serif;border-radius:14px;
+  background:#f28c1a;color:#fff;border:3px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#pokemonRingeView #pringRoot #pringTkSwap:active{transform:scale(.96)}
+#pokemonRingeView #pringRoot #pringTkSwap.busy{animation:tkBusy .45s}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -579,7 +590,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 400</div>
+  <div id="verTag">Version 402</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -624,8 +635,8 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <details class="grp wide takt" id="pringTakt" open><summary><h3>Ablauf-Takt</h3><span class="hint">Voiceover laden, mitklopfen – danach läuft alles automatisch synchron</span></summary>
 <div class="bar"><select id="pringTkSel"></select><input type="text" id="pringTkName" placeholder="Name, z. B. Asterix – Ringe"><button id="pringTkSave">Ablauf speichern</button><button id="pringTkDel">Löschen</button><button id="pringTkImp">Ablauf importieren</button><input type="file" id="pringTkImpF" accept=".json,application/json" hidden></div>
 <div class="bar tkvo"><button id="pringTkVo">🎙 Voiceover laden</button><input type="file" id="pringTkVoF" accept="audio/*,.m4a,.mp3,.wav,.aac" hidden><span id="pringTkVoInfo" class="hint">kein Voiceover geladen</span><button id="pringTkVoTest" hidden>▶ Probehören</button><button id="pringTkVoDel" hidden>entfernen</button></div>
-<details class="tkordbox" id="pringTkOrdBox"><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– in dieser Reihenfolge holt der Knopf die Pokémon auf die Ringe</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
-<button id="pringTkNext" hidden>Nächster Schritt ▶</button>
+<details class="tkordbox" id="pringTkOrdBox"><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– so, wie du die Pokémon im Voiceover vorstellst · am ☰ ziehen</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
+<button id="pringTkNext" hidden>Nächster Schritt ▶</button><button id="pringTkSwap" hidden>⇄ Partner nach vorne</button>
 <div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
 <span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
 <label>Zoom-Tempo <select id="pringTkZs"><option value="1">normal</option><option value="0.8">etwas schneller</option><option value="0.6">schnell</option></select></label>
@@ -2034,7 +2045,8 @@ $('tkVoF').onchange=async()=>{const f=$('tkVoF').files[0];$('tkVoF').value='';if
   const id=f.name+'|'+f.size;tkVoUse(f,f.name,id);
   try{await tkVoPut(id,f);}catch(e){tkStatus('Voiceover geladen, konnte aber nicht dauerhaft gespeichert werden – nach dem Neuladen der Seite bitte erneut auswählen.');}
   if(TK.set&&TK.ev.length){TK.set.vo={id,name:f.name};tkDirty();}
-  tkStatus('Voiceover „'+f.name+'“ geladen. Jetzt „Takt einklopfen“ – das Voiceover startet automatisch.');};
+  $('tkOrdBox').open=true;tkOrdList();
+  tkStatus('Voiceover „'+f.name+'“ geladen. Reihenfolge prüfen (☰ ziehen), dann „Takt einklopfen“ – das Voiceover startet automatisch.');};
 $('tkVoDel').onclick=()=>{tkVoClear();if(TK.set&&TK.set.vo){delete TK.set.vo;tkDirty();}tkStatus('Voiceover entfernt.');};
 $('tkVoTest').onclick=()=>{const a=TK.au;if(!a)return;if(a.paused){a.currentTime=0;a.play().catch(()=>{});$('tkVoTest').textContent='■ Probehören';}else{a.pause();$('tkVoTest').textContent='▶ Probehören';}};
 /* iPad: Ton darf nur nach einem Tippen starten – deshalb beim Tippen kurz stumm anspielen */
@@ -2055,10 +2067,27 @@ function tkOrdList(){const k=$('pSel').value||TK.kader,L=$('tkOrdList');L.innerH
   const a=tkOrder(k),RC=['#e53935','#f28c1a','#fdd23a','#43a047','#6aa8ff','#c07cff'];
   a.forEach((idx,pos)=>{const x=l[idx],r=document.createElement('div');r.className='tkord';
     const pt=x.partner!=null&&l[x.partner]?' <i>+ '+l[x.partner].name+'</i>':'';
-    r.innerHTML=`<span class="n">${pos+1}</span><span class="dot" style="background:${RC[x.ring]||'#888'}"></span><span class="a">${x.name}${pt}</span><span class="nn">${(x.notes||[]).length} Stichp.</span><button data-u="1" ${pos?'':'disabled'}>▲</button><button data-d="1" ${pos<a.length-1?'':'disabled'}>▼</button>`;
+    r.dataset.pos=pos;r.innerHTML=`<span class="h" title="Gedrückt halten und ziehen">☰</span><span class="n">${pos+1}</span><span class="dot" style="background:${RC[x.ring]||'#888'}"></span><span class="a">${x.name}${pt}</span><span class="nn">${(x.notes||[]).length} Stichp.</span><button data-u="1" ${pos?'':'disabled'}>▲</button><button data-d="1" ${pos<a.length-1?'':'disabled'}>▼</button>`;
     r.querySelector('[data-u]').onclick=()=>{[a[pos-1],a[pos]]=[a[pos],a[pos-1]];tkOrdPut(k,a);tkOrdList();};
     r.querySelector('[data-d]').onclick=()=>{[a[pos+1],a[pos]]=[a[pos],a[pos+1]];tkOrdPut(k,a);tkOrdList();};
+    r.querySelector('.h').addEventListener('pointerdown',ev=>tkOrdDrag(ev,r,k,a));
     L.appendChild(r);});}
+/* Ziehen & Ablegen (Finger oder Maus) am ☰-Griff */
+function tkOrdDrag(ev,row,k,a){
+  ev.preventDefault();const L=$('tkOrdList'),rows=[...L.children],from=+row.dataset.pos;
+  const h=row.getBoundingClientRect().height,y0=ev.clientY;let to=from,raf=0,lastY=y0;
+  row.classList.add('drag');try{row.setPointerCapture(ev.pointerId);}catch(e){}
+  const place=()=>{raf=0;const dy=lastY-y0;row.style.transform=`translateY(${dy}px)`;
+    // automatisch scrollen, wenn man an den Rand der Liste zieht
+    const lr=L.getBoundingClientRect();if(lastY<lr.top+24)L.scrollTop-=8;else if(lastY>lr.bottom-24)L.scrollTop+=8;
+    to=Math.max(0,Math.min(rows.length-1,from+Math.round(dy/h)));
+    rows.forEach((x,i)=>{if(x===row)return;let s=0;if(from<to&&i>from&&i<=to)s=-h;if(from>to&&i<from&&i>=to)s=h;x.style.transform=s?`translateY(${s}px)`:'';});};
+  const mv=e=>{lastY=e.clientY;if(!raf)raf=requestAnimationFrame(place);};
+  const up=()=>{row.removeEventListener('pointermove',mv);row.removeEventListener('pointerup',up);row.removeEventListener('pointercancel',up);
+    if(raf)cancelAnimationFrame(raf);rows.forEach(x=>x.style.transform='');row.classList.remove('drag');
+    if(to!==from){const [x]=a.splice(from,1);a.splice(to,0,x);tkOrdPut(k,a);}tkOrdList();};
+  row.addEventListener('pointermove',mv);row.addEventListener('pointerup',up);row.addEventListener('pointercancel',up);
+}
 $('tkOrdReset').onclick=()=>{const k=$('pSel').value||TK.kader;tkOrdPut(k,null);tkOrdList();};
 $('pSel').addEventListener('change',()=>{tkOrdList();});
 document.getElementById('pringTkOrdBox').addEventListener('toggle',tkOrdList);
@@ -2087,14 +2116,20 @@ function tkStep(){
   if(p){TK.stepDone.add(mons.indexOf(p));setTimeout(()=>{if(TK.rec)tkClick(tkCard(p,'go'));},300);}
   setTimeout(()=>{if(TK.rec&&!Z.on&&!Z.busy)tkClick(tkCard(m,'zoom'));},p?600:150);
 }
-function tkNextUI(){$('tkNext').hidden=!TK.rec;}
+function tkNextUI(){$('tkNext').hidden=!TK.rec;tkSwapUI();}
+/* zweiter Knopf: nur sichtbar, solange ein Partner-Paar gezoomt ist */
+function tkSwapUI(){const b=$('tkSwap');b.hidden=!(TK.rec&&Z.on&&Z.items&&Z.items.length>=2);}
+setInterval(()=>{if(TK.rec||!$('tkSwap').hidden)tkSwapUI();},150);
+$('tkSwap').addEventListener('click',ev=>{ev.stopPropagation();if(!TK.rec)return;
+  if(Z.busy){const b=$('tkSwap');b.classList.remove('busy');void b.offsetWidth;b.classList.add('busy');return;}
+  tkClick($('zoomSwap'));});
 $('tkNext').addEventListener('click',ev=>{ev.stopPropagation();tkStep();});
 addEventListener('keydown',ev=>{
   if(!TK.rec)return;const t=ev.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
   if([' ','ArrowRight','ArrowDown','PageDown','Enter'].includes(ev.key)){ev.preventDefault();tkStep();}
 });
 /* Big button auf die Bühne setzen (nur beim Einklopfen sichtbar, nie in der Aufnahme beim Abspielen) */
-wrap.appendChild($('tkNext'));
+wrap.appendChild($('tkNext'));wrap.appendChild($('tkSwap'));
 
 /* ---------- Warnungen: Animation zwischen zwei Klicks nicht fertig ---------- */
 function tkWarn(){
