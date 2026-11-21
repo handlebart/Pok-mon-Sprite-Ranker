@@ -522,6 +522,28 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 
 #pokemonRingeView #pringRoot .tkord button[data-s]{padding:3px 9px;font-size:14px;color:#ffd08a}
 
+#pringRoot #pringTkHud{position:absolute;inset:0;z-index:62;pointer-events:none;font:600 13px/1.25 system-ui,sans-serif;color:#fff}
+#pringRoot #pringTkHud[hidden]{display:none}
+#pringRoot #pringTkHud .hb{position:absolute;bottom:64px;max-width:44%;background:rgba(20,21,26,.86);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;pointer-events:auto;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#pringRoot #pringTkHud .hl{left:10px}#pringRoot #pringTkHud .hr{right:10px;text-align:right}
+#pringRoot #pringTkHud .ht{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#a9adb8;margin-bottom:3px}
+#pringRoot #pringTkHud .hi{min-height:18px}
+#pringRoot #pringTkHud .hi b{color:#ffd08a;font-variant-numeric:tabular-nums}#pringRoot #pringTkHud .hn{color:#8a8f99}
+#pringRoot #pringTkHud .hin{display:block;color:#9fe0a5;font-size:12px}
+#pringRoot #pringTkHud .hk{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}#pringRoot #pringTkHud .hr .hk{justify-content:flex-end}
+#pokemonRingeView #pringRoot #pringTkHud button{padding:7px 10px;font:700 13px/1 system-ui,sans-serif;border-radius:8px;background:#3a3d46;color:#fff;border:1px solid rgba(255,255,255,.2);min-width:40px;touch-action:manipulation}
+#pokemonRingeView #pringRoot #pringTkHud button.now{background:#43a047;border-color:#fff}
+#pringRoot #pringTkHud .hs{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;gap:10px;background:rgba(20,21,26,.86);border-radius:12px;padding:6px 10px;pointer-events:auto}
+#pringRoot #pringTkHud .hc,#pringRoot #pringTkHud .hd{font-variant-numeric:tabular-nums;min-width:52px}
+#pringRoot #pringTkHud .htrack{position:relative;flex:1;height:30px}
+#pringRoot #pringTkHud .htrack::before{content:'';position:absolute;left:0;right:0;top:13px;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}
+#pringRoot #pringTkHud .hfill{position:absolute;left:0;top:13px;height:4px;border-radius:2px;background:#e53935;width:0}
+#pringRoot #pringTkHud .hfill::after{content:'';position:absolute;right:-9px;top:-7px;width:18px;height:18px;border-radius:50%;background:#e53935;box-shadow:0 0 0 3px rgba(255,255,255,.85)}
+#pringRoot #pringTkHud .hmarks i{position:absolute;top:9px;width:2px;height:12px;margin-left:-1px;background:#fdd23a;opacity:.85}
+#pringRoot #pringTkHud .hmarks i.z{background:#f28c1a;height:8px;top:11px}#pringRoot #pringTkHud .hmarks i.r{background:#fff;height:16px;top:7px}
+#pringRoot #pringTkHud .hrange{position:absolute;inset:0;width:100%;height:30px;margin:0;opacity:0;cursor:pointer;touch-action:none}
+#pringRoot #pringTkHud .hrange::-webkit-slider-thumb{width:28px;height:28px}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -592,7 +614,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 404</div>
+  <div id="verTag">Version 405</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -640,7 +662,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 <details class="tkordbox" id="pringTkOrdBox"><summary>Reihenfolge für „Nächster Schritt“ <span class="hint">– so, wie du die Pokémon im Voiceover vorstellst · am ☰ ziehen</span></summary><div id="pringTkOrdList"></div><button id="pringTkOrdReset">Reihenfolge zurücksetzen (nach Ringen)</button></details>
 <div class="bar"><label><input type="checkbox" id="pringTkAutoZoom"> „Nächster Schritt“ zoomt nach der Landung automatisch (sonst: eigener Tipp für den Zoom)</label></div>
 <button id="pringTkNext" hidden>Nächster Schritt ▶</button><button id="pringTkSwap" hidden>⇄ Partner nach vorne</button>
-<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
+<div class="bar"><button id="pringTkRec" class="tkrec">● Takt einklopfen</button><button id="pringTkPlay" class="pri">▶ Abspielen</button><button id="pringTkCheck" title="Abspielen mit Zeitleiste und Bearbeitung direkt auf der Bühne – nicht für die Aufnahme">✎ Prüfen</button><button id="pringTkPause" hidden>❚❚ Pause</button><button id="pringTkStop" hidden>■ Stopp</button>
 <span class="tkfrom">ab Klick Nr. <input type="number" id="pringTkFromN" min="1" value="1" inputmode="numeric"> <button id="pringTkFrom">▶ ab hier</button></span>
 <label>Zoom-Tempo <select id="pringTkZs"><option value="1">normal</option><option value="0.8">etwas schneller</option><option value="0.6">schnell</option></select></label>
 <label>Alle Klicks vorziehen um <input type="range" id="pringTkOff" min="0" max="1000" step="50" value="250"> <b id="pringTkOffV">0,25 s</b></label></div>
@@ -1844,7 +1866,7 @@ function tkUI(){
   $('tkPause').hidden=!TK.play;$('tkPause').textContent=TK.pause?'▶ Weiter':'❚❚ Pause';$('tkPause').classList.toggle('on',TK.pause);
   $('tkFrom').disabled=TK.rec||TK.play||!TK.ev.length;$('tkFromN').max=Math.max(1,TK.ev.length);
   $('tkMove').disabled=TK.rec||TK.play||!TK.sel.size;$('tkSelInfo').textContent=TK.sel.size?TK.sel.size+' markiert':'';
-  $('tkSave').disabled=TK.rec||TK.play||!TK.ev.length;
+  $('tkSave').disabled=TK.rec||TK.play||!TK.ev.length;$('tkCheck').hidden=TK.play;$('tkCheck').disabled=TK.rec||!TK.ev.length;
 }
 /* ---------- Liste zum Feinschieben ---------- */
 function tkList(){
@@ -1927,23 +1949,23 @@ function tkPlan(from){ // Zoom-Sitzungen, die vollständig vor dem Startklick li
   if(open>=0)for(let i=open;i<from;i++)skip.delete(i);
   return skip;
 }
-async function tkRun(from){
-  if(!TK.ev.length||TK.play)return;
+async function tkRun(from,startMs){
+  if(!TK.ev.length||TK.play)return;TK.curI=from;
   if(!getP()[TK.kader]){tkStatus('Kader „'+TK.kader+'“ gibt es nicht mehr.');return;}
   TK.play=true;TK.stop=false;TK.pause=false;tkUI();tkStatus('Ausgangszustand wird hergestellt …');
   await tkReset(TK.kader,TK.set);if(TK.stop)return tkEnd('Abgebrochen.');
-  tkOverlay().className='block';
+  tkOverlay().className='block';tkHudUI();
   if(from>0){tkStatus('Vorspulen bis Klick '+(from+1)+' …');const skip=tkPlan(from);
     for(let i=0;i<from;i++){if(TK.stop)return tkEnd('Abgebrochen.');if(skip.has(i))continue;const e=TK.ev[i];
       let w=0;while(!tkReady(e)&&w<8000){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(15);w+=15;}if(w<8000)tkExec(e);await tkWait(30);}
     const t1=performance.now();while((Z.busy||seqBusy())&&performance.now()-t1<8000)await tkWait(30);await tkWait(600);}
-  await tkCountdown();if(TK.stop)return tkEnd('Abgebrochen.');
-  const off=+$('tkOff').value,base=from>0?TK.ev[from].t-1000:0;let t0=performance.now();if(from===0)tkFlash();let late=0;
-  if(TK.au){tkAuStart(base);}
-  const clock=()=>TK.au&&TK.auOn?TK.au.currentTime*1000:performance.now()-t0+base;
-  for(let i=from;i<TK.ev.length;i++){const e=TK.ev[i];
-    const due=Math.max(0,e.t-off);
-    while(clock()<due||TK.pause){
+  if(!TK.check){await tkCountdown();if(TK.stop)return tkEnd('Abgebrochen.');}
+  const off=+$('tkOff').value,base=startMs!=null?startMs:(from>0?Math.max(0,TK.ev[from].t-off-1000):0);let t0=performance.now();if(from===0)tkFlash();let late=0;
+  TK.runBase=base;if(TK.au){tkAuStart(base);}
+  const clock=()=>TK.au&&TK.auOn?TK.au.currentTime*1000:performance.now()-t0+base;TK.clock=clock;
+  for(let i=from;i<TK.ev.length;i++){const e=TK.ev[i];TK.curI=i;
+    let due=Math.max(0,e.t-off);
+    while((due=Math.max(0,e.t-+$('tkOff').value),clock()<due)||TK.pause){
       if(TK.stop)return tkEnd('Abgebrochen.');
       if(TK.pause){const p0=performance.now();if(TK.au)TK.au.pause();tkStatus('Pausiert bei '+tkFmt(clock())+' – nächster Klick '+(i+1)+': '+tkLabel(e));
         while(TK.pause&&!TK.stop)await tkWait(40);t0+=performance.now()-p0;if(TK.au&&!TK.stop)TK.au.play().catch(()=>{});continue;}
@@ -1951,17 +1973,20 @@ async function tkRun(from){
     let w=0;while(!tkReady(e)&&w<10000){if(TK.stop)return tkEnd('Abgebrochen.');await tkWait(15);w+=15;}
     if(w>=10000){tkStatus('Klick '+(i+1)+' ging nicht ('+tkLabel(e)+') – übersprungen.');continue;}
     if(clock()-due>250)late++;
-    tkExec(e);tkStatus('Wiedergabe: Klick '+(i+1)+'/'+TK.ev.length+' · '+tkFmt(clock())+' · '+tkLabel(e));
+    tkExec(e);TK.lastI=i;tkStatus('Wiedergabe: Klick '+(i+1)+'/'+TK.ev.length+' · '+tkFmt(clock())+' · '+tkLabel(e));
   }
+  TK.curI=TK.ev.length;
   if(TK.au&&TK.auOn&&!TK.au.ended){tkStatus('Alle Klicks durch – Voiceover läuft bis zum Ende …');
     while(TK.auOn&&!TK.au.ended&&!TK.stop){if(TK.pause){TK.au.pause();while(TK.pause&&!TK.stop)await tkWait(40);if(!TK.stop)TK.au.play().catch(()=>{});}await tkWait(100);}}
   tkEnd(late?`Fertig. ${late} Klick(s) kamen verspätet, weil eine Animation noch lief – dort die Zeit etwas nach hinten schieben.`:(from>0?'Fertig.':(TK.au?'Fertig – Bildschirmaufnahme beenden. Der Ton ist schon mit drin.':'Fertig – Bildschirmaufnahme beenden. In CapCut die Tonspur am weißen Blitz anlegen.')));
 }
 function seqBusy(){try{return seqT.length>0;}catch(e){return false;}}
-$('tkPlay').onclick=()=>{tkAuUnlock();tkRun(0);};
+$('tkPlay').onclick=()=>{tkAuUnlock();TK.check=false;tkRun(0);};
+$('tkCheck').onclick=()=>{tkAuUnlock();TK.check=true;tkHudUI();tkRun(0,0);};
 $('tkFrom').onclick=()=>{tkAuUnlock();const x=parseInt($('tkFromN').value,10);if(!(x>=1&&x<=TK.ev.length)){tkStatus('Bitte eine gültige Klick-Nummer angeben.');return;}tkRun(x-1);};
 $('tkPause').onclick=()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();if(!TK.pause)tkStatus('Weiter …');};
-function tkEnd(msg){tkAuStop();TK.play=false;TK.pause=false;tkOverlay().className='';tkStatus(msg);tkUI();}
+function tkEnd(msg){tkAuStop();TK.play=false;TK.pause=false;tkOverlay().className='';tkStatus(msg);tkUI();
+  if(TK.seekTo!=null){const t=TK.seekTo;TK.seekTo=null;setTimeout(()=>tkSeekStart(t),30);}else{TK.check=false;tkHudUI();}}
 $('tkStop').onclick=()=>{TK.stop=true;TK.pause=false;};
 $('tkOff').oninput=()=>{$('tkOffV').textContent=(+$('tkOff').value/1000).toFixed(2).replace('.',',')+' s';tkDirty();tkList();};
 /* ---------- Presets ---------- */
@@ -2166,6 +2191,55 @@ function tkWarn(){
   return W;
 }
 tkNextUI();
+
+/* ===================== PRÜF-MODUS: Zeitleiste wie bei YouTube + Klicks direkt auf der Bühne bearbeiten ===================== */
+const hud=document.createElement('div');hud.id='pringTkHud';hud.hidden=true;
+hud.innerHTML=`<div class="hb hl"><div class="ht">◀ Letzter Klick</div><div class="hi" data-l="i"></div>
+  <div class="hk"><button data-l="-1000">−1</button><button data-l="-100">−0,1</button><button data-l="100">+0,1</button><button data-l="1000">+1</button></div></div>
+<div class="hb hr"><div class="ht">Nächster Klick ▶</div><div class="hi" data-r="i"></div>
+  <div class="hk"><button data-r="-1000">−1</button><button data-r="-100">−0,1</button><button data-r="100">+0,1</button><button data-r="1000">+1</button><button data-r="now" class="now">Jetzt!</button></div></div>
+<div class="hs"><button class="hp" data-p="1">❚❚</button><span class="hc">0:00,0</span>
+  <div class="htrack"><div class="hmarks"></div><div class="hfill"></div><input type="range" min="0" max="1000" step="1" value="0" class="hrange"></div>
+  <span class="hd">0:00</span><button class="hx" data-x="1" title="Prüfen beenden">✕</button></div>`;
+wrap.appendChild(hud);
+['click','pointerdown'].forEach(t=>hud.addEventListener(t,ev=>ev.stopPropagation()));
+const hq=s=>hud.querySelector(s);
+function tkHudDur(){const last=TK.ev.length?TK.ev[TK.ev.length-1].t:0;const a=TK.au&&isFinite(TK.au.duration)?TK.au.duration*1000:0;return Math.max(a,last+3000,1000);}
+function tkHudMarks(){const M=hq('.hmarks');M.innerHTML='';const D=tkHudDur(),off=+$('tkOff').value;
+  TK.ev.forEach(e=>{if(!(e.k==='c'&&(e.a==='go'||e.a==='zoom'))&&!(e.k==='b'&&e.id==='ringPlus'))return;
+    const d=document.createElement('i');d.className=e.a==='zoom'?'z':e.id==='ringPlus'?'r':'g';d.style.left=(100*Math.max(0,e.t-off)/D)+'%';M.appendChild(d);});}
+function tkHudUI(){hud.hidden=!(TK.check&&TK.play);if(!hud.hidden){tkHudMarks();tkHudTick();}}
+let tkScrub=false;
+function tkHudInfo(i,el){const e=TK.ev[i];if(!e){el.innerHTML='<span class="hn">–</span>';return;}
+  const off=+$('tkOff').value,now=TK.clock?TK.clock():0,dt=(e.t-off-now)/1000;
+  el.innerHTML=`<span class="hn">#${i+1}</span> <b>${tkFmt(e.t-off).replace('.',',')}</b> <span class="hm">${tkLabel(e)}</span>`+
+    (el.dataset.r?`<span class="hin">${dt>=0?'in '+dt.toFixed(1).replace('.',',')+' s':'jetzt'}</span>`:'');}
+function tkHudTick(){
+  if(hud.hidden)return;const D=tkHudDur(),now=TK.clock?TK.clock():0;
+  if(!tkScrub){hq('.hrange').value=Math.round(1000*now/D);hq('.hc').textContent=tkFmt(now).replace('.',',');}
+  if(!tkScrub)hq('.hfill').style.width=(100*Math.min(1,now/D))+'%';hq('.hd').textContent=tkFmt(D).replace(/\.\d$/,'');
+  const li=TK.lastI!=null&&TK.lastI<TK.curI?TK.lastI:TK.curI-1;
+  tkHudInfo(li,hq('[data-l="i"]'));tkHudInfo(TK.curI,hq('[data-r="i"]'));
+  hq('[data-p]').textContent=TK.pause?'▶':'❚❚';
+}
+setInterval(()=>{if(TK.check&&TK.play)tkHudTick();},100);
+/* Verschieben: wirkt sofort auf den nächsten Klick, beim letzten Klick ab dem nächsten Durchlauf */
+function tkHudShift(i,d){if(i<0||i>=TK.ev.length)return;tkShift(i,d);tkHudMarks();tkHudTick();
+  tkStatus('Klick '+(i+1)+' jetzt bei '+tkFmt(TK.ev[i].t-+$('tkOff').value).replace('.',',')+($('tkFollow').checked?' (folgende mitgeschoben)':'')+' – Speichern nicht vergessen.');}
+hud.querySelectorAll('[data-l]').forEach(b=>{if(b.dataset.l==='i')return;b.onclick=()=>{const li=TK.lastI!=null&&TK.lastI<TK.curI?TK.lastI:TK.curI-1;tkHudShift(li,+b.dataset.l);};});
+hud.querySelectorAll('[data-r]').forEach(b=>{if(b.dataset.r==='i')return;b.onclick=()=>{const i=TK.curI;if(i>=TK.ev.length)return;
+  if(b.dataset.r==='now'){const e=TK.ev[i],now=TK.clock?TK.clock():0;tkHudShift(i,Math.round(now+ +$('tkOff').value-e.t));}else tkHudShift(i,+b.dataset.r);};});
+hq('[data-p]').onclick=()=>{if(!TK.play)return;TK.pause=!TK.pause;tkUI();tkHudTick();};
+hq('[data-x]').onclick=()=>{TK.stop=true;TK.pause=false;};
+/* Zeitleiste ziehen: Vorschauzeit anzeigen, beim Loslassen dorthin springen */
+const hr=hq('.hrange');
+hr.addEventListener('input',()=>{tkScrub=true;hq('.hfill').style.width=(hr.value/10)+'%';hq('.hc').textContent='→ '+tkFmt(tkHudDur()*hr.value/1000).replace('.',',');});
+hr.addEventListener('change',()=>{tkScrub=false;tkSeek(tkHudDur()*hr.value/1000);});
+function tkSeek(ms){if(!TK.play)return;TK.seekTo=Math.max(0,ms);TK.stop=true;TK.pause=false;tkStatus('Springe zu '+tkFmt(ms).replace('.',',')+' …');}
+function tkSeekStart(ms){const off=+$('tkOff').value;let i=TK.ev.findIndex(e=>e.t-off>=ms);if(i<0)i=TK.ev.length;
+  TK.check=true;TK.lastI=null;tkHudUI();
+  if(i>=TK.ev.length){tkStatus('Hinter dem letzten Klick – bitte weiter vorne hinspringen.');TK.check=false;tkHudUI();return;}
+  tkRun(i,ms);}
 tkRefresh();$('tkOff').oninput();$('tkSave').classList.remove('dirty');tkList();tkUI();
 
 /* ---------- Hub-Anbindung: Schleife und Laden nur bei sichtbarer View ---------- */
