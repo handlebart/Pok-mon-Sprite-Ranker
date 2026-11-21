@@ -520,6 +520,8 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
 #pokemonRingeView #pringRoot #pringTkSwap:active{transform:scale(.96)}
 #pokemonRingeView #pringRoot #pringTkSwap.busy{animation:tkBusy .45s}
 
+#pokemonRingeView #pringRoot .tkord button[data-s]{padding:3px 9px;font-size:14px;color:#ffd08a}
+
 .prevRegion svg{border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
 .prevRegion .rr{stroke-dasharray:1;animation:rdraw 4.5s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rdraw{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -590,7 +592,7 @@ html.pring-rec-lock,html.pring-rec-lock body{overflow:hidden!important;overscrol
     </div>
   </div>
   <button id="backupLink">⇅ Sicherung</button>
-  <div id="verTag">Version 402</div>
+  <div id="verTag">Version 403</div>
   <div id="archivLink">Archiv</div>
 </div>
 
@@ -2062,30 +2064,37 @@ function tkOrder(k){const l=getP()[k]||[];let a=tkOrdGet(k);
   const def=l.map((x,i)=>i).sort((i,j)=>(l[i].ring-l[j].ring)||(i-j));
   if(!Array.isArray(a)||a.length!==l.length||[...a].sort((x,y)=>x-y).some((v,i)=>v!==i))a=def;
   return a;}
+/* Partner-Paare bilden eine gemeinsame Zeile: [Zoom-Pokémon, Partner] */
+function tkOrdGroups(k,a){const l=getP()[k]||[],seen=new Set(),G=[];
+  a.forEach(i=>{if(seen.has(i))return;seen.add(i);const g=[i],pt=l[i]&&l[i].partner;
+    if(pt!=null&&l[pt]&&!seen.has(pt)&&l[pt].ring===l[i].ring){g.push(pt);seen.add(pt);}G.push(g);});
+  return G;}
 function tkOrdList(){const k=$('pSel').value||TK.kader,L=$('tkOrdList');L.innerHTML='';const l=getP()[k];
   if(!l){L.innerHTML='<p class="hint">Oben einen Kader auswählen.</p>';return;}
-  const a=tkOrder(k),RC=['#e53935','#f28c1a','#fdd23a','#43a047','#6aa8ff','#c07cff'];
-  a.forEach((idx,pos)=>{const x=l[idx],r=document.createElement('div');r.className='tkord';
-    const pt=x.partner!=null&&l[x.partner]?' <i>+ '+l[x.partner].name+'</i>':'';
-    r.dataset.pos=pos;r.innerHTML=`<span class="h" title="Gedrückt halten und ziehen">☰</span><span class="n">${pos+1}</span><span class="dot" style="background:${RC[x.ring]||'#888'}"></span><span class="a">${x.name}${pt}</span><span class="nn">${(x.notes||[]).length} Stichp.</span><button data-u="1" ${pos?'':'disabled'}>▲</button><button data-d="1" ${pos<a.length-1?'':'disabled'}>▼</button>`;
-    r.querySelector('[data-u]').onclick=()=>{[a[pos-1],a[pos]]=[a[pos],a[pos-1]];tkOrdPut(k,a);tkOrdList();};
-    r.querySelector('[data-d]').onclick=()=>{[a[pos+1],a[pos]]=[a[pos],a[pos+1]];tkOrdPut(k,a);tkOrdList();};
-    r.querySelector('.h').addEventListener('pointerdown',ev=>tkOrdDrag(ev,r,k,a));
+  const G=tkOrdGroups(k,tkOrder(k)),RC=['#e53935','#f28c1a','#fdd23a','#43a047','#6aa8ff','#c07cff'];
+  const save=()=>{tkOrdPut(k,G.flat());tkOrdList();};
+  G.forEach((g,pos)=>{const x=l[g[0]],y=g[1]!=null?l[g[1]]:null,r=document.createElement('div');r.className='tkord'+(y?' pair':'');r.dataset.pos=pos;
+    const nn=(x.notes||[]).length;
+    r.innerHTML=`<span class="h" title="Gedrückt halten und ziehen">☰</span><span class="n">${pos+1}</span><span class="dot" style="background:${RC[x.ring]||'#888'}"></span><span class="a">${x.name}${y?' <i>+ '+y.name+'</i>':''}</span>`+
+      (y?`<button data-s="1" title="Tauschen, auf wen gezoomt wird">⇄</button>`:'')+`<span class="nn">${y?'Zoom auf '+x.name+' · ':''}${nn} Stichp.</span><button data-u="1" ${pos?'':'disabled'}>▲</button><button data-d="1" ${pos<G.length-1?'':'disabled'}>▼</button>`;
+    r.querySelector('[data-u]').onclick=()=>{[G[pos-1],G[pos]]=[G[pos],G[pos-1]];save();};
+    r.querySelector('[data-d]').onclick=()=>{[G[pos+1],G[pos]]=[G[pos],G[pos+1]];save();};
+    if(y)r.querySelector('[data-s]').onclick=()=>{g.reverse();save();};
+    r.querySelector('.h').addEventListener('pointerdown',ev=>tkOrdDrag(ev,r,G,save));
     L.appendChild(r);});}
 /* Ziehen & Ablegen (Finger oder Maus) am ☰-Griff */
-function tkOrdDrag(ev,row,k,a){
+function tkOrdDrag(ev,row,G,save){
   ev.preventDefault();const L=$('tkOrdList'),rows=[...L.children],from=+row.dataset.pos;
   const h=row.getBoundingClientRect().height,y0=ev.clientY;let to=from,raf=0,lastY=y0;
   row.classList.add('drag');try{row.setPointerCapture(ev.pointerId);}catch(e){}
   const place=()=>{raf=0;const dy=lastY-y0;row.style.transform=`translateY(${dy}px)`;
-    // automatisch scrollen, wenn man an den Rand der Liste zieht
     const lr=L.getBoundingClientRect();if(lastY<lr.top+24)L.scrollTop-=8;else if(lastY>lr.bottom-24)L.scrollTop+=8;
     to=Math.max(0,Math.min(rows.length-1,from+Math.round(dy/h)));
     rows.forEach((x,i)=>{if(x===row)return;let s=0;if(from<to&&i>from&&i<=to)s=-h;if(from>to&&i<from&&i>=to)s=h;x.style.transform=s?`translateY(${s}px)`:'';});};
   const mv=e=>{lastY=e.clientY;if(!raf)raf=requestAnimationFrame(place);};
   const up=()=>{row.removeEventListener('pointermove',mv);row.removeEventListener('pointerup',up);row.removeEventListener('pointercancel',up);
     if(raf)cancelAnimationFrame(raf);rows.forEach(x=>x.style.transform='');row.classList.remove('drag');
-    if(to!==from){const [x]=a.splice(from,1);a.splice(to,0,x);tkOrdPut(k,a);}tkOrdList();};
+    if(to!==from){const [x]=G.splice(from,1);G.splice(to,0,x);}save();};
   row.addEventListener('pointermove',mv);row.addEventListener('pointerup',up);row.addEventListener('pointercancel',up);
 }
 $('tkOrdReset').onclick=()=>{const k=$('pSel').value||TK.kader;tkOrdPut(k,null);tkOrdList();};
